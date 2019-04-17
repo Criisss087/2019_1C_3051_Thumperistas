@@ -7,9 +7,15 @@ using TGC.Core.Input;
 using TGC.Core.Mathematica;
 using TGC.Core.SceneLoader;
 using TGC.Core.Textures;
+using System;
+using TGC.Examples.Camara;
+
 
 namespace TGC.Group.Model
 {
+
+
+   
     /// <summary>
     ///     Ejemplo para implementar el TP.
     ///     Inicialmente puede ser renombrado o copiado para hacer más ejemplos chicos, en el caso de copiar para que se
@@ -30,11 +36,7 @@ namespace TGC.Group.Model
             Description = Game.Default.Description;
         }
 
-        //Caja que se muestra en el ejemplo.
-        private TGCBox Box { get; set; }
-
-        //Mesh de TgcLogo.
-        private TgcMesh Mesh { get; set; }
+        
 
         //Boleano para ver si dibujamos el boundingbox
         private bool BoundingBox { get; set; }
@@ -45,43 +47,104 @@ namespace TGC.Group.Model
         ///     procesamiento que podemos pre calcular para nuestro juego.
         ///     Borrar el codigo ejemplo no utilizado.
         /// </summary>
+        /// 
+
+        //Aca la empiezo a cagar yo
+
+        TgcThirdPersonCamera camaraInterna;
+        //private TgcMesh TunnelMesh { get; set; }
+        //private TgcMesh TriangularMesh { get; set; }
+
+        private TgcMesh BeetleMesh { get; set; }
+        float zSpeed { get; set; }
+        TGCVector3 forward = new TGCVector3(0f, 0f, 1f);
+        TgcMesh[] Pista;
         public override void Init()
         {
+            zSpeed = 0;
             //Device de DirectX para crear primitivas.
             var d3dDevice = D3DDevice.Instance.Device;
 
-            //Textura de la carperta Media. Game.Default es un archivo de configuracion (Game.settings) util para poner cosas.
-            //Pueden abrir el Game.settings que se ubica dentro de nuestro proyecto para configurar.
-            var pathTexturaCaja = MediaDir + Game.Default.TexturaCaja;
-
-            //Cargamos una textura, tener en cuenta que cargar una textura significa crear una copia en memoria.
-            //Es importante cargar texturas en Init, si se hace en el render loop podemos tener grandes problemas si instanciamos muchas.
-            var texture = TgcTexture.createTexture(pathTexturaCaja);
-
-            //Creamos una caja 3D ubicada de dimensiones (5, 10, 5) y la textura como color.
-            var size = new TGCVector3(5, 10, 5);
-            //Construimos una caja según los parámetros, por defecto la misma se crea con centro en el origen y se recomienda así para facilitar las transformaciones.
-            Box = TGCBox.fromSize(size, texture);
-            //Posición donde quiero que este la caja, es común que se utilicen estructuras internas para las transformaciones.
-            //Entonces actualizamos la posición lógica, luego podemos utilizar esto en render para posicionar donde corresponda con transformaciones.
-            Box.Position = new TGCVector3(-25, 0, 0);
-
-            //Cargo el unico mesh que tiene la escena.
-            Mesh = new TgcSceneLoader().loadSceneFromFile(MediaDir + "LogoTGC-TgcScene.xml").Meshes[0];
+            
             //Defino una escala en el modelo logico del mesh que es muy grande.
-            Mesh.Scale = new TGCVector3(0.5f, 0.5f, 0.5f);
 
-            //Suelen utilizarse objetos que manejan el comportamiento de la camara.
-            //Lo que en realidad necesitamos gráficamente es una matriz de View.
-            //El framework maneja una cámara estática, pero debe ser inicializada.
-            //Posición de la camara.
-            var cameraPosition = new TGCVector3(0, 0, 125);
-            //Quiero que la camara mire hacia el origen (0,0,0).
-            var lookAt = TGCVector3.Empty;
-            //Configuro donde esta la posicion de la camara y hacia donde mira.
-            Camara.SetCamera(cameraPosition, lookAt);
-            //Internamente el framework construye la matriz de view con estos dos vectores.
-            //Luego en nuestro juego tendremos que crear una cámara que cambie la matriz de view con variables como movimientos o animaciones de escenas.
+            var loader = new TgcSceneLoader();
+
+            //Loadeo todas mis meshes
+            //TunnelMesh = loader.loadSceneFromFile(MediaDir + "/Thumper/circular_tunnel-TgcScene.xml").Meshes[0];
+            //TriangularMesh = loader.loadSceneFromFile(MediaDir + "/Thumper/triangular_tunnel-TgcScene.xml").Meshes[0];            
+            BeetleMesh = loader.loadSceneFromFile(MediaDir + "Thumper/beetle-TgcScene.xml").Meshes[7];
+
+
+            //Modifico como quiero que empiece el mesh
+            BeetleMesh.Position = TGCVector3.Empty;
+
+            BeetleMesh.Scale = TGCVector3.One * .5f; //Escalo a la mitad del beetle
+            
+            BeetleMesh.RotateY(FastMath.PI_HALF); //Lo roto
+            
+            BeetleMesh.BoundingBox.transform(TGCMatrix.RotationY(FastMath.PI_HALF));
+            //tambien tengo que rota el boundingbox porque eso no se actuliza
+
+            BeetleMesh.Position += new TGCVector3(2f, 8f, 0f);
+            
+
+
+            Pista =generarPista(); 
+
+
+            camaraInterna = new TgcThirdPersonCamera(BeetleMesh.Position,30f,-100f);
+            
+            Camara = camaraInterna;
+           // cameraOffset = new TGCVector3(0f, 10f, -200f);
+           // Camara.SetCamera(BeetleMesh.BoundingBox.calculateBoxCenter() + cameraOffset,  BeetleMesh.Position);
+            
+
+        }
+
+        TgcMesh[] generarPista()
+        {
+            int longPista = 100; //cuantas piezas va a tener
+            TgcMesh[] Pista = new TgcMesh[longPista];
+            float offsetPieza = 50;
+            float acumOffsetPieza = 0;
+            Random rnd = new Random();
+            for (int i = 0; i< longPista; i++)
+            {
+                TgcMesh MeshAux;
+                if (rnd.Next(2) > 0) MeshAux = cargarMesh("triangular_tunnel-TgcScene.xml", 0);//cargo tunel triangular (ya esta rotado)
+                else
+                {
+                    MeshAux = cargarMesh("circular_tunnel-TgcScene.xml", 0);//cargo el tunel circular
+                    MeshAux.Transform *= TGCMatrix.RotationY (FastMath.PI_HALF);
+                }
+
+               
+
+                MeshAux.AutoTransform = false; //No termino de enteder que hace pero si lo dejo las transformaciones no funcionan como quiero
+                MeshAux.Transform *= TGCMatrix.Scaling(TGCVector3.One * rnd.Next(2, 5))* TGCMatrix.Translation(new TGCVector3(0, 0, acumOffsetPieza));
+                
+               // MeshAux.Position += forward * acumOffsetPieza; //cada pieza una adelante de la otra            
+
+               // MeshAux.Scale = TGCVector3.One * rnd.Next(2, 5); //escalar random --- simplique estas dos lineas en un gran transform
+
+                Color randomColor = Color.FromArgb(rnd.Next(256), rnd.Next(256), rnd.Next(256));
+                
+                MeshAux.setColor(randomColor);
+
+
+                MeshAux.BoundingBox.transform(MeshAux.Transform);
+
+                Pista[i] = MeshAux;
+                acumOffsetPieza += offsetPieza; //todos estos valores hardcodeados deberia pasarlos a las declaraciones xd
+
+            }
+            return Pista;
+        }
+
+        TgcMesh cargarMesh(string nombreArchivo, int nroMeshes)
+        {
+            return new TgcSceneLoader().loadSceneFromFile(MediaDir + "/Thumper/" + nombreArchivo).Meshes[nroMeshes];
         }
 
         /// <summary>
@@ -89,6 +152,11 @@ namespace TGC.Group.Model
         ///     Se debe escribir toda la lógica de computo del modelo, así como también verificar entradas del usuario y reacciones
         ///     ante ellas.
         /// </summary>
+        /// 
+
+
+
+
         public override void Update()
         {
             PreUpdate();
@@ -98,21 +166,21 @@ namespace TGC.Group.Model
             {
                 BoundingBox = !BoundingBox;
             }
-
-            //Capturar Input Mouse
-            if (Input.buttonUp(TgcD3dInput.MouseButtons.BUTTON_LEFT))
+            if (Input.keyDown(Key.UpArrow))
             {
-                //Como ejemplo podemos hacer un movimiento simple de la cámara.
-                //En este caso le sumamos un valor en Y
-                Camara.SetCamera(Camara.Position + new TGCVector3(0, 10f, 0), Camara.LookAt);
-                //Ver ejemplos de cámara para otras operaciones posibles.
-
-                //Si superamos cierto Y volvemos a la posición original.
-                if (Camara.Position.Y > 300f)
-                {
-                    Camara.SetCamera(new TGCVector3(Camara.Position.X, 0f, Camara.Position.Z), Camara.LookAt);
-                }
+                zSpeed += 5f;
             }
+            if (Input.keyDown(Key.DownArrow))
+            {
+                zSpeed -= 5f;
+            }
+            camaraInterna.Target = BeetleMesh.Position;
+            BeetleMesh.Position += forward * ElapsedTime *zSpeed;
+            //BeetleMesh.Transform = TGCMatrix.Translation(BeetleMesh.Position);
+
+            BeetleMesh.BoundingBox.transform(BeetleMesh.Transform);
+
+
 
             PostUpdate();
         }
@@ -129,28 +197,53 @@ namespace TGC.Group.Model
 
             //Dibuja un texto por pantalla
             DrawText.drawText("Con la tecla F se dibuja el bounding box.", 0, 20, Color.OrangeRed);
-            DrawText.drawText("Con clic izquierdo subimos la camara [Actual]: " + TGCVector3.PrintVector3(Camara.Position), 0, 30, Color.OrangeRed);
+            DrawText.drawText("Posicion actual del jugador: " + TGCVector3.PrintVector3(BeetleMesh.Position), 0, 30, Color.OrangeRed);
+            System.Console.WriteLine(TGCVector3.PrintVector3(Pista[0].Position));
+            System.Console.WriteLine(TGCVector3.PrintVector3(Pista[1].Position));
 
             //Siempre antes de renderizar el modelo necesitamos actualizar la matriz de transformacion.
             //Debemos recordar el orden en cual debemos multiplicar las matrices, en caso de tener modelos jerárquicos, tenemos control total.
-            Box.Transform = TGCMatrix.Scaling(Box.Scale) * TGCMatrix.RotationYawPitchRoll(Box.Rotation.Y, Box.Rotation.X, Box.Rotation.Z) * TGCMatrix.Translation(Box.Position);
+            // Box.Transform = TGCMatrix.Scaling(Box.Scale) * TGCMatrix.RotationYawPitchRoll(Box.Rotation.Y, Box.Rotation.X, Box.Rotation.Z) * TGCMatrix.Translation(Box.Position);
             //A modo ejemplo realizamos toda las multiplicaciones, pero aquí solo nos hacia falta la traslación.
             //Finalmente invocamos al render de la caja
-            Box.Render();
+            // Box.Render();
 
             //Cuando tenemos modelos mesh podemos utilizar un método que hace la matriz de transformación estándar.
             //Es útil cuando tenemos transformaciones simples, pero OJO cuando tenemos transformaciones jerárquicas o complicadas.
-            Mesh.UpdateMeshTransform();
+            //  Mesh.UpdateMeshTransform();
             //Render del mesh
-            Mesh.Render();
+            //  Mesh.Render();
+
+
+
+
 
             //Render de BoundingBox, muy útil para debug de colisiones.
             if (BoundingBox)
             {
-                Box.BoundingBox.Render();
-                Mesh.BoundingBox.Render();
+                foreach (TgcMesh AuxMesh in Pista)
+                {
+                    AuxMesh.BoundingBox.Render();
+                }
+                BeetleMesh.BoundingBox.Render();//Muestro mi BoundingBox
+                //TunnelMesh.BoundingBox.Render();
+                //TriangularMesh.BoundingBox.Render();
             }
 
+            //Aca la empiezo a cagar yo
+
+            BeetleMesh.UpdateMeshTransform();
+
+
+            
+            BeetleMesh.Render();
+
+            foreach(TgcMesh AuxMesh in Pista)
+            {
+                AuxMesh.Render();
+            }
+
+            //Aca termine de cagarla porque lo de abajo es importante.
             //Finaliza el render y presenta en pantalla, al igual que el preRender se debe para casos puntuales es mejor utilizar a mano las operaciones de EndScene y PresentScene
             PostRender();
         }
@@ -162,10 +255,10 @@ namespace TGC.Group.Model
         /// </summary>
         public override void Dispose()
         {
-            //Dispose de la caja.
-            Box.Dispose();
-            //Dispose del mesh.
-            Mesh.Dispose();
+            //TODO sacar pista
+            //TriangularMesh.Dispose();
+            //TunnelMesh.Dispose();
+            BeetleMesh.Dispose(); //dispongo de mis mesh 
         }
     }
 }
