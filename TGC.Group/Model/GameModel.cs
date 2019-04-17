@@ -72,8 +72,10 @@ namespace TGC.Group.Model
 
             //Loadeo todas mis meshes
             //TunnelMesh = loader.loadSceneFromFile(MediaDir + "/Thumper/circular_tunnel-TgcScene.xml").Meshes[0];
-            //TriangularMesh = loader.loadSceneFromFile(MediaDir + "/Thumper/triangular_tunnel-TgcScene.xml").Meshes[0];            
-            BeetleMesh = loader.loadSceneFromFile(MediaDir + "Thumper/beetle-TgcScene.xml").Meshes[7];
+            //TriangularMesh = loader.loadSceneFromFile(MediaDir + "/Thumper/triangular_tunnel-TgcScene.xml").Meshes[0];    
+            System.Console.WriteLine(MediaDir);
+
+            BeetleMesh = cargarMesh("beetle-TgcScene.xml",7);
 
 
             //Modifico como quiero que empiece el mesh
@@ -115,14 +117,14 @@ namespace TGC.Group.Model
                 if (rnd.Next(2) > 0) MeshAux = cargarMesh("triangular_tunnel-TgcScene.xml", 0);//cargo tunel triangular (ya esta rotado)
                 else
                 {
-                    MeshAux = cargarMesh("circular_tunnel-TgcScene.xml", 0);//cargo el tunel circular
-                    MeshAux.Transform *= TGCMatrix.RotationY (FastMath.PI_HALF);
+                    MeshAux = cargarMesh("testMeshCreatorCircle-TgcScene.xml", 0);//cargo el tunel circular (el nuevo ya esta rotado)
+                   
                 }
 
                
 
                 MeshAux.AutoTransform = false; //No termino de enteder que hace pero si lo dejo las transformaciones no funcionan como quiero
-                MeshAux.Transform *= TGCMatrix.Scaling(TGCVector3.One * rnd.Next(2, 5))* TGCMatrix.Translation(new TGCVector3(0, 0, acumOffsetPieza));
+                MeshAux.Transform *= TGCMatrix.Scaling(TGCVector3.One * rnd.Next(3, 6))* TGCMatrix.Translation(new TGCVector3(0, 0, acumOffsetPieza));
                 
                // MeshAux.Position += forward * acumOffsetPieza; //cada pieza una adelante de la otra            
 
