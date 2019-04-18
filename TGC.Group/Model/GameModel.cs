@@ -57,12 +57,12 @@ namespace TGC.Group.Model
         //private TgcMesh TriangularMesh { get; set; }
 
         private TgcMesh BeetleMesh { get; set; }
-        float zSpeed { get; set; }
+        float SPEED { get; set; }
         TGCVector3 forward = new TGCVector3(0f, 0f, 1f);
         Pista PistaNivel;
         public override void Init()
         {
-            zSpeed = 0;
+            SPEED = 300f;
             //Device de DirectX para crear primitivas.
             var d3dDevice = D3DDevice.Instance.Device;
 
@@ -96,7 +96,7 @@ namespace TGC.Group.Model
             PistaNivel = new Pista(MediaDir); 
 
 
-            camaraInterna = new TgcThirdPersonCamera(BeetleMesh.Position,30f,-100f);
+            camaraInterna = new TgcThirdPersonCamera(BeetleMesh.Position,15f,-100f);
             
             Camara = camaraInterna;
            // cameraOffset = new TGCVector3(0f, 10f, -200f);
@@ -128,16 +128,13 @@ namespace TGC.Group.Model
             {
                 BoundingBox = !BoundingBox;
             }
-            if (Input.keyDown(Key.UpArrow))
+            if (Input.keyPressed(Key.Z) || Input.keyPressed(Key.X))
             {
-                zSpeed += 5f;
+                //aca recolecto las cosas de la pista
             }
-            if (Input.keyDown(Key.DownArrow))
-            {
-                zSpeed -= 5f;
-            }
+
             camaraInterna.Target = BeetleMesh.Position;
-            BeetleMesh.Position += forward * ElapsedTime *zSpeed;
+            BeetleMesh.Move(new TGCVector3 (0,0,1) *ElapsedTime *SPEED); //me muevo dependiendo de la orientacion
             BeetleMesh.BoundingBox.transform(BeetleMesh.Transform);
 
 

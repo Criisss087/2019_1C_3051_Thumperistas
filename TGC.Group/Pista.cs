@@ -39,18 +39,18 @@ namespace TGC.Group
 
         List<TgcMesh> generarPista()
         {
-            int longPista = 50; //cuantas piezas va a tener
+            int longPista = 20; //cuantas piezas va a tener
             List<TgcMesh> Pista= new List<TgcMesh>();
             TGCVector3 acumOffsetPieza = new TGCVector3 (0,0,0);
             Random rnd = new Random();
             for (int i = 0; i < longPista; i++)
             {                
-                System.Console.WriteLine(TGCVector3.PrintVector3(acumOffsetPieza));
                 int eleccionPista = elijoEntreTresProbabilidades(60, 15, 15);
+                System.Console.WriteLine(eleccionPista);
                 if (eleccionPista == 1)
                 { // randomizo mis tres posibilidades la primera es piso, las otras dos son tuneles
 
-                    for (int j = 0; j < 50; j++)
+                    for (int j = 0; j < 25; j++)
                     {
                         Pista.Add(generarSegmentoPiso(acumOffsetPieza));
                         acumOffsetPieza += new TGCVector3(0, 0, 50);
@@ -60,30 +60,24 @@ namespace TGC.Group
                 }
                 else if (eleccionPista == 2)
                 {
-                    for (int j = 0; j < 10; j++)
-                    {
-                        TgcMesh MeshAux = cargarMesh("triangular_tunnel-TgcScene.xml", 0);
-                        MeshAux.Move(acumOffsetPieza);
-                        Pista.Add(MeshAux);//cargo tunel triangular (ya esta rotado)
-                        acumOffsetPieza += new TGCVector3(0, 0, 30);
-                    }
+                    float offsetPiezas = 30;
+                    int longitudTunel = 10;
+                    Pista.AddRange(generarTunel(acumOffsetPieza, longitudTunel, "testMeshCreatorCircle-TgcScene.xml",offsetPiezas));
+                    acumOffsetPieza += new TGCVector3(0, 0, offsetPiezas) * longitudTunel;
                     
                 }   // MUUUUUUUUUUUUCHA REPETICION DE CODIGO #ToDo
                 else
                 {
-                    for (int j = 0; j < 10; j++)
-                    {
-                        TgcMesh MeshAux = cargarMesh("testMeshCreatorCircle-TgcScene.xml", 0);
-                        MeshAux.Move(acumOffsetPieza);                       
-                        Pista.Add(MeshAux); //cargo tunel circular (no esta rotada la BoundingBox)
-                        acumOffsetPieza += new TGCVector3(0, 0, 30);
-                    }
+                    float offsetPiezas = 30;
+                    int longitudTunel = 10;
+                    Pista.AddRange(generarTunel(acumOffsetPieza, longitudTunel, "triangular_tunnel-TgcScene.xml",offsetPiezas));
+                    acumOffsetPieza += new TGCVector3(0, 0, offsetPiezas) * longitudTunel;
                 }
 
 
 
-               // MeshAux.AutoTransform = false; //No termino de enteder que hace pero si lo dejo las transformaciones no funcionan como quiero
-               // MeshAux.Transform *= TGCMatrix.Scaling(TGCVector3.One * rnd.Next(3, 6)) * TGCMatrix.Translation(new TGCVector3(0, 0, acumOffsetPieza));
+                // MeshAux.AutoTransform = false; //No termino de enteder que hace pero si lo dejo las transformaciones no funcionan como quiero
+                // MeshAux.Transform *= TGCMatrix.Scaling(TGCVector3.One * rnd.Next(3, 6)) * TGCMatrix.Translation(new TGCVector3(0, 0, acumOffsetPieza));
 
                 // MeshAux.Position += forward * acumOffsetPieza; //cada pieza una adelante de la otra            
 
@@ -101,14 +95,32 @@ namespace TGC.Group
             return Pista;
         }
 
+        List<TgcMesh> generarTunel(TGCVector3 Posicion, int Longitud, String nombreArchivo,float offset) //si tuviese tuenes con mas meshes deberia pasar tmb la cant meshes
+        {
+            List<TgcMesh> Tunel = new List<TgcMesh>();
+            Random rnd = new Random();
+            Color ColorRandom = Color.FromArgb(rnd.Next(256), rnd.Next(256), rnd.Next(256));
+            TGCVector3 acumOffset = TGCVector3.Empty;
+            for (int j = 0; j < 10; j++)
+            {
+                TgcMesh MeshAux = cargarMesh(nombreArchivo, 0);
+                MeshAux.Move(Posicion+acumOffset + TGCVector3.Up * 5);
+                MeshAux.Scale = TGCVector3.One * 3;
+                MeshAux.setColor(ColorRandom);
+                Tunel.Add(MeshAux);//cargo tunel circular (no esta rotada la BoundingBox)             
+                acumOffset += new TGCVector3(0, 0, offset);
+            }
+            return Tunel;
+        }
+
         TgcMesh generarSegmentoPiso(TGCVector3 Posicion)
         {
             TGCBox piso = new TGCBox();
             TGCVector3 Tamanio = new TGCVector3(30, 10, 30);
-            piso.Color = Color.DarkGray;
+            TgcTexture texturaPiso = TgcTexture.createTexture(D3DDevice.Instance.Device, MediaDir + "Textures/Gray.jpg");
+            piso.setTexture(texturaPiso);
             piso.Size = Tamanio;
-            piso.Transform = TGCMatrix.Translation(Posicion); //Posicion;
-            //System.Console.WriteLine(piso.Position.ToString());
+            piso.Transform = TGCMatrix.Translation(Posicion); 
             piso.updateValues();
             return piso.ToMesh("piso");
         }
@@ -120,7 +132,7 @@ namespace TGC.Group
             Random rnd = new Random();
             int randomNumber =rnd.Next(probTotal);
             if (randomNumber < probA) return 1;
-            else if (randomNumber >= probA && randomNumber < probB) return 2;
+            else if (randomNumber < probA+probB) return 2;
             else return 3;
         }
 
