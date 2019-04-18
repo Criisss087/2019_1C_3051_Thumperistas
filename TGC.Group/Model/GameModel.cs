@@ -59,7 +59,7 @@ namespace TGC.Group.Model
         private TgcMesh BeetleMesh { get; set; }
         float zSpeed { get; set; }
         TGCVector3 forward = new TGCVector3(0f, 0f, 1f);
-        Pista SegmentosPista;
+        Pista PistaNivel;
         public override void Init()
         {
             zSpeed = 0;
@@ -89,11 +89,11 @@ namespace TGC.Group.Model
             BeetleMesh.BoundingBox.transform(TGCMatrix.RotationY(FastMath.PI_HALF));
             //tambien tengo que rota el boundingbox porque eso no se actuliza
 
-            BeetleMesh.Position += new TGCVector3(2f, 8f, 0f);
+            BeetleMesh.Position += new TGCVector3(0f, 10f, 0f);
 
 
 
-            SegmentosPista = new Pista(MediaDir); 
+            PistaNivel = new Pista(MediaDir); 
 
 
             camaraInterna = new TgcThirdPersonCamera(BeetleMesh.Position,30f,-100f);
@@ -179,7 +179,7 @@ namespace TGC.Group.Model
             //Render de BoundingBox, muy útil para debug de colisiones.
             if (BoundingBox)
             {
-                foreach (TgcMesh AuxMesh in SegmentosPista.GetSegmentosPista())
+                foreach (TgcMesh AuxMesh in PistaNivel.GetSegmentosPista())
                 {
                     AuxMesh.BoundingBox.Render();
                 }
@@ -191,7 +191,7 @@ namespace TGC.Group.Model
             
             BeetleMesh.Render();
 
-            foreach(TgcMesh AuxMesh in SegmentosPista.GetSegmentosPista())
+            foreach(TgcMesh AuxMesh in PistaNivel.GetSegmentosPista())
             {
                 AuxMesh.Render();
             }
@@ -211,7 +211,7 @@ namespace TGC.Group.Model
             //TODO sacar pista
             //TriangularMesh.Dispose();
             //TunnelMesh.Dispose();
-            foreach (TgcMesh AuxMesh in SegmentosPista.GetSegmentosPista())
+            foreach (TgcMesh AuxMesh in PistaNivel.GetSegmentosPista())
             {
                 AuxMesh.Dispose();
             }
