@@ -8,6 +8,7 @@ using TGC.Core.Mathematica;
 using TGC.Core.SceneLoader;
 using TGC.Core.Textures;
 using System;
+using System.Collections.Generic;
 using TGC.Examples.Camara;
 
 
@@ -58,7 +59,7 @@ namespace TGC.Group.Model
         private TgcMesh BeetleMesh { get; set; }
         float zSpeed { get; set; }
         TGCVector3 forward = new TGCVector3(0f, 0f, 1f);
-        TgcMesh[] Pista;
+        Pista SegmentosPista;
         public override void Init()
         {
             zSpeed = 0;
@@ -75,7 +76,7 @@ namespace TGC.Group.Model
             //TriangularMesh = loader.loadSceneFromFile(MediaDir + "/Thumper/triangular_tunnel-TgcScene.xml").Meshes[0];    
             System.Console.WriteLine(MediaDir);
 
-            BeetleMesh = cargarMesh("beetle-TgcScene.xml",7);
+            BeetleMesh = loader.loadSceneFromFile(MediaDir+ "/Thumper/beetle-TgcScene.xml").Meshes[7];
 
 
             //Modifico como quiero que empiece el mesh
@@ -89,10 +90,10 @@ namespace TGC.Group.Model
             //tambien tengo que rota el boundingbox porque eso no se actuliza
 
             BeetleMesh.Position += new TGCVector3(2f, 8f, 0f);
-            
 
 
-            Pista =generarPista(); 
+
+            SegmentosPista = new Pista(MediaDir); 
 
 
             camaraInterna = new TgcThirdPersonCamera(BeetleMesh.Position,30f,-100f);
@@ -104,50 +105,9 @@ namespace TGC.Group.Model
 
         }
 
-        TgcMesh[] generarPista()
-        {
-            int longPista = 100; //cuantas piezas va a tener
-            TgcMesh[] Pista = new TgcMesh[longPista];
-            float offsetPieza = 50;
-            float acumOffsetPieza = 0;
-            Random rnd = new Random();
-            for (int i = 0; i< longPista; i++)
-            {
-                TgcMesh MeshAux;
-                if (rnd.Next(2) > 0) MeshAux = cargarMesh("triangular_tunnel-TgcScene.xml", 0);//cargo tunel triangular (ya esta rotado)
-                else
-                {
-                    MeshAux = cargarMesh("testMeshCreatorCircle-TgcScene.xml", 0);//cargo el tunel circular (el nuevo ya esta rotado)
-                   
-                }
+        
 
-               
-
-                MeshAux.AutoTransform = false; //No termino de enteder que hace pero si lo dejo las transformaciones no funcionan como quiero
-                MeshAux.Transform *= TGCMatrix.Scaling(TGCVector3.One * rnd.Next(3, 6))* TGCMatrix.Translation(new TGCVector3(0, 0, acumOffsetPieza));
-                
-               // MeshAux.Position += forward * acumOffsetPieza; //cada pieza una adelante de la otra            
-
-               // MeshAux.Scale = TGCVector3.One * rnd.Next(2, 5); //escalar random --- simplique estas dos lineas en un gran transform
-
-                Color randomColor = Color.FromArgb(rnd.Next(256), rnd.Next(256), rnd.Next(256));
-                
-                MeshAux.setColor(randomColor);
-
-
-                MeshAux.BoundingBox.transform(MeshAux.Transform);
-
-                Pista[i] = MeshAux;
-                acumOffsetPieza += offsetPieza; //todos estos valores hardcodeados deberia pasarlos a las declaraciones xd
-
-            }
-            return Pista;
-        }
-
-        TgcMesh cargarMesh(string nombreArchivo, int nroMeshes)
-        {
-            return new TgcSceneLoader().loadSceneFromFile(MediaDir + "/Thumper/" + nombreArchivo).Meshes[nroMeshes];
-        }
+        
 
         /// <summary>
         ///     Se llama en cada frame.
@@ -178,8 +138,6 @@ namespace TGC.Group.Model
             }
             camaraInterna.Target = BeetleMesh.Position;
             BeetleMesh.Position += forward * ElapsedTime *zSpeed;
-            //BeetleMesh.Transform = TGCMatrix.Translation(BeetleMesh.Position);
-
             BeetleMesh.BoundingBox.transform(BeetleMesh.Transform);
 
 
@@ -200,9 +158,7 @@ namespace TGC.Group.Model
             //Dibuja un texto por pantalla
             DrawText.drawText("Con la tecla F se dibuja el bounding box.", 0, 20, Color.OrangeRed);
             DrawText.drawText("Posicion actual del jugador: " + TGCVector3.PrintVector3(BeetleMesh.Position), 0, 30, Color.OrangeRed);
-            System.Console.WriteLine(TGCVector3.PrintVector3(Pista[0].Position));
-            System.Console.WriteLine(TGCVector3.PrintVector3(Pista[1].Position));
-
+            
             //Siempre antes de renderizar el modelo necesitamos actualizar la matriz de transformacion.
             //Debemos recordar el orden en cual debemos multiplicar las matrices, en caso de tener modelos jerárquicos, tenemos control total.
             // Box.Transform = TGCMatrix.Scaling(Box.Scale) * TGCMatrix.RotationYawPitchRoll(Box.Rotation.Y, Box.Rotation.X, Box.Rotation.Z) * TGCMatrix.Translation(Box.Position);
@@ -223,24 +179,19 @@ namespace TGC.Group.Model
             //Render de BoundingBox, muy útil para debug de colisiones.
             if (BoundingBox)
             {
-                foreach (TgcMesh AuxMesh in Pista)
+                foreach (TgcMesh AuxMesh in SegmentosPista.GetSegmentosPista())
                 {
                     AuxMesh.BoundingBox.Render();
                 }
                 BeetleMesh.BoundingBox.Render();//Muestro mi BoundingBox
-                //TunnelMesh.BoundingBox.Render();
-                //TriangularMesh.BoundingBox.Render();
             }
-
-            //Aca la empiezo a cagar yo
-
             BeetleMesh.UpdateMeshTransform();
 
 
             
             BeetleMesh.Render();
 
-            foreach(TgcMesh AuxMesh in Pista)
+            foreach(TgcMesh AuxMesh in SegmentosPista.GetSegmentosPista())
             {
                 AuxMesh.Render();
             }
@@ -260,6 +211,10 @@ namespace TGC.Group.Model
             //TODO sacar pista
             //TriangularMesh.Dispose();
             //TunnelMesh.Dispose();
+            foreach (TgcMesh AuxMesh in SegmentosPista.GetSegmentosPista())
+            {
+                AuxMesh.Dispose();
+            }
             BeetleMesh.Dispose(); //dispongo de mis mesh 
         }
     }
