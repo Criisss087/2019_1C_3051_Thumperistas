@@ -82,7 +82,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Pista.cs" />
+    <Compile Include="Model\Beetle.cs" />
+    <Compile Include="Model\Pista.cs" />
     <Compile Include="Form\GameForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -97,7 +98,7 @@
     <Compile Include="Model\GameModel.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ThirPersonCamera.cs" />
+    <Compile Include="Model\ThirPersonCamera.cs" />
     <EmbeddedResource Include="Form\GameForm.resx">
       <DependentUpon>GameForm.cs</DependentUpon>
     </EmbeddedResource>

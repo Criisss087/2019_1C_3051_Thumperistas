@@ -10,18 +10,16 @@ using TGC.Core.Textures;
 using System;
 using System.Collections.Generic;
 using TGC.Examples.Camara;
-
+using TGC.Core.Sound;
 
 namespace TGC.Group.Model
 {
-
-
-   
+         
     /// <summary>
     ///     Ejemplo para implementar el TP.
     ///     Inicialmente puede ser renombrado o copiado para hacer más ejemplos chicos, en el caso de copiar para que se
-    ///     ejecute el nuevo ejemplo deben cambiar el modelo que instancia GameForm <see cref="Form.GameForm.InitGraphics()" />
-    ///     line 97.
+    ///     ejecute el nuevo ejemplo deben cambiar el modelo que instancia GameForm 
+    ///     <see cref="Form.GameForm.InitGraphics()" /> line 97.
     /// </summary>
     public class GameModel : TgcExample
     {
@@ -36,78 +34,46 @@ namespace TGC.Group.Model
             Name = Game.Default.Name;
             Description = Game.Default.Description;
         }
-
-        
-
+               
+        //Atributos Globales
         //Boleano para ver si dibujamos el boundingbox
         private bool BoundingBox { get; set; }
+        private TgcThirdPersonCamera camaraInterna;
+        private Beetle Beetle;
+        private Pista PistaNivel;
+        private TgcMp3Player mp3Player;
 
         /// <summary>
         ///     Se llama una sola vez, al principio cuando se ejecuta el ejemplo.
         ///     Escribir aquí todo el código de inicialización: cargar modelos, texturas, estructuras de optimización, todo
         ///     procesamiento que podemos pre calcular para nuestro juego.
-        ///     Borrar el codigo ejemplo no utilizado.
         /// </summary>
-        /// 
 
-        //Aca la empiezo a cagar yo
-
-        TgcThirdPersonCamera camaraInterna;
-        //private TgcMesh TunnelMesh { get; set; }
-        //private TgcMesh TriangularMesh { get; set; }
-
-        private TgcMesh BeetleMesh { get; set; }
-        float SPEED { get; set; }
-        TGCVector3 forward = new TGCVector3(0f, 0f, 1f);
-        Pista PistaNivel;
         public override void Init()
         {
-            SPEED = 300f;
-            //Device de DirectX para crear primitivas.
-            var d3dDevice = D3DDevice.Instance.Device;
-
-            
-            //Defino una escala en el modelo logico del mesh que es muy grande.
-
-            var loader = new TgcSceneLoader();
+            //Instancio el reproductor de MP3
+            mp3Player = new TgcMp3Player();
+            mp3Player.FileName = MediaDir + "/Thumper/Mp3/Thumper OST - Spiral.mp3";
+            mp3Player.play(true);
+                        
+            //Device de DirectX para crear primitivas. No se usa?
+            //var d3dDevice = D3DDevice.Instance.Device;
 
             //Loadeo todas mis meshes
             //TunnelMesh = loader.loadSceneFromFile(MediaDir + "/Thumper/circular_tunnel-TgcScene.xml").Meshes[0];
             //TriangularMesh = loader.loadSceneFromFile(MediaDir + "/Thumper/triangular_tunnel-TgcScene.xml").Meshes[0];    
             System.Console.WriteLine(MediaDir);
 
-            BeetleMesh = loader.loadSceneFromFile(MediaDir+ "/Thumper/beetle-TgcScene.xml").Meshes[7];
-
-
-            //Modifico como quiero que empiece el mesh
-            BeetleMesh.Position = TGCVector3.Empty;
-
-            BeetleMesh.Scale = TGCVector3.One * .5f; //Escalo a la mitad del beetle
-            
-            BeetleMesh.RotateY(FastMath.PI_HALF); //Lo roto
-            
-            BeetleMesh.BoundingBox.transform(TGCMatrix.RotationY(FastMath.PI_HALF));
-            //tambien tengo que rota el boundingbox porque eso no se actuliza
-
-            BeetleMesh.Position += new TGCVector3(0f, 10f, 0f);
-
-
-
+            Beetle = new Beetle(MediaDir);
             PistaNivel = new Pista(MediaDir); 
-
-
-            camaraInterna = new TgcThirdPersonCamera(BeetleMesh.Position,15f,-100f);
-            
+            camaraInterna = new TgcThirdPersonCamera(Beetle.Position(),15f,-100f);
+                        
             Camara = camaraInterna;
            // cameraOffset = new TGCVector3(0f, 10f, -200f);
            // Camara.SetCamera(BeetleMesh.BoundingBox.calculateBoxCenter() + cameraOffset,  BeetleMesh.Position);
             
-
         }
-
-        
-
-        
+                   
 
         /// <summary>
         ///     Se llama en cada frame.
@@ -115,9 +81,6 @@ namespace TGC.Group.Model
         ///     ante ellas.
         /// </summary>
         /// 
-
-
-
 
         public override void Update()
         {
@@ -133,12 +96,10 @@ namespace TGC.Group.Model
                 //aca recolecto las cosas de la pista
             }
 
-            camaraInterna.Target = BeetleMesh.Position;
-            BeetleMesh.Move(new TGCVector3 (0,0,1) *ElapsedTime *SPEED); //me muevo dependiendo de la orientacion
-            BeetleMesh.BoundingBox.transform(BeetleMesh.Transform);
-
-
-
+            camaraInterna.Target = Beetle.Mesh.Position;
+            Beetle.Mesh.Move(new TGCVector3 (0,0,1) *ElapsedTime * Beetle.Speed); //me muevo dependiendo de la orientacion
+            Beetle.Mesh.BoundingBox.transform(Beetle.Mesh.Transform);
+                
             PostUpdate();
         }
 
@@ -154,44 +115,18 @@ namespace TGC.Group.Model
 
             //Dibuja un texto por pantalla
             DrawText.drawText("Con la tecla F se dibuja el bounding box.", 0, 20, Color.OrangeRed);
-            DrawText.drawText("Posicion actual del jugador: " + TGCVector3.PrintVector3(BeetleMesh.Position), 0, 30, Color.OrangeRed);
+            DrawText.drawText("Posicion actual del jugador: " + TGCVector3.PrintVector3(Beetle.Mesh.Position), 0, 30, Color.OrangeRed);
             
-            //Siempre antes de renderizar el modelo necesitamos actualizar la matriz de transformacion.
-            //Debemos recordar el orden en cual debemos multiplicar las matrices, en caso de tener modelos jerárquicos, tenemos control total.
-            // Box.Transform = TGCMatrix.Scaling(Box.Scale) * TGCMatrix.RotationYawPitchRoll(Box.Rotation.Y, Box.Rotation.X, Box.Rotation.Z) * TGCMatrix.Translation(Box.Position);
-            //A modo ejemplo realizamos toda las multiplicaciones, pero aquí solo nos hacia falta la traslación.
-            //Finalmente invocamos al render de la caja
-            // Box.Render();
-
-            //Cuando tenemos modelos mesh podemos utilizar un método que hace la matriz de transformación estándar.
-            //Es útil cuando tenemos transformaciones simples, pero OJO cuando tenemos transformaciones jerárquicas o complicadas.
-            //  Mesh.UpdateMeshTransform();
-            //Render del mesh
-            //  Mesh.Render();
-
-
-
-
-
+                                         
             //Render de BoundingBox, muy útil para debug de colisiones.
             if (BoundingBox)
             {
-                foreach (TgcMesh AuxMesh in PistaNivel.GetSegmentosPista())
-                {
-                    AuxMesh.BoundingBox.Render();
-                }
-                BeetleMesh.BoundingBox.Render();//Muestro mi BoundingBox
+                PistaNivel.BoundingBoxRender();
+                Beetle.Mesh.BoundingBox.Render();//Muestro mi BoundingBox
             }
-            BeetleMesh.UpdateMeshTransform();
-
-
-            
-            BeetleMesh.Render();
-
-            foreach(TgcMesh AuxMesh in PistaNivel.GetSegmentosPista())
-            {
-                AuxMesh.Render();
-            }
+            Beetle.Mesh.UpdateMeshTransform();
+            Beetle.Mesh.Render();
+            PistaNivel.Render();
 
             //Aca termine de cagarla porque lo de abajo es importante.
             //Finaliza el render y presenta en pantalla, al igual que el preRender se debe para casos puntuales es mejor utilizar a mano las operaciones de EndScene y PresentScene
@@ -208,11 +143,11 @@ namespace TGC.Group.Model
             //TODO sacar pista
             //TriangularMesh.Dispose();
             //TunnelMesh.Dispose();
-            foreach (TgcMesh AuxMesh in PistaNivel.GetSegmentosPista())
-            {
-                AuxMesh.Dispose();
-            }
-            BeetleMesh.Dispose(); //dispongo de mis mesh 
+            PistaNivel.Dispose();
+            Beetle.Dispose();
+
+            //Cierra el reproductor
+            mp3Player.closeFile();
         }
     }
 }
