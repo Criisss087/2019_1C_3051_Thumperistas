@@ -42,6 +42,7 @@ namespace TGC.Group.Model
         private Beetle Beetle;
         private Pista PistaNivel;
         private TgcMp3Player mp3Player;
+        private Pantalla Pantalla;
 
         /// <summary>
         ///     Se llama una sola vez, al principio cuando se ejecuta el ejemplo.
@@ -64,6 +65,7 @@ namespace TGC.Group.Model
             //TriangularMesh = loader.loadSceneFromFile(MediaDir + "/Thumper/triangular_tunnel-TgcScene.xml").Meshes[0];    
             System.Console.WriteLine(MediaDir);
 
+            Pantalla = new Pantalla(MediaDir);
             Beetle = new Beetle(MediaDir);
             PistaNivel = new Pista(MediaDir); 
             camaraInterna = new TgcThirdPersonCamera(Beetle.Position(),15f,-100f);
@@ -99,7 +101,8 @@ namespace TGC.Group.Model
             camaraInterna.Target = Beetle.Mesh.Position;
             Beetle.Mesh.Move(new TGCVector3 (0,0,1) *ElapsedTime * Beetle.Speed); //me muevo dependiendo de la orientacion
             Beetle.Mesh.BoundingBox.transform(Beetle.Mesh.Transform);
-                
+            Pantalla.Score += 100;
+
             PostUpdate();
         }
 
@@ -127,6 +130,7 @@ namespace TGC.Group.Model
             Beetle.Mesh.UpdateMeshTransform();
             Beetle.Mesh.Render();
             PistaNivel.Render();
+            Pantalla.Render();
 
             //Aca termine de cagarla porque lo de abajo es importante.
             //Finaliza el render y presenta en pantalla, al igual que el preRender se debe para casos puntuales es mejor utilizar a mano las operaciones de EndScene y PresentScene
@@ -145,6 +149,7 @@ namespace TGC.Group.Model
             //TunnelMesh.Dispose();
             PistaNivel.Dispose();
             Beetle.Dispose();
+            Pantalla.Dispose();
 
             //Cierra el reproductor
             mp3Player.closeFile();
