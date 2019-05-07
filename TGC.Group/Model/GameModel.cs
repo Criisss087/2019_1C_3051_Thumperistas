@@ -27,7 +27,7 @@ namespace TGC.Group.Model
         ///     Constructor del juego.
         /// </summary>
         /// <param name="mediaDir">Ruta donde esta la carpeta con los assets</param>
-        /// <param name="shadersDir">Ruta donde esta la carpeta con los shaders</param>
+        ///<param name="shadersDir">Ruta donde esta la carpeta con los shaders</param>
         public GameModel(string mediaDir, string shadersDir) : base(mediaDir, shadersDir)
         {
             Category = Game.Default.Category;
@@ -94,6 +94,7 @@ namespace TGC.Group.Model
             }
 
             camaraInterna.Target = Beetle.position;
+            Pantalla.Update(camaraInterna.Position);
 
             //test
             a++;

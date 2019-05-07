@@ -58,6 +58,11 @@ namespace TGC.Group.Model
             MultiplicadorText.Text = Multiplicador.ToString();
         }
 
+        public void Update(TGCVector3 posicionCamara)
+        {
+            fondo.Center = posicionCamara;
+        }
+
         public void Render()
         {
             fondo.Render();
