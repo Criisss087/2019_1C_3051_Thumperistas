@@ -43,7 +43,7 @@ namespace TGC.Group.Model
         private Pista PistaNivel;
         private TgcMp3Player mp3Player;
         private Pantalla Pantalla;
-
+        private int a = 0;
         /// <summary>
         ///     Se llama una sola vez, al principio cuando se ejecuta el ejemplo.
         ///     Escribir aquí todo el código de inicialización: cargar modelos, texturas, estructuras de optimización, todo
@@ -95,12 +95,14 @@ namespace TGC.Group.Model
 
             camaraInterna.Target = Beetle.position;
 
+            //test
+            a++;
             //No logro entender por que no se mueve el beetle si la traslacion seria la misma
-            Beetle.position = new TGCVector3(0, 0, 1 * ElapsedTime * Beetle.Speed);
+            Beetle.position = new TGCVector3(0, 10, 1 * a * Beetle.Speed);
             Beetle.traslation = TGCMatrix.Translation(Beetle.position);
             //Beetle.Mesh.Move(new TGCVector3 (0,0,1) *ElapsedTime * Beetle.Speed);
             //Beetle.Mesh.BoundingBox.transform(Beetle.Mesh.Transform);
-            Pantalla.Score +=FastMath.Floor( 100 * ElapsedTime);
+            Pantalla.Score +=FastMath.Floor( 100 * a);
 
             PostUpdate();
         }

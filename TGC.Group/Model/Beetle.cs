@@ -42,7 +42,7 @@ namespace TGC.Group.Model
             // tambien tengo que rota el boundingbox porque eso no se actuliza
             Mesh.BoundingBox.transform(TGCMatrix.RotationY(FastMath.PI_HALF)); 
 
-            this.Speed = 300f;
+            this.Speed = 5f;
 
         }
         
