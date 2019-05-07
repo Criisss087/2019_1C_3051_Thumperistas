@@ -10,7 +10,6 @@ using TGC.Core.Textures;
 using System;
 using System.Collections.Generic;
 using TGC.Examples.Camara;
-using TGC.Core.Sound;
 
 namespace TGC.Group.Model
 {

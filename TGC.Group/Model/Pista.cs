@@ -12,6 +12,7 @@ using TGC.Core.Input;
 using TGC.Core.Mathematica;
 using TGC.Core.SceneLoader;
 using TGC.Core.Textures;
+using TGC.Group.Model;
 
 namespace TGC.Group
 {
@@ -20,11 +21,14 @@ namespace TGC.Group
     {
 
         List<TgcMesh> SegmentosPista;
+        List<Recolectable> Recolectables;
         String MediaDir;
         public Pista(String _MediaDir)
         {
             this.MediaDir = _MediaDir;
-            this.SegmentosPista = generarPista();            
+            Recolectables = new List<Recolectable>();
+
+            this.SegmentosPista = generarPista();
         }
 
         public List<TgcMesh> GetSegmentosPista()
@@ -65,7 +69,7 @@ namespace TGC.Group
                     Pista.AddRange(generarTunel(acumOffsetPieza, longitudTunel, "testMeshCreatorCircle-TgcScene.xml",offsetPiezas));
                     acumOffsetPieza += new TGCVector3(0, 0, offsetPiezas) * longitudTunel;
                     
-                }   // MUUUUUUUUUUUUCHA REPETICION DE CODIGO #ToDo
+                }   
                 else
                 {
                     float offsetPiezas = 30;
@@ -106,7 +110,19 @@ namespace TGC.Group
             piso.Size = Tamanio;
             piso.Transform = TGCMatrix.Translation(Posicion); 
             piso.updateValues();
+
+            agregoRecolectables(Posicion);
             return piso.ToMesh("piso");
+        }
+
+        void agregoRecolectables(TGCVector3 Posicion)
+        {
+
+            if (elijoEntreTresProbabilidades(50, 50, 0) == 1)
+            {
+                Recolectable nuevoRecoletable = new Recolectable(MediaDir, Posicion);
+                Recolectables.Add(nuevoRecoletable);
+            }
         }
 
 
@@ -122,7 +138,11 @@ namespace TGC.Group
 
         public void Render()
         {
-            foreach (TgcMesh AuxMesh in GetSegmentosPista())
+            foreach(Recolectable AuxRec in Recolectables)
+            {
+                AuxRec.Render();
+            }
+            foreach (TgcMesh AuxMesh in SegmentosPista)
             {
                 AuxMesh.Render();
             }
@@ -130,7 +150,7 @@ namespace TGC.Group
 
         public void BoundingBoxRender()
         {
-            foreach (TgcMesh AuxMesh in GetSegmentosPista())
+            foreach (TgcMesh AuxMesh in SegmentosPista)
             {
                 AuxMesh.BoundingBox.Render();
             }

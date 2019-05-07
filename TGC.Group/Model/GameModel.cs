@@ -55,13 +55,12 @@ namespace TGC.Group.Model
             //Instancio el reproductor de MP3
             mp3Player = new TgcMp3Player();
             mp3Player.FileName = MediaDir + "/Thumper/Mp3/Thumper OST - Spiral.mp3";
-            mp3Player.play(true);
-                        
+           // mp3Player.play(true);
+
             //Device de DirectX para crear primitivas. No se usa?
             //var d3dDevice = D3DDevice.Instance.Device;
-                       
-            //System.Console.WriteLine(MediaDir);
 
+            //System.Console.WriteLine(MediaDir);
             Pantalla = new Pantalla(MediaDir);
             Beetle = new Beetle(MediaDir);
             PistaNivel = new Pista(MediaDir); 
@@ -90,7 +89,7 @@ namespace TGC.Group.Model
             }
             if (Input.keyPressed(Key.Z) || Input.keyPressed(Key.X))
             {
-                //aca recolecto las cosas de la pista
+
             }
 
             camaraInterna.Target = Beetle.position;
@@ -99,10 +98,13 @@ namespace TGC.Group.Model
             //test
             a++;
             //No logro entender por que no se mueve el beetle si la traslacion seria la misma
+            
+            //muevo beetle para adelante
             Beetle.position = new TGCVector3(0, 10, 1 * a * Beetle.Speed);
             Beetle.traslation = TGCMatrix.Translation(Beetle.position);
-            //Beetle.Mesh.Move(new TGCVector3 (0,0,1) *ElapsedTime * Beetle.Speed);
-            //Beetle.Mesh.BoundingBox.transform(Beetle.Mesh.Transform);
+            
+            
+            
             Pantalla.Score +=FastMath.Floor( 100 * a);
 
             PostUpdate();
@@ -134,7 +136,7 @@ namespace TGC.Group.Model
             Beetle.Render();
             PistaNivel.Render();
             Pantalla.Render();
-            
+
 
             PostRender();
         }
@@ -149,7 +151,6 @@ namespace TGC.Group.Model
             PistaNivel.Dispose();
             Beetle.Dispose();
             Pantalla.Dispose();
-
             //Cierra el reproductor
             mp3Player.closeFile();
         }
