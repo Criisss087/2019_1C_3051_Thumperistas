@@ -12,6 +12,9 @@ using System.Collections.Generic;
 using TGC.Examples.Camara;
 using TGC.Core.Sound;
 
+
+
+
 namespace TGC.Group.Model
 {
          
@@ -42,7 +45,7 @@ namespace TGC.Group.Model
         private Beetle Beetle;
         private Pista PistaNivel;
         private TgcMp3Player mp3PlayerMusica;
-        private TgcMp3Player mp3PlayerExito;
+        private TgcStaticSound sound;
 
 
         private Pantalla Pantalla;
@@ -54,13 +57,14 @@ namespace TGC.Group.Model
 
         public override void Init()
         {
-            //Instancio el reproductores de MP3
+            //Instancio el reproductores sonido
             mp3PlayerMusica = new TgcMp3Player();
             mp3PlayerMusica.FileName = MediaDir + "Thumper/Mp3/Thumper OST - Spiral.mp3";
             mp3PlayerMusica.play(true);
 
-            mp3PlayerExito = new TgcMp3Player();
-            mp3PlayerExito.FileName = "C:/Users/Ivan/Documents/2019_1C_3051_Thumperistas/TGC.Group/Media/Thumper/Mp3/beat.mp3";
+            sound = new TgcStaticSound();
+            
+            
 
             //Device de DirectX para crear primitivas. No se usa?
             //var d3dDevice = D3DDevice.Instance.Device;
@@ -98,7 +102,10 @@ namespace TGC.Group.Model
                 if (Beetle.ColisionandoConRecolectable(PistaNivel.Recolectables, ref objetoColisionado))
                 {
                     System.Console.WriteLine("Recolecte un objeto!!!");
-                    //mp3PlayerExito.play(true);  ToDo
+
+                    sound.dispose();
+                    sound.loadSound(MediaDir + "Thumper/Mp3/laserBeat.wav", DirectSound.DsDevice);
+                    sound.play(false);
 
                     PistaNivel.Recolectables.Remove(objetoColisionado);
 
@@ -169,7 +176,8 @@ namespace TGC.Group.Model
             Pantalla.Dispose();
             //Cierra el reproductor
             mp3PlayerMusica.closeFile();
-            mp3PlayerExito.closeFile();
+            sound.dispose();
+            
         }
     }
 }
