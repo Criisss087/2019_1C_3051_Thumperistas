@@ -41,9 +41,11 @@ namespace TGC.Group.Model
         private TgcThirdPersonCamera camaraInterna;
         private Beetle Beetle;
         private Pista PistaNivel;
-        private TgcMp3Player mp3Player;
+        private TgcMp3Player mp3PlayerMusica;
+        private TgcMp3Player mp3PlayerExito;
+
+
         private Pantalla Pantalla;
-        private int a = 0;
         /// <summary>
         ///     Se llama una sola vez, al principio cuando se ejecuta el ejemplo.
         ///     Escribir aquí todo el código de inicialización: cargar modelos, texturas, estructuras de optimización, todo
@@ -52,10 +54,13 @@ namespace TGC.Group.Model
 
         public override void Init()
         {
-            //Instancio el reproductor de MP3
-            mp3Player = new TgcMp3Player();
-            mp3Player.FileName = MediaDir + "/Thumper/Mp3/Thumper OST - Spiral.mp3";
-           // mp3Player.play(true);
+            //Instancio el reproductores de MP3
+            mp3PlayerMusica = new TgcMp3Player();
+            mp3PlayerMusica.FileName = MediaDir + "Thumper/Mp3/Thumper OST - Spiral.mp3";
+            mp3PlayerMusica.play(true);
+
+            mp3PlayerExito = new TgcMp3Player();
+            mp3PlayerExito.FileName = "C:/Users/Ivan/Documents/2019_1C_3051_Thumperistas/TGC.Group/Media/Thumper/Mp3/beat.mp3";
 
             //Device de DirectX para crear primitivas. No se usa?
             //var d3dDevice = D3DDevice.Instance.Device;
@@ -89,23 +94,34 @@ namespace TGC.Group.Model
             }
             if (Input.keyPressed(Key.Z) || Input.keyPressed(Key.X))
             {
+                Recolectable objetoColisionado =new Recolectable(MediaDir, TGCVector3.One);
+                if (Beetle.ColisionandoConRecolectable(PistaNivel.Recolectables, ref objetoColisionado))
+                {
+                    System.Console.WriteLine("Recolecte un objeto!!!");
+                    //mp3PlayerExito.play(true);  ToDo
 
+                    PistaNivel.Recolectables.Remove(objetoColisionado);
+
+                    Pantalla.AumentoPuntuacion();
+                    Pantalla.multiplicador += 1;
+                }
+                else Pantalla.PierdoCombo();
             }
+            //muevo beetle para adelante
+            Beetle.Avanza(ElapsedTime);
+
+            
 
             camaraInterna.Target = Beetle.position;
             Pantalla.Update(camaraInterna.Position);
 
-            //test
-            a++;
-            //No logro entender por que no se mueve el beetle si la traslacion seria la misma
+           
+
             
-            //muevo beetle para adelante
-            Beetle.position = new TGCVector3(0, 10, 1 * a * Beetle.Speed);
-            Beetle.traslation = TGCMatrix.Translation(Beetle.position);
+                     
             
             
             
-            Pantalla.Score +=FastMath.Floor( 100 * a);
 
             PostUpdate();
         }
@@ -152,7 +168,8 @@ namespace TGC.Group.Model
             Beetle.Dispose();
             Pantalla.Dispose();
             //Cierra el reproductor
-            mp3Player.closeFile();
+            mp3PlayerMusica.closeFile();
+            mp3PlayerExito.closeFile();
         }
     }
 }

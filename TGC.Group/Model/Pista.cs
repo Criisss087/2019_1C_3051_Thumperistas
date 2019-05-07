@@ -21,7 +21,7 @@ namespace TGC.Group
     {
 
         List<TgcMesh> SegmentosPista;
-        List<Recolectable> Recolectables;
+        public List<Recolectable> Recolectables;
         String MediaDir;
         public Pista(String _MediaDir)
         {

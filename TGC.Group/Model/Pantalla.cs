@@ -19,7 +19,7 @@ namespace TGC.Group.Model
         //Datos internos
         private TgcSkyBox fondo;
         private Double score = 0;
-        private Int32 multiplicador = 1;
+        public Int32 multiplicador = 1;
 
         public TgcText2D ScoreText;
         public TgcText2D MultiplicadorText;
@@ -45,17 +45,28 @@ namespace TGC.Group.Model
             ScoreText.Align = TgcText2D.TextAlign.LEFT;
             ScoreText.Position = new Point(50, 500);
             //ScoreText.Size = new Size(300, 100);
-            ScoreText.changeFont(new Font("Arial", 18, FontStyle.Bold));
+            ScoreText.changeFont(new Font("Arial", 23, FontStyle.Bold));
             ScoreText.Text = Score.ToString();
 
             // Texto del Multiplicador
             MultiplicadorText = new TgcText2D();
             MultiplicadorText.Color = Color.Aquamarine;
-            MultiplicadorText.Align = TgcText2D.TextAlign.CENTER;
-            MultiplicadorText.Position = new Point(50, 510);
-            MultiplicadorText.Size = new Size(30,100);
-            MultiplicadorText.changeFont(new Font("Arial", 50, FontStyle.Bold));
-            MultiplicadorText.Text = Multiplicador.ToString();
+            MultiplicadorText.Align = TgcText2D.TextAlign.LEFT;
+            MultiplicadorText.Position = new Point(50, 410);
+            MultiplicadorText.Size = new Size(100,600);
+            MultiplicadorText.changeFont(new Font("Arial", 40, FontStyle.Bold));
+            MultiplicadorText.Text ="x"+Multiplicador.ToString();
+        }
+
+        public void AumentoPuntuacion()
+        {
+            Score += 100 * multiplicador;
+            if(Multiplicador < 8) this.Multiplicador +=1;
+        }
+
+        public void PierdoCombo()
+        {
+            this.Multiplicador = 1;
         }
 
         public void Update(TGCVector3 posicionCamara)
@@ -100,7 +111,7 @@ namespace TGC.Group.Model
             set
             {
                 multiplicador = value;
-                MultiplicadorText.Text = value.ToString();
+                MultiplicadorText.Text = "x" + value.ToString();
             }
 
         }

@@ -1,15 +1,9 @@
-﻿using Microsoft.DirectX.DirectInput;
-using System.Drawing;
-using TGC.Core.Direct3D;
-using TGC.Core.Example;
-using TGC.Core.Geometry;
-using TGC.Core.Input;
-using TGC.Core.Mathematica;
+﻿using TGC.Core.Mathematica;
 using TGC.Core.SceneLoader;
-using TGC.Core.Textures;
-using System;
+using TGC.Core.BoundingVolumes;
+using System.Drawing;
 using System.Collections.Generic;
-using TGC.Examples.Camara;
+using TGC.Core.Collision;
 
 namespace TGC.Group.Model
 {
@@ -18,12 +12,17 @@ namespace TGC.Group.Model
         private TgcSceneLoader Loader;
         public TgcMesh Mesh { get; set; }
         public float Speed { get; set; }
+        TgcBoundingOrientedBox Collider;
 
-        public TGCMatrix traslation { get; set; }
+
+        public TGCMatrix translation { get; set; }
         public TGCMatrix scaling { get; set; }
         public TGCMatrix rotation { get; set; }
         public TGCVector3 position { get; set; }
         public float traslacionZ { get; set; }
+        
+
+
 
         public Beetle(string _mediaDir)
         {
@@ -34,14 +33,15 @@ namespace TGC.Group.Model
 
             //Modifico como quiero que empiece el mesh
             position = new TGCVector3(0, 10, 0);
-            traslation = TGCMatrix.Translation(position);
+            translation = TGCMatrix.Translation(position);
             scaling = TGCMatrix.Scaling(TGCVector3.One * .5f);  
             rotation = TGCMatrix.RotationY(FastMath.PI_HALF);
 
-            // tambien tengo que rota el boundingbox porque eso no se actuliza
-            Mesh.BoundingBox.transform(TGCMatrix.RotationY(FastMath.PI_HALF)); 
+            //Seteo collider
+            Mesh.BoundingBox.transform(translation * scaling * rotation);
+            Collider = TgcBoundingOrientedBox.computeFromAABB(Mesh.BoundingBox);
 
-            this.Speed = 5f;
+            this.Speed = 400f;
 
         }
         
@@ -57,11 +57,36 @@ namespace TGC.Group.Model
             //position += new TGCVector3(0, 0, 1) * Speed;
         }
 
+        public void Avanza(float ElapsedTime)
+        {
+          position += new TGCVector3(0, 0, Speed*ElapsedTime);
+          translation = TGCMatrix.Translation(position);
+          Collider.move(new TGCVector3(0, 0, Speed * ElapsedTime));
+        }
+
+        public bool ColisionandoConRecolectable(List<Recolectable> recolectables,ref Recolectable objetoColisionado)
+        {
+            foreach(Recolectable ObjRecoleactable in recolectables){
+                if (TgcCollisionUtils.testSphereOBB(ObjRecoleactable.Collider,Collider))
+                {
+                    objetoColisionado = ObjRecoleactable;
+                    return true;
+                }
+            }
+            return false;
+        }
+
+       
+
         public void Render()
         {
-            Mesh.Transform = scaling * rotation * traslation;
+            Mesh.Transform = scaling * rotation * translation;
             Mesh.Render();
+            Collider.setRenderColor(Color.Blue);
+            Collider.Render();
         }
+
+        
 
         public void Dispose()
         {
