@@ -4,6 +4,8 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TGC.Core.Mathematica;
+using TGC.Core.Terrain;
 using TGC.Core.Text;
 
 namespace TGC.Group.Model
@@ -15,6 +17,7 @@ namespace TGC.Group.Model
     class Pantalla
     {
         //Datos internos
+        private TgcSkyBox fondo;
         private Double score = 0;
         private Int32 multiplicador = 1;
 
@@ -23,6 +26,19 @@ namespace TGC.Group.Model
 
         public Pantalla(String _mediaDir)
         {
+            //Crear SkyBox
+            fondo = new TgcSkyBox();
+            fondo.Center = new TGCVector3(0, 500, 0);
+            fondo.Size = new TGCVector3(10000, 10000, 10000);
+            var texturesPath = _mediaDir + "/Thumper/Textures/SkyBox1/";
+            fondo.setFaceTexture(TgcSkyBox.SkyFaces.Up, texturesPath + "1.jpg"); // "lostatseaday_up.jpg");
+            fondo.setFaceTexture(TgcSkyBox.SkyFaces.Down, texturesPath + "1.jpg"); //"lostatseaday_dn.jpg");
+            fondo.setFaceTexture(TgcSkyBox.SkyFaces.Left, texturesPath + "1.jpg"); //"lostatseaday_lf.jpg");
+            fondo.setFaceTexture(TgcSkyBox.SkyFaces.Right, texturesPath + "1.jpg"); //"lostatseaday_rt.jpg");
+            fondo.setFaceTexture(TgcSkyBox.SkyFaces.Front, texturesPath + "1.jpg"); //"lostatseaday_bk.jpg");
+            fondo.setFaceTexture(TgcSkyBox.SkyFaces.Back, texturesPath + "1.jpg"); //"lostatseaday_ft.jpg");
+            fondo.Init();
+
             // Creo el texto del marcador
             ScoreText = new TgcText2D();
             ScoreText.Color = Color.Aquamarine;
@@ -44,6 +60,7 @@ namespace TGC.Group.Model
 
         public void Render()
         {
+            fondo.Render();
             ScoreText.render();
             MultiplicadorText.render();
         }
@@ -52,6 +69,7 @@ namespace TGC.Group.Model
         {
             ScoreText.Dispose();
             MultiplicadorText.Dispose();
+            fondo.Dispose();
         }
 
         public Double Score

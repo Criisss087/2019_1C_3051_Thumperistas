@@ -59,9 +59,8 @@ namespace TGC.Group.Model
                         
             //Device de DirectX para crear primitivas. No se usa?
             //var d3dDevice = D3DDevice.Instance.Device;
-
-            
-            System.Console.WriteLine(MediaDir);
+                       
+            //System.Console.WriteLine(MediaDir);
 
             Pantalla = new Pantalla(MediaDir);
             Beetle = new Beetle(MediaDir);
@@ -83,9 +82,7 @@ namespace TGC.Group.Model
         public override void Update()
         {
             PreUpdate();
-
-
-
+                        
             //Capturar Input teclado
             if (Input.keyPressed(Key.F))
             {
@@ -96,13 +93,14 @@ namespace TGC.Group.Model
                 //aca recolecto las cosas de la pista
             }
 
-            
             camaraInterna.Target = Beetle.position;
-            //Beetle.Mesh.Move(new TGCVector3 (0,0,1) *ElapsedTime * Beetle.Speed); //me muevo dependiendo de la orientacion
-            // Beetle.Mesh.BoundingBox.transform(Beetle.Mesh.Transform);
+
+            //No logro entender por que no se mueve el beetle si la traslacion seria la misma
+            Beetle.position = new TGCVector3(0, 0, 1 * ElapsedTime * Beetle.Speed);
+            Beetle.traslation = TGCMatrix.Translation(Beetle.position);
+            //Beetle.Mesh.Move(new TGCVector3 (0,0,1) *ElapsedTime * Beetle.Speed);
+            //Beetle.Mesh.BoundingBox.transform(Beetle.Mesh.Transform);
             Pantalla.Score +=FastMath.Floor( 100 * ElapsedTime);
-
-
 
             PostUpdate();
         }
@@ -117,11 +115,9 @@ namespace TGC.Group.Model
             //Inicio el render de la escena, para ejemplos simples. Cuando tenemos postprocesado o shaders es mejor realizar las operaciones según nuestra conveniencia.
             PreRender();
 
-
-
             //Dibuja un texto por pantalla
             DrawText.drawText("Con la tecla F se dibuja el bounding box.", 0, 20, Color.OrangeRed);
-            DrawText.drawText("Posicion actual del jugador: " + TGCVector3.PrintVector3(Beetle.Mesh.Position), 0, 30, Color.OrangeRed);
+            DrawText.drawText("Posicion actual del jugador: " + TGCVector3.PrintVector3(Beetle.position), 0, 30, Color.OrangeRed);
             
                                          
             //Render de BoundingBox, muy útil para debug de colisiones.
@@ -132,17 +128,10 @@ namespace TGC.Group.Model
             }
 
             
-
             Beetle.Render();
-            //
-            //Beetle.Mesh.Render();
             PistaNivel.Render();
             Pantalla.Render();
-
-            //Aca termine de cagarla porque lo de abajo es importante.
-            //Finaliza el render y presenta en pantalla, al igual que el preRender se debe para casos puntuales es mejor utilizar a mano las operaciones de EndScene y PresentScene
-
-
+            
 
             PostRender();
         }
@@ -154,8 +143,6 @@ namespace TGC.Group.Model
         /// </summary>
         public override void Dispose()
         {
-            //TODO sacar pista
-            
             PistaNivel.Dispose();
             Beetle.Dispose();
             Pantalla.Dispose();

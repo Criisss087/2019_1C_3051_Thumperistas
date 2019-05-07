@@ -20,9 +20,11 @@ namespace TGC.Group.Model
         public TgcMesh Mesh { get; set; }
         public float Speed { get; set; }
 
-        public TGCVector3 position { get; set; }
-        public TGCVector3 scaling { get; set; }
+        public TGCMatrix traslation { get; set; }
+        public TGCMatrix scaling { get; set; }
         public TGCMatrix rotation { get; set; }
+        public TGCVector3 position { get; set; }
+        public float traslacionZ { get; set; }
 
         public Beetle(string _mediaDir)
         {
@@ -31,18 +33,16 @@ namespace TGC.Group.Model
             Mesh = Loader.loadSceneFromFile(_mediaDir + "/Thumper/beetle-TgcScene.xml").Meshes[7];
             Mesh.AutoTransform = false;
 
-
             //Modifico como quiero que empiece el mesh
             position = new TGCVector3(0, 10, 0);
-            scaling = TGCVector3.One * .5f;
+            traslation = TGCMatrix.Translation(position);
+            scaling = TGCMatrix.Scaling(TGCVector3.One * .5f);  
             rotation = TGCMatrix.RotationY(FastMath.PI_HALF);
 
+            // tambien tengo que rota el boundingbox porque eso no se actuliza
+            Mesh.BoundingBox.transform(TGCMatrix.RotationY(FastMath.PI_HALF)); 
 
-            //tambien tengo que rota el boundingbox porque eso no se actuliza
-            // Mesh.BoundingBox.transform(TGCMatrix.RotationY(FastMath.PI_HALF)); ya no estoy tan seguro de esto
-
-
-            this.Speed = 1500f;
+            this.Speed = 300f;
 
         }
         
@@ -52,17 +52,16 @@ namespace TGC.Group.Model
         }
 
         public void Update()
-        {
-            position += new TGCVector3(0, 0, 1) * ElapsedTime * Speed;
+        {   
+            //Creo que va a ser mejor que el beetle no se mueva, solo se mueva la pista
+            //position += new TGCVector3(0, 0, 1) * ElapsedTime * Speed;
+            //position += new TGCVector3(0, 0, 1) * Speed;
         }
 
         public void Render()
         {
-            Mesh.Transform = TGCMatrix.Scaling(scaling) * rotation * TGCMatrix.Translation(position);
-
+            Mesh.Transform = scaling * rotation * traslation;
             Mesh.Render();
-
-
         }
 
         public void Dispose()

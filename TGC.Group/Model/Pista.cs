@@ -74,22 +74,6 @@ namespace TGC.Group
                     acumOffsetPieza += new TGCVector3(0, 0, offsetPiezas) * longitudTunel;
                 }
 
-
-
-                // MeshAux.AutoTransform = false; //No termino de enteder que hace pero si lo dejo las transformaciones no funcionan como quiero
-                // MeshAux.Transform *= TGCMatrix.Scaling(TGCVector3.One * rnd.Next(3, 6)) * TGCMatrix.Translation(new TGCVector3(0, 0, acumOffsetPieza));
-
-                // MeshAux.Position += forward * acumOffsetPieza; //cada pieza una adelante de la otra            
-
-                // MeshAux.Scale = TGCVector3.One * rnd.Next(2, 5); //escalar random --- simplique estas dos lineas en un gran transform
-
-                //Color randomColor = Color.FromArgb(rnd.Next(256), rnd.Next(256), rnd.Next(256));
-
-                //MeshAux.setColor(randomColor);
-
-
-                //MeshAux.BoundingBox.transform(MeshAux.Transform);
-
             }
 
             return Pista;
