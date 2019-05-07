@@ -60,20 +60,16 @@ namespace TGC.Group.Model
             //Device de DirectX para crear primitivas. No se usa?
             //var d3dDevice = D3DDevice.Instance.Device;
 
-            //Loadeo todas mis meshes
-            //TunnelMesh = loader.loadSceneFromFile(MediaDir + "/Thumper/circular_tunnel-TgcScene.xml").Meshes[0];
-            //TriangularMesh = loader.loadSceneFromFile(MediaDir + "/Thumper/triangular_tunnel-TgcScene.xml").Meshes[0];    
+            
             System.Console.WriteLine(MediaDir);
 
             Pantalla = new Pantalla(MediaDir);
             Beetle = new Beetle(MediaDir);
             PistaNivel = new Pista(MediaDir); 
-            camaraInterna = new TgcThirdPersonCamera(Beetle.Position(),15f,-100f);
+            camaraInterna = new TgcThirdPersonCamera(Beetle.Position(),20f,-100f);
                         
             Camara = camaraInterna;
-           // cameraOffset = new TGCVector3(0f, 10f, -200f);
-           // Camara.SetCamera(BeetleMesh.BoundingBox.calculateBoxCenter() + cameraOffset,  BeetleMesh.Position);
-            
+           
         }
                    
 
@@ -88,6 +84,8 @@ namespace TGC.Group.Model
         {
             PreUpdate();
 
+
+
             //Capturar Input teclado
             if (Input.keyPressed(Key.F))
             {
@@ -98,10 +96,13 @@ namespace TGC.Group.Model
                 //aca recolecto las cosas de la pista
             }
 
-            camaraInterna.Target = Beetle.Mesh.Position;
-            Beetle.Mesh.Move(new TGCVector3 (0,0,1) *ElapsedTime * Beetle.Speed); //me muevo dependiendo de la orientacion
-            Beetle.Mesh.BoundingBox.transform(Beetle.Mesh.Transform);
-            Pantalla.Score += 100;
+            
+            camaraInterna.Target = Beetle.position;
+            //Beetle.Mesh.Move(new TGCVector3 (0,0,1) *ElapsedTime * Beetle.Speed); //me muevo dependiendo de la orientacion
+            // Beetle.Mesh.BoundingBox.transform(Beetle.Mesh.Transform);
+            Pantalla.Score +=FastMath.Floor( 100 * ElapsedTime);
+
+
 
             PostUpdate();
         }
@@ -116,6 +117,8 @@ namespace TGC.Group.Model
             //Inicio el render de la escena, para ejemplos simples. Cuando tenemos postprocesado o shaders es mejor realizar las operaciones según nuestra conveniencia.
             PreRender();
 
+
+
             //Dibuja un texto por pantalla
             DrawText.drawText("Con la tecla F se dibuja el bounding box.", 0, 20, Color.OrangeRed);
             DrawText.drawText("Posicion actual del jugador: " + TGCVector3.PrintVector3(Beetle.Mesh.Position), 0, 30, Color.OrangeRed);
@@ -127,13 +130,20 @@ namespace TGC.Group.Model
                 PistaNivel.BoundingBoxRender();
                 Beetle.Mesh.BoundingBox.Render();//Muestro mi BoundingBox
             }
-            Beetle.Mesh.UpdateMeshTransform();
-            Beetle.Mesh.Render();
+
+            
+
+            Beetle.Render();
+            //
+            //Beetle.Mesh.Render();
             PistaNivel.Render();
             Pantalla.Render();
 
             //Aca termine de cagarla porque lo de abajo es importante.
             //Finaliza el render y presenta en pantalla, al igual que el preRender se debe para casos puntuales es mejor utilizar a mano las operaciones de EndScene y PresentScene
+
+
+
             PostRender();
         }
 
@@ -145,8 +155,7 @@ namespace TGC.Group.Model
         public override void Dispose()
         {
             //TODO sacar pista
-            //TriangularMesh.Dispose();
-            //TunnelMesh.Dispose();
+            
             PistaNivel.Dispose();
             Beetle.Dispose();
             Pantalla.Dispose();
