@@ -58,9 +58,12 @@ namespace TGC.Group.Model
             MultiplicadorText.Text ="x"+Multiplicador.ToString();
         }
 
-        public void AumentoPuntuacion()
+        public void AumentoPuntuacion(bool PoderActivado)
         {
-            Score += 100 * multiplicador;
+            int MultiplicadorPoder;
+            if (PoderActivado) MultiplicadorPoder = 2; else MultiplicadorPoder = 1;
+            Score += 100 * multiplicador * MultiplicadorPoder;
+            
             if(Multiplicador < 8) this.Multiplicador +=1;
         }
 

@@ -109,11 +109,16 @@ namespace TGC.Group.Model
 
                     PistaNivel.Recolectables.Remove(objetoColisionado);
 
-                    Pantalla.AumentoPuntuacion();
+                    Pantalla.AumentoPuntuacion(Beetle.poderActivado);
                     Pantalla.multiplicador += 1;
                 }
                 else Pantalla.PierdoCombo();
             }
+            if (Input.keyPressed(Key.Space))
+            {
+                Beetle.ActivarPoder();
+            }
+            if (Beetle.poderActivado) { Beetle.DesvanecerVelocidad(ElapsedTime); }
             //muevo beetle para adelante
             Beetle.Avanza(ElapsedTime);
 

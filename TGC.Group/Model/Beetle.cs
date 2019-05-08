@@ -20,6 +20,7 @@ namespace TGC.Group.Model
         public TGCMatrix rotation { get; set; }
         public TGCVector3 position { get; set; }
         public float traslacionZ { get; set; }
+        public bool poderActivado = false;
         
 
 
@@ -64,6 +65,8 @@ namespace TGC.Group.Model
           Collider.move(new TGCVector3(0, 0, Speed * ElapsedTime));
         }
 
+        
+
         public bool ColisionandoConRecolectable(List<Recolectable> recolectables,ref Recolectable objetoColisionado)
         {
             foreach(Recolectable ObjRecoleactable in recolectables){
@@ -86,7 +89,22 @@ namespace TGC.Group.Model
             Collider.Render();
         }
 
-        
+        public void ActivarPoder()
+        {
+            Speed += 200f;
+            poderActivado = true;
+        }
+
+        public void DesvanecerVelocidad(float ElapsedTime)
+        {
+            if (Speed > 400f) Speed -= ElapsedTime*100;
+            else
+            {
+                Speed = 400f;
+                System.Console.WriteLine("Desactive mi poder");
+                poderActivado = false;
+            }
+        }
 
         public void Dispose()
         {
