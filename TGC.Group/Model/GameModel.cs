@@ -46,17 +46,18 @@ namespace TGC.Group.Model
         private Pista PistaNivel;
         private TgcMp3Player mp3PlayerMusica;
         private TgcStaticSound sound;
-
-
         private Pantalla Pantalla;
+
+        TgcScene beetle;
+
         /// <summary>
         ///     Se llama una sola vez, al principio cuando se ejecuta el ejemplo.
         ///     Escribir aquí todo el código de inicialización: cargar modelos, texturas, estructuras de optimización, todo
         ///     procesamiento que podemos pre calcular para nuestro juego.
         /// </summary>
-
         public override void Init()
         {
+            
             //Instancio el reproductores sonido
             mp3PlayerMusica = new TgcMp3Player();
             mp3PlayerMusica.FileName = MediaDir + "Thumper/Mp3/Thumper OST - Spiral.mp3";
@@ -64,21 +65,15 @@ namespace TGC.Group.Model
 
             sound = new TgcStaticSound();
             
-            
-
-            //Device de DirectX para crear primitivas. No se usa?
-            //var d3dDevice = D3DDevice.Instance.Device;
-
-            //System.Console.WriteLine(MediaDir);
             Pantalla = new Pantalla(MediaDir);
             Beetle = new Beetle(MediaDir);
             PistaNivel = new Pista(MediaDir); 
-            camaraInterna = new TgcThirdPersonCamera(Beetle.Position(),20f,-100f);
-                        
+           
+            camaraInterna = new TgcThirdPersonCamera(Beetle.position,20f,-100f);
             Camara = camaraInterna;
            
         }
-                   
+
 
         /// <summary>
         ///     Se llama en cada frame.
@@ -90,15 +85,15 @@ namespace TGC.Group.Model
         public override void Update()
         {
             PreUpdate();
-                        
+            
             //Capturar Input teclado
             if (Input.keyPressed(Key.F))
             {
                 BoundingBox = !BoundingBox;
             }
-            if (Input.keyPressed(Key.Z) || Input.keyPressed(Key.X))
+            if (Input.keyPressed(Key.Space))
             {
-                Recolectable objetoColisionado =new Recolectable(MediaDir, TGCVector3.One);
+                Recolectable objetoColisionado = new Recolectable(MediaDir, TGCVector3.One);
                 if (Beetle.ColisionandoConRecolectable(PistaNivel.Recolectables, ref objetoColisionado))
                 {
                     System.Console.WriteLine("Recolecte un objeto!!!");
@@ -114,27 +109,21 @@ namespace TGC.Group.Model
                 }
                 else Pantalla.PierdoCombo();
             }
-            if (Input.keyPressed(Key.Space))
+            if (Input.keyPressed(Key.A))
             {
                 Beetle.ActivarPoder();
             }
-            if (Beetle.poderActivado) { Beetle.DesvanecerVelocidad(ElapsedTime); }
-            //muevo beetle para adelante
-            Beetle.Avanza(ElapsedTime);
+            if (Beetle.poderActivado)
+            {
+                Beetle.DesvanecerVelocidad(ElapsedTime);
+            }
 
-            
+            //muevo beetle para adelante
+            Beetle.Avanza(ElapsedTime);            
 
             camaraInterna.Target = Beetle.position;
-            Pantalla.Update(camaraInterna.Position);
-
-           
-
+            Pantalla.Update(camaraInterna.Position);      
             
-                     
-            
-            
-            
-
             PostUpdate();
         }
 
@@ -144,27 +133,27 @@ namespace TGC.Group.Model
         ///     Borrar todo lo que no haga falta.
         /// </summary>
         public override void Render()
-        {
+        {   
             //Inicio el render de la escena, para ejemplos simples. Cuando tenemos postprocesado o shaders es mejor realizar las operaciones según nuestra conveniencia.
             PreRender();
-
+            
             //Dibuja un texto por pantalla
             DrawText.drawText("Con la tecla F se dibuja el bounding box.", 0, 20, Color.OrangeRed);
             DrawText.drawText("Posicion actual del jugador: " + TGCVector3.PrintVector3(Beetle.position), 0, 30, Color.OrangeRed);
             
-                                         
             //Render de BoundingBox, muy útil para debug de colisiones.
             if (BoundingBox)
             {
                 PistaNivel.BoundingBoxRender();
-                Beetle.Mesh.BoundingBox.Render();//Muestro mi BoundingBox
+                foreach(var mesh in Beetle.beetle.Meshes)
+                {
+                    mesh.BoundingBox.Render();
+                }
             }
-
-            
+                        
             Beetle.Render();
             PistaNivel.Render();
             Pantalla.Render();
-
 
             PostRender();
         }
@@ -182,7 +171,7 @@ namespace TGC.Group.Model
             //Cierra el reproductor
             mp3PlayerMusica.closeFile();
             sound.dispose();
-            
+
         }
     }
 }

@@ -61,10 +61,16 @@ namespace TGC.Group.Model
         public void AumentoPuntuacion(bool PoderActivado)
         {
             int MultiplicadorPoder;
-            if (PoderActivado) MultiplicadorPoder = 2; else MultiplicadorPoder = 1;
+
+            if (PoderActivado)
+                MultiplicadorPoder = 2;
+            else
+                MultiplicadorPoder = 1;
+
             Score += 100 * multiplicador * MultiplicadorPoder;
             
-            if(Multiplicador < 8) this.Multiplicador +=1;
+            if(Multiplicador < 8)
+                this.Multiplicador +=1;
         }
 
         public void PierdoCombo()

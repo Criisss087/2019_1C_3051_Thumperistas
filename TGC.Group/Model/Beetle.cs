@@ -9,28 +9,23 @@ namespace TGC.Group.Model
 {
     class Beetle
     {
-        private TgcSceneLoader Loader;
-        public TgcMesh Mesh { get; set; }
-        public float Speed { get; set; }
-        TgcBoundingOrientedBox Collider;
-
+        private TgcSceneLoader loader;
+        public TgcScene beetle { get; set; }
+        public float speed { get; set; }
+        TgcBoundingOrientedBox collider;
 
         public TGCMatrix translation { get; set; }
         public TGCMatrix scaling { get; set; }
         public TGCMatrix rotation { get; set; }
         public TGCVector3 position { get; set; }
         public float traslacionZ { get; set; }
-        public bool poderActivado = false;
-        
-
-
-
+        public bool poderActivado = false;     
+   
         public Beetle(string _mediaDir)
         {
-            this.Loader = new TgcSceneLoader();
+            this.loader = new TgcSceneLoader();
 
-            Mesh = Loader.loadSceneFromFile(_mediaDir + "/Thumper/beetle-TgcScene.xml").Meshes[7];
-            //Mesh.AutoTransform = false;
+            beetle = loader.loadSceneFromFile(_mediaDir + "/Thumper/beetle-TgcScene.xml");
 
             //Modifico como quiero que empiece el mesh
             position = new TGCVector3(0, 10, 0);
@@ -38,17 +33,19 @@ namespace TGC.Group.Model
             scaling = TGCMatrix.Scaling(TGCVector3.One * .5f);  
             rotation = TGCMatrix.RotationY(FastMath.PI_HALF);
 
+            foreach (var mesh in beetle.Meshes)
+            {
+                mesh.AutoTransformEnable = false;
+                mesh.Transform = scaling * rotation * translation;
+                mesh.BoundingBox.transform(scaling * rotation * translation);
+            }
+
             //Seteo collider
-            Mesh.BoundingBox.transform(translation * scaling * rotation);
-            Collider = TgcBoundingOrientedBox.computeFromAABB(Mesh.BoundingBox);
+            beetle.BoundingBox.transform(translation * scaling * rotation);
+            collider = TgcBoundingOrientedBox.computeFromAABB(beetle.BoundingBox);
 
-            this.Speed = 400f;
+            this.speed = 400f;
 
-        }
-        
-        public TGCVector3 Position()
-        {
-            return this.Mesh.Position;
         }
 
         public void Update()
@@ -60,9 +57,9 @@ namespace TGC.Group.Model
 
         public void Avanza(float ElapsedTime)
         {
-          position += new TGCVector3(0, 0, Speed*ElapsedTime);
+          position += new TGCVector3(0, 0, speed*ElapsedTime);
           translation = TGCMatrix.Translation(position);
-          Collider.move(new TGCVector3(0, 0, Speed * ElapsedTime));
+          collider.move(new TGCVector3(0, 0, speed * ElapsedTime));
         }
 
         
@@ -70,7 +67,7 @@ namespace TGC.Group.Model
         public bool ColisionandoConRecolectable(List<Recolectable> recolectables,ref Recolectable objetoColisionado)
         {
             foreach(Recolectable ObjRecoleactable in recolectables){
-                if (TgcCollisionUtils.testSphereOBB(ObjRecoleactable.Collider,Collider))
+                if (TgcCollisionUtils.testSphereOBB(ObjRecoleactable.Collider,collider))
                 {
                     objetoColisionado = ObjRecoleactable;
                     return true;
@@ -78,29 +75,32 @@ namespace TGC.Group.Model
             }
             return false;
         }
-
-       
-
+               
         public void Render()
         {
-            Mesh.Transform = scaling * rotation * translation;
-            Mesh.Render();
-            Collider.setRenderColor(Color.Blue);
-            Collider.Render();
+            foreach (var mesh in beetle.Meshes)
+            {
+                mesh.Transform = scaling * rotation * translation;
+                mesh.BoundingBox.transform(scaling * rotation * translation);
+            }
+            beetle.RenderAll();
+            collider.setRenderColor(Color.Blue);
+            collider.Render();
         }
 
         public void ActivarPoder()
         {
-            Speed += 200f;
+            speed += 200f;
             poderActivado = true;
         }
 
         public void DesvanecerVelocidad(float ElapsedTime)
         {
-            if (Speed > 400f) Speed -= ElapsedTime*100;
+            if (speed > 400f)
+                speed -= ElapsedTime*100;
             else
             {
-                Speed = 400f;
+                speed = 400f;
                 System.Console.WriteLine("Desactive mi poder");
                 poderActivado = false;
             }
@@ -108,7 +108,7 @@ namespace TGC.Group.Model
 
         public void Dispose()
         {
-            this.Mesh.Dispose();
+            this.beetle.DisposeAll();
         }
 
     }
