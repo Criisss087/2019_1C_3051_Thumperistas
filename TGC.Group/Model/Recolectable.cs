@@ -20,7 +20,7 @@ namespace TGC.Group.Model
         {
             
             Mesh = new TgcSceneLoader().loadSceneFromFile(mediaDir + "/Thumper/Sphere-TgcScene.xml").Meshes[0];
-            Mesh.AutoTransform = false;
+            //Mesh.AutoTransform = false;
 
             
 

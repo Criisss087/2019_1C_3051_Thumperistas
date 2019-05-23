@@ -30,7 +30,7 @@ namespace TGC.Group.Model
             this.Loader = new TgcSceneLoader();
 
             Mesh = Loader.loadSceneFromFile(_mediaDir + "/Thumper/beetle-TgcScene.xml").Meshes[7];
-            Mesh.AutoTransform = false;
+            //Mesh.AutoTransform = false;
 
             //Modifico como quiero que empiece el mesh
             position = new TGCVector3(0, 10, 0);
