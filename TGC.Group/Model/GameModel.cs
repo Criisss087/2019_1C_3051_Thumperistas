@@ -48,8 +48,6 @@ namespace TGC.Group.Model
         private TgcStaticSound sound;
         private Pantalla Pantalla;
 
-        TgcScene beetle;
-
         /// <summary>
         ///     Se llama una sola vez, al principio cuando se ejecuta el ejemplo.
         ///     Escribir aquí todo el código de inicialización: cargar modelos, texturas, estructuras de optimización, todo
@@ -85,6 +83,10 @@ namespace TGC.Group.Model
         public override void Update()
         {
             PreUpdate();
+
+            // Cuando llego al final de la pista, se actualiza, el rango de vision es alrededor de 1500 Z
+            if (PistaNivel.posUltimaPieza.Z - Beetle.position.Z <= 1500)
+               PistaNivel.UpdatePista();
             
             //Capturar Input teclado
             if (Input.keyPressed(Key.F))
@@ -140,7 +142,11 @@ namespace TGC.Group.Model
             //Dibuja un texto por pantalla
             DrawText.drawText("Con la tecla F se dibuja el bounding box.", 0, 20, Color.OrangeRed);
             DrawText.drawText("Posicion actual del jugador: " + TGCVector3.PrintVector3(Beetle.position), 0, 30, Color.OrangeRed);
-            
+            DrawText.drawText("Posicion actual ultima pieza: " + TGCVector3.PrintVector3(PistaNivel.posUltimaPieza), 0, 40, Color.OrangeRed);
+            DrawText.drawText("Diferencia: " + (PistaNivel.posUltimaPieza.Z - Beetle.position.Z), 0, 50, Color.OrangeRed);
+            DrawText.drawText("Z Beetle: " + (Beetle.position.Z), 0, 60, Color.OrangeRed);
+            DrawText.drawText("Z ultima: " + (PistaNivel.posUltimaPieza.Z), 0, 70, Color.OrangeRed);
+
             //Render de BoundingBox, muy útil para debug de colisiones.
             if (BoundingBox)
             {

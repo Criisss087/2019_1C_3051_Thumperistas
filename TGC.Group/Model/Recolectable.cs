@@ -11,9 +11,9 @@ namespace TGC.Group.Model
     {
         private TgcScene scene;
         
-        public TGCMatrix translation { get; set; }
-        public TGCMatrix scaling { get; set; }
-        public TGCMatrix rotation { get; set; }
+        public TGCMatrix Translation { get; set; }
+        public TGCMatrix Scaling { get; set; }
+        public TGCMatrix Rotation { get; set; }
         public TgcBoundingSphere Collider;
 
         public Recolectable(String mediaDir, TGCVector3 PosicionInicial)
@@ -26,12 +26,11 @@ namespace TGC.Group.Model
                 mesh.AutoTransformEnable = false;
             }
 
-            rotation = TGCMatrix.Identity;
-            translation = TGCMatrix.Translation(new TGCVector3(0, 10, 0) + PosicionInicial); // el +10 es para que este sobre la pista
-            scaling = TGCMatrix.Scaling(TGCVector3.One*0.2f);
+            Rotation = TGCMatrix.Identity;
+            Translation = TGCMatrix.Translation(new TGCVector3(0, 10, 0) + PosicionInicial); // el +10 es para que este sobre la pista
+            Scaling = TGCMatrix.Scaling(TGCVector3.One*0.2f);
 
             //seteo colisionador esfera
-            //Collider = new TgcBoundingSphere(translation, 5f);
             Collider = new TgcBoundingSphere(new TGCVector3(0, 10, 0) + PosicionInicial, 5f);
 
         }
@@ -46,7 +45,6 @@ namespace TGC.Group.Model
 
         bool ColisionoConBeetle()
         {
-            
             return false;
         }
 
@@ -55,7 +53,7 @@ namespace TGC.Group.Model
         {
             foreach (var mesh in scene.Meshes)
             {
-                mesh.Transform = scaling * rotation * translation;
+                mesh.Transform = Scaling * Rotation * Translation;
                 mesh.Render();
             }
             Collider.Render();

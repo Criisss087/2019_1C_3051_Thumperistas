@@ -20,15 +20,16 @@ namespace TGC.Group
     public class Pista
     {
 
-        List<TgcMesh> SegmentosPista;
-        public List<Recolectable> Recolectables;
-        String MediaDir;
+        public List<TgcMesh> SegmentosPista = new List<TgcMesh>();
+        public List<Recolectable> Recolectables = new List<Recolectable>();
+        public String MediaDir;
+        public TGCVector3 posActual = new TGCVector3(0,0,0);
+        public TGCVector3 posUltimaPieza = new TGCVector3(0, 0, 0);
+
         public Pista(String _MediaDir)
         {
             this.MediaDir = _MediaDir;
-            Recolectables = new List<Recolectable>();
-
-            this.SegmentosPista = generarPista();
+            generarPista();
         }
 
         public List<TgcMesh> GetSegmentosPista()
@@ -41,46 +42,68 @@ namespace TGC.Group
             return new TgcSceneLoader().loadSceneFromFile(MediaDir + "/Thumper/" + nombreArchivo).Meshes[nroMeshes];
         }
 
-        List<TgcMesh> generarPista()
+        private void generarPista()
         {
-            int longPista = 20; //cuantas piezas va a tener
-            List<TgcMesh> Pista= new List<TgcMesh>();
-            TGCVector3 acumOffsetPieza = new TGCVector3 (0,0,0);
-            Random rnd = new Random();
-            for (int i = 0; i < longPista; i++)
-            {                
-                int eleccionPista = elijoEntreTresProbabilidades(60, 15, 15);
-                System.Console.WriteLine(eleccionPista);
-                if (eleccionPista == 1)
-                { // randomizo mis tres posibilidades la primera es piso, las otras dos son tuneles
+            var longPista = 100;
 
-                    for (int j = 0; j < 25; j++)
-                    {
-                        Pista.Add(generarSegmentoPiso(acumOffsetPieza));
-                        acumOffsetPieza += new TGCVector3(0, 0, 50);
-                    }
+            agregarAPista(longPista);
+        }
 
+        private void agregarAPista(int cant)
+        {
+            for (int j = 0; j < cant; j++)
+            {
+                this.SegmentosPista.Add(generarSegmentoPiso(this.posUltimaPieza));
+                this.posUltimaPieza += new TGCVector3(0, 0, 50);
+            }
+        }
+        //TGCVector3 acumOffsetPieza = new TGCVector3 (0,0,0);
+        //Random rnd = new Random();
 
-                }
-                else if (eleccionPista == 2)
+        // Primero agrego un camino de 100 para el inicio 
+
+        /*
+        for (int i = 0; i < longPista; i++)
+        {                
+            int eleccionPista = elijoEntreTresProbabilidades(60, 15, 15);
+            System.Console.WriteLine(eleccionPista);
+            if (eleccionPista == 1)
+            { // randomizo mis tres posibilidades la primera es piso, las otras dos son tuneles
+
+                for (int j = 0; j < 25; j++)
                 {
-                    float offsetPiezas = 30;
-                    int longitudTunel = 10;
-                    Pista.AddRange(generarTunel(acumOffsetPieza, longitudTunel, "testMeshCreatorCircle-TgcScene.xml",offsetPiezas));
-                    acumOffsetPieza += new TGCVector3(0, 0, offsetPiezas) * longitudTunel;
-                    
-                }   
-                else
-                {
-                    float offsetPiezas = 30;
-                    int longitudTunel = 10;
-                    Pista.AddRange(generarTunel(acumOffsetPieza, longitudTunel, "triangular_tunnel-TgcScene.xml",offsetPiezas));
-                    acumOffsetPieza += new TGCVector3(0, 0, offsetPiezas) * longitudTunel;
+                    Pista.Add(generarSegmentoPiso(acumOffsetPieza));
+                    acumOffsetPieza += new TGCVector3(0, 0, 50);
                 }
+
 
             }
+            else if (eleccionPista == 2)
+            {
+                float offsetPiezas = 30;
+                int longitudTunel = 10;
+                Pista.AddRange(generarTunel(acumOffsetPieza, longitudTunel, "testMeshCreatorCircle-TgcScene.xml",offsetPiezas));
+                acumOffsetPieza += new TGCVector3(0, 0, offsetPiezas) * longitudTunel;
 
-            return Pista;
+            }   
+            else
+            {
+                float offsetPiezas = 30;
+                int longitudTunel = 10;
+                Pista.AddRange(generarTunel(acumOffsetPieza, longitudTunel, "triangular_tunnel-TgcScene.xml",offsetPiezas));
+                acumOffsetPieza += new TGCVector3(0, 0, offsetPiezas) * longitudTunel;
+            }
+
+        }
+
+        return Pista;*/
+    
+
+        public void UpdatePista()
+        {
+            this.SegmentosPista.Add(generarSegmentoPiso(this.posUltimaPieza));
+            this.posUltimaPieza += new TGCVector3(0, 0, 50);
+            this.SegmentosPista.RemoveAt(0);
         }
 
         List<TgcMesh> generarTunel(TGCVector3 Posicion, int Longitud, String nombreArchivo,float offset) //si tuviese tuenes con mas meshes deberia pasar tmb la cant meshes
@@ -105,20 +128,21 @@ namespace TGC.Group
         {
             TGCBox piso = new TGCBox();
             TGCVector3 Tamanio = new TGCVector3(30, 10, 30);
-            TgcTexture texturaPiso = TgcTexture.createTexture(D3DDevice.Instance.Device, MediaDir + "Textures/Gray.jpg");
+            TgcTexture texturaPiso = TgcTexture.createTexture(D3DDevice.Instance.Device, MediaDir + "Textures/gray.jpg");
             piso.setTexture(texturaPiso);
             piso.Size = Tamanio;
             piso.Transform = TGCMatrix.Translation(Posicion); 
             piso.updateValues();
 
+            TgcMesh pisoMesh = piso.ToMesh("piso");
             agregoRecolectables(Posicion);
-            return piso.ToMesh("piso");
+            return pisoMesh;
         }
 
         void agregoRecolectables(TGCVector3 Posicion)
         {
 
-            if (elijoEntreTresProbabilidades(50, 50, 0) == 1)
+            if (elijoEntreTresProbabilidades(10, 50, 40) == 1)
             {
                 Recolectable nuevoRecoletable = new Recolectable(MediaDir, Posicion);
                 Recolectables.Add(nuevoRecoletable);
@@ -130,7 +154,7 @@ namespace TGC.Group
         {
             int probTotal = probA + probB + probC;
             Random rnd = new Random();
-            int randomNumber =rnd.Next(probTotal);
+            int randomNumber = rnd.Next(probTotal);
             if (randomNumber < probA) return 1;
             else if (randomNumber < probA+probB) return 2;
             else return 3;
@@ -142,7 +166,7 @@ namespace TGC.Group
             {
                 AuxRec.Render();
             }
-            foreach (TgcMesh AuxMesh in SegmentosPista)
+            foreach (TgcMesh AuxMesh in this.SegmentosPista)
             {
                 AuxMesh.Render();
             }
