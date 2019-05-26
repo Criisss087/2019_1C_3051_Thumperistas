@@ -55,11 +55,13 @@ namespace TGC.Group.Model
             //position += new TGCVector3(0, 0, 1) * Speed;
         }
 
-        public void Avanza(float ElapsedTime)
+        public TGCVector3 Avanza(float ElapsedTime)
         {
-          position += new TGCVector3(0, 0, speed*ElapsedTime);
-          translation = TGCMatrix.Translation(position);
-          collider.move(new TGCVector3(0, 0, speed * ElapsedTime));
+            position += new TGCVector3(0, 0, speed*ElapsedTime);
+            translation = TGCMatrix.Translation(position);
+            collider.move(new TGCVector3(0, 0, speed * ElapsedTime));
+
+            return position;
         }
 
         

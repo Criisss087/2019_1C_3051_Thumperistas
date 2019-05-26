@@ -84,10 +84,13 @@ namespace TGC.Group.Model
         {
             PreUpdate();
 
-            // Cuando llego al final de la pista, se actualiza, el rango de vision es alrededor de 1500 Z
-            if (PistaNivel.posUltimaPieza.Z - Beetle.position.Z <= 1500)
-               PistaNivel.UpdatePista();
-            
+            // Cuando llego al final de la pista, se actualiza, el rango de vision es alrededor de 2500 Z
+            if (PistaNivel.posUltimaPieza.Z - Beetle.position.Z <= 4900)
+            {
+                PistaNivel.UpdateTunel();
+                PistaNivel.UpdatePista();
+            }
+
             //Capturar Input teclado
             if (Input.keyPressed(Key.F))
             {
@@ -121,7 +124,7 @@ namespace TGC.Group.Model
             }
 
             //muevo beetle para adelante
-            Beetle.Avanza(ElapsedTime);            
+            PistaNivel.posActual = Beetle.Avanza(ElapsedTime);            
 
             camaraInterna.Target = Beetle.position;
             Pantalla.Update(camaraInterna.Position);      
@@ -146,6 +149,9 @@ namespace TGC.Group.Model
             DrawText.drawText("Diferencia: " + (PistaNivel.posUltimaPieza.Z - Beetle.position.Z), 0, 50, Color.OrangeRed);
             DrawText.drawText("Z Beetle: " + (Beetle.position.Z), 0, 60, Color.OrangeRed);
             DrawText.drawText("Z ultima: " + (PistaNivel.posUltimaPieza.Z), 0, 70, Color.OrangeRed);
+            DrawText.drawText("Cant de elementos en pista: " + (PistaNivel.SegmentosPista.Count), 0, 80, Color.OrangeRed);
+            DrawText.drawText("Posicion actual pista: " + TGCVector3.PrintVector3(PistaNivel.posActual), 0, 90, Color.OrangeRed);
+            DrawText.drawText("Cant de elementos en tunel: " + (PistaNivel.SegmentosTunel.Count), 0, 100, Color.OrangeRed);
 
             //Render de BoundingBox, muy útil para debug de colisiones.
             if (BoundingBox)
