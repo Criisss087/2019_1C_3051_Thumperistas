@@ -12,13 +12,18 @@ namespace TGC.Group.Model
     {
 
         public const float VELOCIDAD_ANGULAR = 15f;
-        public const float VELOCIDAD = 600f;
+        public const float VELOCIDAD = 900f;
         public const float VELOCIDADX = 500f;
 
         private TgcSceneLoader loader;
         public TgcScene beetle { get; set; }
         public float speed { get; set; }
+        public bool escudo { get; set; } = true;
+        public bool slide { get; set; } = false;
+        public bool derecha { get; set; } = false;
+        public bool izquierda { get; set; } = false;
         public TgcBoundingOrientedBox collider;
+        
 
         public TGCMatrix translation { get; set; }
         public TGCMatrix scaling { get; set; }
@@ -63,6 +68,11 @@ namespace TGC.Group.Model
         public void Update()
         {   
 
+        }
+
+        public bool Sliding()
+        {
+            return slide || izquierda || derecha;
         }
 
         public TGCVector3 Avanza(float ElapsedTime, float posX, float posY, float distAng)

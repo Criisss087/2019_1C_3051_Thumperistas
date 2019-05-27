@@ -101,6 +101,7 @@ namespace TGC.Group.Model
             {
                 BoundingBox = !BoundingBox;
             }
+
             if (Input.keyPressed(Key.Space))
             {
                 Recolectable objetoColisionado = new Recolectable(MediaDir, TGCVector3.One);
@@ -118,8 +119,19 @@ namespace TGC.Group.Model
                     Pantalla.multiplicador += 1;
                 }
                 else Pantalla.PierdoCombo();
+
+                //Beetle.slide = true;
             }
-            
+            else
+            {
+                //Beetle.slide = false;
+            }
+
+            if (Input.keyDown(Key.Space))
+                Beetle.slide = true;
+            else
+                Beetle.slide = false;
+
             // Cambie esto para desacelerar y acelerar, para pruebas
             if (Input.keyPressed(Key.A))
             {
@@ -133,8 +145,10 @@ namespace TGC.Group.Model
             // Capturador de Giro
             if (Input.keyDown(Key.Q))
             {
-                if (beetleDang > Geometry.DegreeToRadian(45)) //0f)
+                if (beetleDang > Geometry.DegreeToRadian(45))
                     beetleDang -= Beetle.VELOCIDAD_ANGULAR * ElapsedTime;
+
+                Beetle.izquierda = true;
 
                 //Ver como activar arrastrado
             }
@@ -142,6 +156,8 @@ namespace TGC.Group.Model
             {
                 if (beetleDang < FastMath.PI_HALF)
                     beetleDang += Beetle.VELOCIDAD_ANGULAR * ElapsedTime;
+
+                Beetle.izquierda = false;
             }
             
             if (Input.keyDown(Key.W))
@@ -149,39 +165,17 @@ namespace TGC.Group.Model
                 if (beetleDang < Geometry.DegreeToRadian(120)) // FastMath.PI)
                     beetleDang += Beetle.VELOCIDAD_ANGULAR * ElapsedTime;
 
+                Beetle.derecha = true;
                 //Ver como activar arrastrado
             }
             else
             {
                 if (beetleDang > FastMath.PI_HALF)
                     beetleDang -= Beetle.VELOCIDAD_ANGULAR * ElapsedTime;
+
+                Beetle.derecha = false;
             }
             
-
-            // Para tests
-            /*
-            if (Input.keyPressed(Key.W))
-            {
-                applyMovement = true;
-                posicionFinal = new TGCVector3(40f, 10, 0);
-
-            }
-
-            if (Input.keyPressed(Key.R))
-            {
-                applyMovement = true;
-                posicionFinal = new TGCVector3(-40f, 10, 0);
-
-            }
-
-            if (Input.keyPressed(Key.E))
-            {
-                applyMovement = true;
-                posicionFinal = new TGCVector3(0f, 10, 0);
-
-            }
-            */
-
             foreach (TgcMesh box2 in PistaNivel.SegmentosPista)
             {
                 //Reviso si el beetle colisiona con algun elemento de la pista  
@@ -202,6 +196,35 @@ namespace TGC.Group.Model
                         
                     }
 
+                    Console.WriteLine("Rotacion en Y de la caja colisionada "+ box2.Rotation.Y);
+                    
+                    if(box2.Rotation.Y > 0f && !Beetle.derecha)
+                    {
+                        if (!Beetle.escudo)
+                        {
+                            // Perdiste!
+                            //Beetle.speed = 0f;
+                        }
+                        else
+                        {
+                            Beetle.escudo = false;
+                        }
+                            
+                    }
+                    else if (box2.Rotation.Y < 0 && !Beetle.izquierda)
+                    {
+                        if (!Beetle.escudo)
+                        {
+                            //Perdiste!
+                            //Beetle.speed = 0f;
+                        }
+                        else
+                        {
+                            Beetle.escudo = false;
+                        }
+
+                    }
+                    
                 }
                 else
                 {
@@ -253,7 +276,19 @@ namespace TGC.Group.Model
                     applyMovement = false;
                 }
             }
-            
+
+            // para debug
+            if (Input.keyPressed(Key.E))
+                Beetle.escudo = true;
+
+            if (Input.keyPressed(Key.Escape))
+            {
+                if (Beetle.speed == 0f)
+                    Beetle.speed = Beetle.VELOCIDAD;
+                else if(Beetle.speed == Beetle.VELOCIDAD)
+                    Beetle.speed = 0f;
+            }
+
             //muevo beetle para adelante
             PistaNivel.posActual = Beetle.Avanza(ElapsedTime, posX, posY, beetleDang);            
 
@@ -280,10 +315,10 @@ namespace TGC.Group.Model
             DrawText.drawText("Posicion actual ultima pieza: " + TGCVector3.PrintVector3(PistaNivel.posUltimaPieza), 0, 40, Color.OrangeRed);
             DrawText.drawText("Giro de bloque: " + (PistaNivel.rotCurvaActual.Y), 0, 50, Color.OrangeRed);
             DrawText.drawText("Cantidad de bloques a girar: " + (PistaNivel.cantCurvaSuaveActual), 0, 60, Color.OrangeRed);
-            DrawText.drawText("X diff: " + posX, 0, 70, Color.OrangeRed);
-            DrawText.drawText("Y Diff: " + posY, 0, 80, Color.OrangeRed);
-            DrawText.drawText("Beetle distAng: " + this.beetleDang.ToString(), 0, 90, Color.OrangeRed);
-            DrawText.drawText("Beetle Speed: " + (Beetle.speed), 0, 100, Color.OrangeRed);
+            DrawText.drawText("Sliding: " + Beetle.Sliding().ToString(), 0, 70, Color.OrangeRed);
+            DrawText.drawText("Izquierda: " + Beetle.izquierda.ToString(), 0, 80, Color.OrangeRed);
+            DrawText.drawText("Derecha: " + Beetle.derecha.ToString(), 0, 90, Color.OrangeRed);
+            DrawText.drawText("Escudo: " + (Beetle.escudo.ToString()), 0, 100, Color.OrangeRed);
             
 
             //Render de BoundingBox, muy útil para debug de colisiones.

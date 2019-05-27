@@ -221,6 +221,7 @@ namespace TGC.Group
 
             pisoMesh.AutoUpdateBoundingBox = false;
             pisoMesh.Position = this.posUltimaPieza;
+            pisoMesh.Rotation = new TGCVector3(0,rot.Y,0);
             agregoRecolectables(this.posUltimaPieza);
             return pisoMesh;
         }
