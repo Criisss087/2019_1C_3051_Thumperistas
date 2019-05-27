@@ -4,13 +4,14 @@ using TGC.Core.BoundingVolumes;
 using System.Drawing;
 using System.Collections.Generic;
 using TGC.Core.Collision;
+using Microsoft.DirectX.Direct3D;
 
 namespace TGC.Group.Model
 {
     class Beetle
     {
 
-        public const float VELOCIDAD_ANGULAR = 1.1f;
+        public const float VELOCIDAD_ANGULAR = 15f;
         public const float VELOCIDAD = 400f;
         public const float VELOCIDADX = 500f;
 
@@ -33,10 +34,10 @@ namespace TGC.Group.Model
             beetle = loader.loadSceneFromFile(_mediaDir + "/Thumper/beetle-TgcScene.xml");
 
             //Modifico como quiero que empiece el mesh
-            position = new TGCVector3(0, 10, 0);
+            position = new TGCVector3(0, 8f, 0);
             translation = TGCMatrix.Translation(position);
-            scaling = TGCMatrix.Scaling(TGCVector3.One * .5f);  
-            rotation = TGCMatrix.RotationY(FastMath.PI_HALF);
+            scaling = TGCMatrix.Scaling(TGCVector3.One * .5f);
+            //rotation = TGCMatrix.RotationY(Geometry.DegreeToRadian(45));         //FastMath.PI_HALF);
 
             foreach (var mesh in beetle.Meshes)
             {
@@ -47,6 +48,12 @@ namespace TGC.Group.Model
 
             //Seteo collider
             beetle.BoundingBox.transform(translation * scaling * rotation);
+
+            // Escalo el collider para no salirme de la pista en X, y para tener mas precision en Z con los recolectables
+            var newScaling = scaling;
+            var newTrasnlsation = TGCMatrix.Translation(new TGCVector3(-40,10,60));
+            newScaling.Scale(2,1,0.5f);
+            beetle.BoundingBox.transform(newScaling * newTrasnlsation);
             collider = TgcBoundingOrientedBox.computeFromAABB(beetle.BoundingBox);
             
             this.speed = 400f;
@@ -58,10 +65,12 @@ namespace TGC.Group.Model
 
         }
 
-        public TGCVector3 Avanza(float ElapsedTime, float posX, float posY)
+        public TGCVector3 Avanza(float ElapsedTime, float posX, float posY, float distAng)
         {
             position += new TGCVector3(posX, posY, speed * ElapsedTime);
+
             translation = TGCMatrix.Translation(position);
+            rotation = TGCMatrix.RotationY(distAng);
 
             collider.move(new TGCVector3(posX, posY, speed * ElapsedTime));
             

@@ -120,23 +120,25 @@ namespace TGC.Group
                 trasX = 0f;
 
                 // Bloques de la curva
-                this.cantCurvaSuaveActual = this.rnd.Next(61);
+                this.cantCurvaSuaveActual = 5;
+                /*this.rnd.Next(61);
                 if (this.cantCurvaSuaveActual < 30)
                     this.cantCurvaSuaveActual += 30;
+                */
 
                 switch (direccionCurvaSuave)
                 {
                     //  Derecha                    
                     case 1:
-                        rotationY = anguloY / cantCurvaSuaveActual;
-                        trasX = 30f / cantCurvaSuaveActual;
+                        //rotationY = anguloY / cantCurvaSuaveActual;
+                        trasX = 50f / cantCurvaSuaveActual;
                         this.curvaSuaveActiva = true;
                         break;
                     // Izquierda
                     case 2:
                         Console.WriteLine("Dobla a la izquierda?");
-                        rotationY = -anguloY / cantCurvaSuaveActual;
-                        trasX = -(30f / cantCurvaSuaveActual);
+                        //rotationY = -anguloY / cantCurvaSuaveActual;
+                        trasX = -(50f / cantCurvaSuaveActual);
                         this.curvaSuaveActiva = true;
                         break;
                     
@@ -173,6 +175,7 @@ namespace TGC.Group
                 {
                     this.rutaTunelActual = "";
                     this.tunelActivo = false;
+                    this.cantTunelActual = 0;
                 }
                 else if (eleccionPista == 2)
                 {
@@ -188,44 +191,12 @@ namespace TGC.Group
                 {
                     this.rutaTunelActual = "";
                     this.tunelActivo = false;
-                }
-
-                if (!this.tunelActivo)
-                {
                     this.cantTunelActual = 0;
-                    this.tunelActivo = false;
                 }
-                
 
             }
         }
        
-        private void generarTunel(String nombreArchivo, float offset, int cant) 
-        {
-            Random rnd = new Random();
-            Color ColorRandom = Color.FromArgb(rnd.Next(256), rnd.Next(256), rnd.Next(256));
-
-            TGCVector3 posTunel = new TGCVector3();
-            posTunel = this.posUltimaPieza; 
-
-            if (this.posActual.Z > this.posUltimoTunel.Z )
-            {
-                this.SegmentosTunel.Clear();
-
-                for (int j = 0; j < cant; j++)
-                {
-                    TgcMesh MeshAux = cargarMesh(nombreArchivo, 0);
-                    MeshAux.Move(posTunel + TGCVector3.Up * 5);
-                    MeshAux.Scale = TGCVector3.One * 3;
-                    MeshAux.setColor(ColorRandom);
-                    this.SegmentosTunel.Add(MeshAux);
-                    posTunel += new TGCVector3(0, 0, offset);
-                }
-
-                this.posUltimoTunel = posTunel;
-            }
-        }
-
         TgcMesh generarSegmentoPiso()
         {
             TGCBox piso = new TGCBox();

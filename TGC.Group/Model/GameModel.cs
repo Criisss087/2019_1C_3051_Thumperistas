@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using TGC.Examples.Camara;
 using TGC.Core.Sound;
 using TGC.Core.Collision;
+using Microsoft.DirectX.Direct3D;
 
 namespace TGC.Group.Model
 {
@@ -49,6 +50,7 @@ namespace TGC.Group.Model
         private bool applyMovement;
         public float posX = 0, posY = 0;
         public TGCVector3 posicionFinal = new TGCVector3(0, 0, 0);
+        float beetleDang = FastMath.PI_HALF;
 
         /// <summary>
         ///     Se llama una sola vez, al principio cuando se ejecuta el ejemplo.
@@ -128,7 +130,34 @@ namespace TGC.Group.Model
                 Beetle.DesvanecerVelocidad(ElapsedTime);
             }
             
+            // Capturador de Giro
+            if (Input.keyDown(Key.Q))
+            {
+                if (beetleDang > Geometry.DegreeToRadian(45)) //0f)
+                    beetleDang -= Beetle.VELOCIDAD_ANGULAR * ElapsedTime;
+
+                //Ver como activar arrastrado
+            }
+            else
+            {
+                if (beetleDang < FastMath.PI_HALF)
+                    beetleDang += Beetle.VELOCIDAD_ANGULAR * ElapsedTime;
+            }
             
+            if (Input.keyDown(Key.W))
+            {
+                if (beetleDang < Geometry.DegreeToRadian(120)) // FastMath.PI)
+                    beetleDang += Beetle.VELOCIDAD_ANGULAR * ElapsedTime;
+
+                //Ver como activar arrastrado
+            }
+            else
+            {
+                if (beetleDang > FastMath.PI_HALF)
+                    beetleDang -= Beetle.VELOCIDAD_ANGULAR * ElapsedTime;
+            }
+            
+
             // Para tests
             /*
             if (Input.keyPressed(Key.W))
@@ -152,7 +181,7 @@ namespace TGC.Group.Model
 
             }
             */
-            
+
             foreach (TgcMesh box2 in PistaNivel.SegmentosPista)
             {
                 //Reviso si el beetle colisiona con algun elemento de la pista  
@@ -162,9 +191,9 @@ namespace TGC.Group.Model
                     if (!applyMovement)
                     {
                         // Color para detectar la colision, testing
-                        //box2.setColor(Color.Red);
+                        box2.setColor(Color.Red);
                         posX = box2.Position.X - Beetle.position.X;
-                        posY = box2.Position.Y - Beetle.position.Y + 10;
+                        posY = box2.Position.Y - Beetle.position.Y + 8;
                         if (posX != 0 || posY != 0)
                         {
                             applyMovement = true;
@@ -179,7 +208,7 @@ namespace TGC.Group.Model
                 else
                 {
                     // Color para detectar la colision, testing
-                    //box2.setColor(Color.Blue);
+                    box2.setColor(Color.Blue);
                 }
             }
             
@@ -228,9 +257,10 @@ namespace TGC.Group.Model
             }
             
             //muevo beetle para adelante
-            PistaNivel.posActual = Beetle.Avanza(ElapsedTime, posX, posY);            
+            PistaNivel.posActual = Beetle.Avanza(ElapsedTime, posX, posY, beetleDang);            
 
             camaraInterna.Target = Beetle.position;
+            
             Pantalla.Update(camaraInterna.Position);      
             
             PostUpdate();
@@ -254,9 +284,10 @@ namespace TGC.Group.Model
             DrawText.drawText("Cantidad de bloques a girar: " + (PistaNivel.cantCurvaSuaveActual), 0, 60, Color.OrangeRed);
             DrawText.drawText("X diff: " + posX, 0, 70, Color.OrangeRed);
             DrawText.drawText("Y Diff: " + posY, 0, 80, Color.OrangeRed);
-            DrawText.drawText("Aplicando movimiento?: " + applyMovement.ToString(), 0, 90, Color.OrangeRed);
-            DrawText.drawText("Cant de elementos en tunel: " + (PistaNivel.SegmentosTunel.Count), 0, 100, Color.OrangeRed);
+            DrawText.drawText("Beetle distAng: " + this.beetleDang.ToString(), 0, 90, Color.OrangeRed);
+            DrawText.drawText("RAD 45: " + (Geometry.DegreeToRadian(45)), 0, 100, Color.OrangeRed);
             
+
             //Render de BoundingBox, muy útil para debug de colisiones.
             if (BoundingBox)
             {
