@@ -14,6 +14,7 @@ namespace TGC.Group.Model
         public TGCMatrix Translation { get; set; }
         public TGCMatrix Scaling { get; set; }
         public TGCMatrix Rotation { get; set; }
+        public TGCVector3 Position { get; set; }
         public TgcBoundingSphere Collider;
 
         public Recolectable(String mediaDir, TGCVector3 PosicionInicial)
@@ -29,6 +30,7 @@ namespace TGC.Group.Model
             Rotation = TGCMatrix.Identity;
             Translation = TGCMatrix.Translation(new TGCVector3(0, 10, 0) + PosicionInicial); // el +10 es para que este sobre la pista
             Scaling = TGCMatrix.Scaling(TGCVector3.One*0.2f);
+            Position = PosicionInicial;
 
             //seteo colisionador esfera
             Collider = new TgcBoundingSphere(new TGCVector3(0, 10, 0) + PosicionInicial, 5f);

@@ -103,8 +103,12 @@ namespace TGC.Group
                 }                    
             }
 
-            this.posUltimaPieza += ( new TGCVector3(0, 0, OFFSETPIEZAS) + this.trasCurvaActual );
+            this.posUltimaPieza += (new TGCVector3(0, 0, OFFSETPIEZAS) + this.trasCurvaActual );
             this.SegmentosPista.ElementAt(0).GetPosition(this.posActual);
+
+            // Remuevo recolectables que ya pasaron al beetle
+            Recolectables.RemoveAll(rec => rec.Position.Z < ( posActual.Z - 300));
+           
         }
 
         public void UpdateCurvaSuave()
