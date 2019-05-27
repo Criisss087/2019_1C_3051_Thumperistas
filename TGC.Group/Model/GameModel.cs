@@ -119,7 +119,7 @@ namespace TGC.Group.Model
                 }
                 else Pantalla.PierdoCombo();
             }
-
+            
             // Cambie esto para desacelerar y acelerar, para pruebas
             if (Input.keyPressed(Key.A))
             {
@@ -191,15 +191,13 @@ namespace TGC.Group.Model
                     if (!applyMovement)
                     {
                         // Color para detectar la colision, testing
-                        box2.setColor(Color.Red);
+                        //box2.setColor(Color.Red);
                         posX = box2.Position.X - Beetle.position.X;
                         posY = box2.Position.Y - Beetle.position.Y + 8;
                         if (posX != 0 || posY != 0)
                         {
                             applyMovement = true;
                             posicionFinal = box2.Position;
-                            System.Console.WriteLine("Beetle position " + TGCVector3.PrintVector3(Beetle.position));
-                            System.Console.WriteLine("Posicion objetivo " + TGCVector3.PrintVector3(posicionFinal));
                         }
                         
                     }
@@ -208,7 +206,7 @@ namespace TGC.Group.Model
                 else
                 {
                     // Color para detectar la colision, testing
-                    box2.setColor(Color.Blue);
+                    //box2.setColor(Color.Blue);
                 }
             }
             
@@ -222,17 +220,17 @@ namespace TGC.Group.Model
                 /*
                 System.Console.WriteLine("long diferencia "+ posDiffLength);
                 System.Console.WriteLine("epsilon " + float.Epsilon);
-                */
+                
                 System.Console.WriteLine("Beetle position " + TGCVector3.PrintVector3(Beetle.position));
                 System.Console.WriteLine("Posicion objetivo " + TGCVector3.PrintVector3(posicionFinal));
                 System.Console.WriteLine("Posicion diff " + TGCVector3.PrintVector3(posDiff));
-
+                */
                 //Si esta a menos de 1 asumo que esta en la misma posicion
                 if (posDiffLength > 1)
                 {
                     //Intento mover el beetle interpolando por la velocidad
                     //var currentVelocity = Beetle.VELOCIDADX * ElapsedTime;
-                    var currentVelocity = 100f * ElapsedTime;
+                    var currentVelocity = 200f * ElapsedTime;
                     posDiff.Normalize();
                     posDiff.Multiply(currentVelocity);
 
@@ -285,7 +283,7 @@ namespace TGC.Group.Model
             DrawText.drawText("X diff: " + posX, 0, 70, Color.OrangeRed);
             DrawText.drawText("Y Diff: " + posY, 0, 80, Color.OrangeRed);
             DrawText.drawText("Beetle distAng: " + this.beetleDang.ToString(), 0, 90, Color.OrangeRed);
-            DrawText.drawText("RAD 45: " + (Geometry.DegreeToRadian(45)), 0, 100, Color.OrangeRed);
+            DrawText.drawText("Beetle Speed: " + (Beetle.speed), 0, 100, Color.OrangeRed);
             
 
             //Render de BoundingBox, muy útil para debug de colisiones.

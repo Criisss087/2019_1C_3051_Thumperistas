@@ -111,33 +111,30 @@ namespace TGC.Group
         {   
             if(!this.curvaSuaveActiva)
             {
-                int direccionCurvaSuave = rnd.Next(50);
+                int direccionCurvaSuave = rnd.Next(150);
                 float rotationY = 0;
                 float posX = this.posUltimaPieza.X;
-                float anguloY = 45f;
+                float anguloY = 45f; // Geometry.DegreeToRadian(45);
                 float trasX;
 
                 trasX = 0f;
 
                 // Bloques de la curva
                 this.cantCurvaSuaveActual = 5;
-                /*this.rnd.Next(61);
-                if (this.cantCurvaSuaveActual < 30)
-                    this.cantCurvaSuaveActual += 30;
-                */
 
                 switch (direccionCurvaSuave)
                 {
                     //  Derecha                    
                     case 1:
-                        //rotationY = anguloY / cantCurvaSuaveActual;
+                        Console.WriteLine("Dobla a la derecha?");
+                        rotationY = anguloY; // / cantCurvaSuaveActual;
                         trasX = 50f / cantCurvaSuaveActual;
                         this.curvaSuaveActiva = true;
                         break;
                     // Izquierda
                     case 2:
                         Console.WriteLine("Dobla a la izquierda?");
-                        //rotationY = -anguloY / cantCurvaSuaveActual;
+                        rotationY = -anguloY; // / cantCurvaSuaveActual;
                         trasX = -(50f / cantCurvaSuaveActual);
                         this.curvaSuaveActiva = true;
                         break;
@@ -163,8 +160,6 @@ namespace TGC.Group
                 // Generacion aleatoria de túneles sobre la pista
                 int eleccionPista = elijoEntreTresProbabilidades(700, 10, 10);
 
-                //Cantidad de posiciones del tunel
-                //float offsetPiezas = 50;
                 this.cantTunelActual = this.rnd.Next(31);
                 if (this.cantTunelActual < 15)
                     this.cantTunelActual += 15;
@@ -208,7 +203,10 @@ namespace TGC.Group
 
             TGCVector3 rot = new TGCVector3(0,0,0);
             rot.X = Geometry.DegreeToRadian(this.rotCurvaActual.X);
-            rot.Y = Geometry.DegreeToRadian(this.rotCurvaActual.Y);
+            if(cantCurvaSuaveActual != 0)
+                rot.Y = Geometry.DegreeToRadian(this.rotCurvaActual.Y / curvar(cantCurvaSuaveActual));
+            else
+                rot.Y = Geometry.DegreeToRadian(this.rotCurvaActual.Y);
             rot.Z = Geometry.DegreeToRadian(this.rotCurvaActual.Z);
 
             // YAW = Y, va primero
@@ -225,6 +223,34 @@ namespace TGC.Group
             pisoMesh.Position = this.posUltimaPieza;
             agregoRecolectables(this.posUltimaPieza);
             return pisoMesh;
+        }
+
+        // buscar una funcion que de F(1)=-3 F(2)=-1.5 F(3)=1 F(4)=1.5 F(5)=3
+        public float curvar(int x)
+        {
+            //float y = ((x-3) / 1.5f) * ((x - 3) / 1.5f) * ((x - 3) / 1.5f) + 1;
+            //Console.WriteLine("y = "+y);
+            float y = 0;
+            switch(x)
+            {
+                case 1:
+                    y = 30f;
+                    break;
+                case 2:
+                    y = 15f;
+                    break;
+                case 3:
+                    y = 10f;
+                    break;
+                case 4:
+                    y = 15f;
+                    break;
+                case 5:
+                    y = 30f;
+                    break;
+            }
+
+            return y;
         }
 
         void agregoRecolectables(TGCVector3 Posicion)

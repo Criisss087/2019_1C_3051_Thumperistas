@@ -12,7 +12,7 @@ namespace TGC.Group.Model
     {
 
         public const float VELOCIDAD_ANGULAR = 15f;
-        public const float VELOCIDAD = 400f;
+        public const float VELOCIDAD = 600f;
         public const float VELOCIDADX = 500f;
 
         private TgcSceneLoader loader;
@@ -56,7 +56,7 @@ namespace TGC.Group.Model
             beetle.BoundingBox.transform(newScaling * newTrasnlsation);
             collider = TgcBoundingOrientedBox.computeFromAABB(beetle.BoundingBox);
             
-            this.speed = 400f;
+            this.speed = 900f;
 
         }
 
