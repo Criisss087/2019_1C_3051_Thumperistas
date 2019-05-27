@@ -9,18 +9,23 @@ namespace TGC.Group.Model
 {
     class Beetle
     {
+
+        public const float VELOCIDAD_ANGULAR = 1.1f;
+        public const float VELOCIDAD = 400f;
+        public const float VELOCIDADX = 500f;
+
         private TgcSceneLoader loader;
         public TgcScene beetle { get; set; }
         public float speed { get; set; }
-        TgcBoundingOrientedBox collider;
+        public TgcBoundingOrientedBox collider;
 
         public TGCMatrix translation { get; set; }
         public TGCMatrix scaling { get; set; }
         public TGCMatrix rotation { get; set; }
         public TGCVector3 position { get; set; }
         public float traslacionZ { get; set; }
-        public bool poderActivado = false;     
-   
+        public bool poderActivado = false;
+
         public Beetle(string _mediaDir)
         {
             this.loader = new TgcSceneLoader();
@@ -43,24 +48,23 @@ namespace TGC.Group.Model
             //Seteo collider
             beetle.BoundingBox.transform(translation * scaling * rotation);
             collider = TgcBoundingOrientedBox.computeFromAABB(beetle.BoundingBox);
-
+            
             this.speed = 400f;
 
         }
 
         public void Update()
         {   
-            //Creo que va a ser mejor que el beetle no se mueva, solo se mueva la pista
-            //position += new TGCVector3(0, 0, 1) * ElapsedTime * Speed;
-            //position += new TGCVector3(0, 0, 1) * Speed;
+
         }
 
-        public TGCVector3 Avanza(float ElapsedTime)
+        public TGCVector3 Avanza(float ElapsedTime, float posX, float posY)
         {
-            position += new TGCVector3(0, 0, speed*ElapsedTime);
+            position += new TGCVector3(posX, posY, speed * ElapsedTime);
             translation = TGCMatrix.Translation(position);
-            collider.move(new TGCVector3(0, 0, speed * ElapsedTime));
 
+            collider.move(new TGCVector3(posX, posY, speed * ElapsedTime));
+            
             return position;
         }
 
@@ -92,20 +96,21 @@ namespace TGC.Group.Model
 
         public void ActivarPoder()
         {
-            speed += 200f;
-            poderActivado = true;
+            speed += 50f;
+            //poderActivado = true;
         }
 
         public void DesvanecerVelocidad(float ElapsedTime)
         {
-            if (speed > 400f)
+            /*if (speed > 400f)
                 speed -= ElapsedTime*100;
             else
             {
                 speed = 400f;
                 System.Console.WriteLine("Desactive mi poder");
                 poderActivado = false;
-            }
+            }*/
+            speed -= 50f;
         }
 
         public void Dispose()

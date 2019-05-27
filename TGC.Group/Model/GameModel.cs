@@ -11,9 +11,7 @@ using System;
 using System.Collections.Generic;
 using TGC.Examples.Camara;
 using TGC.Core.Sound;
-
-
-
+using TGC.Core.Collision;
 
 namespace TGC.Group.Model
 {
@@ -47,6 +45,10 @@ namespace TGC.Group.Model
         private TgcMp3Player mp3PlayerMusica;
         private TgcStaticSound sound;
         private Pantalla Pantalla;
+
+        private bool applyMovement;
+        public float posX = 0, posY = 0;
+        public TGCVector3 posicionFinal = new TGCVector3(0, 0, 0);
 
         /// <summary>
         ///     Se llama una sola vez, al principio cuando se ejecuta el ejemplo.
@@ -85,9 +87,10 @@ namespace TGC.Group.Model
             PreUpdate();
 
             // Cuando llego al final de la pista, se actualiza, el rango de vision es alrededor de 2500 Z
-            if (PistaNivel.posUltimaPieza.Z - Beetle.position.Z <= 4900)
+            if (PistaNivel.posUltimaPieza.Z - Beetle.position.Z <= 2500)
             {
                 PistaNivel.UpdateTunel();
+                PistaNivel.UpdateCurvaSuave();
                 PistaNivel.UpdatePista();
             }
 
@@ -114,17 +117,118 @@ namespace TGC.Group.Model
                 }
                 else Pantalla.PierdoCombo();
             }
+
+            // Cambie esto para desacelerar y acelerar, para pruebas
             if (Input.keyPressed(Key.A))
             {
                 Beetle.ActivarPoder();
             }
-            if (Beetle.poderActivado)
+            if (Input.keyPressed(Key.S))
             {
                 Beetle.DesvanecerVelocidad(ElapsedTime);
             }
+            
+            
+            // Para tests
+            /*
+            if (Input.keyPressed(Key.W))
+            {
+                applyMovement = true;
+                posicionFinal = new TGCVector3(40f, 10, 0);
 
+            }
+
+            if (Input.keyPressed(Key.R))
+            {
+                applyMovement = true;
+                posicionFinal = new TGCVector3(-40f, 10, 0);
+
+            }
+
+            if (Input.keyPressed(Key.E))
+            {
+                applyMovement = true;
+                posicionFinal = new TGCVector3(0f, 10, 0);
+
+            }
+            */
+            
+            foreach (TgcMesh box2 in PistaNivel.SegmentosPista)
+            {
+                //Reviso si el beetle colisiona con algun elemento de la pista  
+                if (TgcCollisionUtils.testObbAABB(Beetle.collider, box2.BoundingBox))
+                {   
+                    // Si no hay movimiento en X activo, capturo la posicion final a la que debe ir el beetle
+                    if (!applyMovement)
+                    {
+                        // Color para detectar la colision, testing
+                        //box2.setColor(Color.Red);
+                        posX = box2.Position.X - Beetle.position.X;
+                        posY = box2.Position.Y - Beetle.position.Y + 10;
+                        if (posX != 0 || posY != 0)
+                        {
+                            applyMovement = true;
+                            posicionFinal = box2.Position;
+                            System.Console.WriteLine("Beetle position " + TGCVector3.PrintVector3(Beetle.position));
+                            System.Console.WriteLine("Posicion objetivo " + TGCVector3.PrintVector3(posicionFinal));
+                        }
+                        
+                    }
+
+                }
+                else
+                {
+                    // Color para detectar la colision, testing
+                    //box2.setColor(Color.Blue);
+                }
+            }
+            
+            // Si todavia no alcanzó la pos final de movimiento
+            if (applyMovement)
+            {
+                //Ver si queda algo de distancia para mover
+                var posDiff = new TGCVector3(posicionFinal.X, 0f,0f) - new TGCVector3(Beetle.position.X, 0f, 0f) ;
+
+                var posDiffLength = posDiff.LengthSq();
+                /*
+                System.Console.WriteLine("long diferencia "+ posDiffLength);
+                System.Console.WriteLine("epsilon " + float.Epsilon);
+                */
+                System.Console.WriteLine("Beetle position " + TGCVector3.PrintVector3(Beetle.position));
+                System.Console.WriteLine("Posicion objetivo " + TGCVector3.PrintVector3(posicionFinal));
+                System.Console.WriteLine("Posicion diff " + TGCVector3.PrintVector3(posDiff));
+
+                //Si esta a menos de 1 asumo que esta en la misma posicion
+                if (posDiffLength > 1)
+                {
+                    //Intento mover el beetle interpolando por la velocidad
+                    //var currentVelocity = Beetle.VELOCIDADX * ElapsedTime;
+                    var currentVelocity = 100f * ElapsedTime;
+                    posDiff.Normalize();
+                    posDiff.Multiply(currentVelocity);
+
+                    //Ajustar cuando llegamos al final del recorrido
+                    var newPos = Beetle.position + posDiff;
+                    if (posDiff.LengthSq() > posDiffLength)
+                    {
+                        newPos = posicionFinal;
+                    }
+
+                    posX = posDiff.X;
+                    //posY = posDiff.Y;
+
+                }
+                //Se acabo el movimiento
+                else
+                {
+                    posX = 0;
+                    posY = 0;
+                    applyMovement = false;
+                }
+            }
+            
             //muevo beetle para adelante
-            PistaNivel.posActual = Beetle.Avanza(ElapsedTime);            
+            PistaNivel.posActual = Beetle.Avanza(ElapsedTime, posX, posY);            
 
             camaraInterna.Target = Beetle.position;
             Pantalla.Update(camaraInterna.Position);      
@@ -146,13 +250,13 @@ namespace TGC.Group.Model
             DrawText.drawText("Con la tecla F se dibuja el bounding box.", 0, 20, Color.OrangeRed);
             DrawText.drawText("Posicion actual del jugador: " + TGCVector3.PrintVector3(Beetle.position), 0, 30, Color.OrangeRed);
             DrawText.drawText("Posicion actual ultima pieza: " + TGCVector3.PrintVector3(PistaNivel.posUltimaPieza), 0, 40, Color.OrangeRed);
-            DrawText.drawText("Diferencia: " + (PistaNivel.posUltimaPieza.Z - Beetle.position.Z), 0, 50, Color.OrangeRed);
-            DrawText.drawText("Z Beetle: " + (Beetle.position.Z), 0, 60, Color.OrangeRed);
-            DrawText.drawText("Z ultima: " + (PistaNivel.posUltimaPieza.Z), 0, 70, Color.OrangeRed);
-            DrawText.drawText("Cant de elementos en pista: " + (PistaNivel.SegmentosPista.Count), 0, 80, Color.OrangeRed);
-            DrawText.drawText("Posicion actual pista: " + TGCVector3.PrintVector3(PistaNivel.posActual), 0, 90, Color.OrangeRed);
+            DrawText.drawText("Giro de bloque: " + (PistaNivel.rotCurvaActual.Y), 0, 50, Color.OrangeRed);
+            DrawText.drawText("Cantidad de bloques a girar: " + (PistaNivel.cantCurvaSuaveActual), 0, 60, Color.OrangeRed);
+            DrawText.drawText("X diff: " + posX, 0, 70, Color.OrangeRed);
+            DrawText.drawText("Y Diff: " + posY, 0, 80, Color.OrangeRed);
+            DrawText.drawText("Aplicando movimiento?: " + applyMovement.ToString(), 0, 90, Color.OrangeRed);
             DrawText.drawText("Cant de elementos en tunel: " + (PistaNivel.SegmentosTunel.Count), 0, 100, Color.OrangeRed);
-
+            
             //Render de BoundingBox, muy útil para debug de colisiones.
             if (BoundingBox)
             {

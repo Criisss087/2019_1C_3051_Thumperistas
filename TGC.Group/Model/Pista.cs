@@ -13,6 +13,7 @@ using TGC.Core.Mathematica;
 using TGC.Core.SceneLoader;
 using TGC.Core.Textures;
 using TGC.Group.Model;
+using Microsoft.DirectX.Direct3D;
 
 namespace TGC.Group
 {
@@ -34,6 +35,13 @@ namespace TGC.Group
         private String rutaTunelActual;
         private Color colorTunelActual;
 
+        private bool curvaSuaveActiva;
+        public int cantCurvaSuaveActual = 0;
+        public TGCVector3 rotCurvaActual = new TGCVector3(0, 0, 0);
+        public TGCVector3 trasCurvaActual = new TGCVector3(0, 0, 0);
+        private const float OFFSETPIEZAS = 60;
+
+
         public Pista(String _MediaDir)
         {
             this.MediaDir = _MediaDir;
@@ -53,18 +61,17 @@ namespace TGC.Group
         private void generarPista()
         {;
             // Primero agrego un camino de 100 para el inicio 
-            for (int j = 0; j < 100; j++)
+            for (int j = 0; j < 50; j++)
             {
-                this.SegmentosPista.Add(generarSegmentoPiso(this.posUltimaPieza));
-                this.posUltimaPieza += new TGCVector3(0, 0, 50);
+                this.SegmentosPista.Add(generarSegmentoPiso());
+                this.posUltimaPieza += new TGCVector3(0, 0, OFFSETPIEZAS);
             }
         }
 
         public void UpdatePista()
         {
-            // La pista se mantiene infinita
-            this.SegmentosPista.Add(generarSegmentoPiso(this.posUltimaPieza));
-            
+            // La pista se mantiene infinita, agrego un elemento al final, y remuevo el primero, que ya lo paso el beetle
+            this.SegmentosPista.Add(generarSegmentoPiso());
             this.SegmentosPista.RemoveAt(0);
 
             if(this.tunelActivo)
@@ -85,7 +92,65 @@ namespace TGC.Group
                     this.SegmentosTunel.RemoveAt(0);
             }
 
-            this.posUltimaPieza += new TGCVector3(0, 0, 50);
+            if (this.curvaSuaveActiva)
+            {
+                cantCurvaSuaveActual--;
+                if (cantCurvaSuaveActual == 0)
+                {
+                    this.curvaSuaveActiva = false;
+                    this.rotCurvaActual = new TGCVector3(0, 0, 0);
+                    this.trasCurvaActual = new TGCVector3(0, 0, 0);
+                }                    
+            }
+
+            this.posUltimaPieza += ( new TGCVector3(0, 0, OFFSETPIEZAS) + this.trasCurvaActual );
+            this.SegmentosPista.ElementAt(0).GetPosition(this.posActual);
+        }
+
+        public void UpdateCurvaSuave()
+        {   
+            if(!this.curvaSuaveActiva)
+            {
+                int direccionCurvaSuave = rnd.Next(50);
+                float rotationY = 0;
+                float posX = this.posUltimaPieza.X;
+                float anguloY = 45f;
+                float trasX;
+
+                trasX = 0f;
+
+                // Bloques de la curva
+                this.cantCurvaSuaveActual = this.rnd.Next(61);
+                if (this.cantTunelActual < 30)
+                    this.cantTunelActual += 30;
+
+                switch (direccionCurvaSuave)
+                {
+                    //  Derecha                    
+                    case 1:
+                        rotationY = anguloY / cantCurvaSuaveActual;
+                        trasX = 30f / cantCurvaSuaveActual;
+                        this.curvaSuaveActiva = true;
+                        break;
+                    // Izquierda
+                    case 2:
+                        Console.WriteLine("Dobla a la izquierda?");
+                        rotationY = -anguloY / cantCurvaSuaveActual;
+                        trasX = -(30f / cantCurvaSuaveActual);
+                        this.curvaSuaveActiva = true;
+                        break;
+                    
+                    default:
+                        
+                        break;
+                }
+
+                if (!this.curvaSuaveActiva)
+                    this.cantCurvaSuaveActual = 0;
+
+                this.trasCurvaActual += new TGCVector3(trasX, 0, 0);
+                this.rotCurvaActual += new TGCVector3(0, rotationY, 0);
+            }
         }
 
         public void UpdateTunel()
@@ -111,26 +176,29 @@ namespace TGC.Group
                 }
                 else if (eleccionPista == 2)
                 {
-                    //generarTunel("testMeshCreatorCircle-TgcScene.xml", offsetPiezas, longitudTunel);
                     this.rutaTunelActual = "testMeshCreatorCircle-TgcScene.xml";
                     this.tunelActivo = true;
                 }
                 else if (eleccionPista == 3)
                 {
-                    //generarTunel("triangular_tunnel-TgcScene.xml", offsetPiezas, longitudTunel);
                     this.rutaTunelActual = "triangular_tunnel-TgcScene.xml";
                     this.tunelActivo = true;
                 }
+                else
+                {
+                    this.rutaTunelActual = "";
+                    this.tunelActivo = false;
+                }
             }
         }
-
-        private void generarTunel(String nombreArchivo, float offset, int cant) //si tuviese tuenes con mas meshes deberia pasar tmb la cant meshes
+       
+        private void generarTunel(String nombreArchivo, float offset, int cant) 
         {
             Random rnd = new Random();
             Color ColorRandom = Color.FromArgb(rnd.Next(256), rnd.Next(256), rnd.Next(256));
 
             TGCVector3 posTunel = new TGCVector3();
-            posTunel = this.posUltimaPieza; // - (new TGCVector3(0, 0, offset * cant));
+            posTunel = this.posUltimaPieza; 
 
             if (this.posActual.Z > this.posUltimoTunel.Z )
             {
@@ -143,27 +211,40 @@ namespace TGC.Group
                     MeshAux.Scale = TGCVector3.One * 3;
                     MeshAux.setColor(ColorRandom);
                     this.SegmentosTunel.Add(MeshAux);
-                    //this.SegmentosPista.RemoveAt(0);
                     posTunel += new TGCVector3(0, 0, offset);
                 }
 
                 this.posUltimoTunel = posTunel;
-                //this.cantUltimoTunel = cant;
             }
         }
 
-        TgcMesh generarSegmentoPiso(TGCVector3 Posicion)
+        TgcMesh generarSegmentoPiso()
         {
             TGCBox piso = new TGCBox();
             TGCVector3 Tamanio = new TGCVector3(30, 10, 30);
             TgcTexture texturaPiso = TgcTexture.createTexture(D3DDevice.Instance.Device, MediaDir + "Textures/gray.jpg");
+            piso.AutoTransformEnable = false;
             piso.setTexture(texturaPiso);
             piso.Size = Tamanio;
-            piso.Transform = TGCMatrix.Translation(Posicion); 
+
+            TGCVector3 rot = new TGCVector3(0,0,0);
+            rot.X = Geometry.DegreeToRadian(this.rotCurvaActual.X);
+            rot.Y = Geometry.DegreeToRadian(this.rotCurvaActual.Y);
+            rot.Z = Geometry.DegreeToRadian(this.rotCurvaActual.Z);
+
+            // YAW = Y, va primero
+            piso.Transform = TGCMatrix.Scaling(new TGCVector3(1, 1, 2)) *
+                             TGCMatrix.RotationYawPitchRoll(rot.Y, rot.X, rot.Z) *  
+                             TGCMatrix.Translation(this.posUltimaPieza);
+            
+
             piso.updateValues();
 
             TgcMesh pisoMesh = piso.ToMesh("piso");
-            agregoRecolectables(Posicion);
+
+            pisoMesh.AutoUpdateBoundingBox = false;
+            pisoMesh.Position = this.posUltimaPieza;
+            agregoRecolectables(this.posUltimaPieza);
             return pisoMesh;
         }
 
