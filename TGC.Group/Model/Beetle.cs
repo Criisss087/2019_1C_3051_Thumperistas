@@ -5,6 +5,8 @@ using System.Drawing;
 using System.Collections.Generic;
 using TGC.Core.Collision;
 using Microsoft.DirectX.Direct3D;
+using Microsoft.DirectX.DirectInput;
+using TGC.Core.Input;
 
 namespace TGC.Group.Model
 {
@@ -13,7 +15,7 @@ namespace TGC.Group.Model
 
         public const float VELOCIDAD_ANGULAR = 15f;
         public const float VELOCIDAD = 900f;
-        public const float VELOCIDADX = 500f;
+        public const float VELOCIDADX = 200f;
 
         private TgcSceneLoader loader;
         public TgcScene beetle { get; set; }
@@ -31,6 +33,7 @@ namespace TGC.Group.Model
         public TGCVector3 position { get; set; }
         public float traslacionZ { get; set; }
         public bool poderActivado = false;
+        public float distAng = FastMath.PI_HALF;
 
         public Beetle(string _mediaDir)
         {
@@ -65,8 +68,69 @@ namespace TGC.Group.Model
 
         }
 
-        public void Update()
-        {   
+        public void Update(TgcD3dInput Input, float ElapsedTime)
+        {
+            if (Input.keyDown(Key.Space))
+                slide = true;
+            else
+                slide = false;
+                        
+            // Cambie esto para desacelerar y acelerar, para pruebas
+            if (Input.keyPressed(Key.A))
+            {
+                AumentarVelocidad();
+            }
+            if (Input.keyPressed(Key.S))
+            {
+                DesvanecerVelocidad(ElapsedTime);
+            }
+
+            // Capturador de Giro
+            if (Input.keyDown(Key.LeftArrow))
+            {
+                if (distAng > Geometry.DegreeToRadian(45))
+                    distAng -= Beetle.VELOCIDAD_ANGULAR * ElapsedTime;
+
+                izquierda = true;
+                //Ver como activar arrastrado
+            }
+            else
+            {
+                if (distAng < FastMath.PI_HALF)
+                    distAng += Beetle.VELOCIDAD_ANGULAR * ElapsedTime;
+
+                izquierda = false;
+            }
+
+            if (Input.keyDown(Key.RightArrow))
+            {
+                if (distAng < Geometry.DegreeToRadian(120))
+                    distAng += Beetle.VELOCIDAD_ANGULAR * ElapsedTime;
+
+                derecha = true;
+                //Ver como activar arrastrado
+            }
+            else
+            {
+                if (distAng > FastMath.PI_HALF)
+                    distAng -= Beetle.VELOCIDAD_ANGULAR * ElapsedTime;
+
+                derecha = false;
+            }
+
+
+            // para debug
+            if (Input.keyPressed(Key.E))
+                escudo = true;
+
+            // Para armar un menu de pausa... falta desarrollar
+            if (Input.keyPressed(Key.Escape))
+            {
+                if (speed == 0f)
+                    speed = Beetle.VELOCIDAD;
+                else if (speed == Beetle.VELOCIDAD)
+                    speed = 0f;
+            }
 
         }
 
@@ -75,7 +139,7 @@ namespace TGC.Group.Model
             return slide || izquierda || derecha;
         }
 
-        public TGCVector3 Avanza(float ElapsedTime, float posX, float posY, float distAng)
+        public TGCVector3 Avanza(float ElapsedTime, float posX, float posY)
         {
             position += new TGCVector3(posX, posY, speed * ElapsedTime);
 
@@ -113,7 +177,7 @@ namespace TGC.Group.Model
             collider.Render();
         }
 
-        public void ActivarPoder()
+        public void AumentarVelocidad()
         {
             speed += 50f;
             //poderActivado = true;

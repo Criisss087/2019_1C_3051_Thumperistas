@@ -50,8 +50,7 @@ namespace TGC.Group.Model
         private bool applyMovement;
         public float posX = 0, posY = 0;
         public TGCVector3 posicionFinal = new TGCVector3(0, 0, 0);
-        float beetleDang = FastMath.PI_HALF;
-
+        
         /// <summary>
         ///     Se llama una sola vez, al principio cuando se ejecuta el ejemplo.
         ///     Escribir aquí todo el código de inicialización: cargar modelos, texturas, estructuras de optimización, todo
@@ -102,6 +101,9 @@ namespace TGC.Group.Model
                 BoundingBox = !BoundingBox;
             }
 
+            Beetle.Update(Input,ElapsedTime);
+
+            // Colision con recolectable
             if (Input.keyPressed(Key.Space))
             {
                 Recolectable objetoColisionado = new Recolectable(MediaDir, TGCVector3.One);
@@ -120,62 +122,9 @@ namespace TGC.Group.Model
                 }
                 else Pantalla.PierdoCombo();
 
-                //Beetle.slide = true;
-            }
-            else
-            {
-                //Beetle.slide = false;
-            }
-
-            if (Input.keyDown(Key.Space))
-                Beetle.slide = true;
-            else
-                Beetle.slide = false;
-
-            // Cambie esto para desacelerar y acelerar, para pruebas
-            if (Input.keyPressed(Key.A))
-            {
-                Beetle.ActivarPoder();
-            }
-            if (Input.keyPressed(Key.S))
-            {
-                Beetle.DesvanecerVelocidad(ElapsedTime);
             }
             
-            // Capturador de Giro
-            if (Input.keyDown(Key.Q))
-            {
-                if (beetleDang > Geometry.DegreeToRadian(45))
-                    beetleDang -= Beetle.VELOCIDAD_ANGULAR * ElapsedTime;
-
-                Beetle.izquierda = true;
-
-                //Ver como activar arrastrado
-            }
-            else
-            {
-                if (beetleDang < FastMath.PI_HALF)
-                    beetleDang += Beetle.VELOCIDAD_ANGULAR * ElapsedTime;
-
-                Beetle.izquierda = false;
-            }
-            
-            if (Input.keyDown(Key.W))
-            {
-                if (beetleDang < Geometry.DegreeToRadian(120)) // FastMath.PI)
-                    beetleDang += Beetle.VELOCIDAD_ANGULAR * ElapsedTime;
-
-                Beetle.derecha = true;
-                //Ver como activar arrastrado
-            }
-            else
-            {
-                if (beetleDang > FastMath.PI_HALF)
-                    beetleDang -= Beetle.VELOCIDAD_ANGULAR * ElapsedTime;
-
-                Beetle.derecha = false;
-            }
-            
+            // Deteccion de curva
             foreach (TgcMesh box2 in PistaNivel.SegmentosPista)
             {
                 //Reviso si el beetle colisiona con algun elemento de la pista  
@@ -195,8 +144,6 @@ namespace TGC.Group.Model
                         }
                         
                     }
-
-                    Console.WriteLine("Rotacion en Y de la caja colisionada "+ box2.Rotation.Y);
                     
                     if(box2.Rotation.Y > 0f && !Beetle.derecha)
                     {
@@ -204,6 +151,7 @@ namespace TGC.Group.Model
                         {
                             // Perdiste!
                             //Beetle.speed = 0f;
+                            //Aca hay que ver como mantener la inmunidad hasta que se termine la curva!
                         }
                         else
                         {
@@ -240,20 +188,11 @@ namespace TGC.Group.Model
                 var posDiff = new TGCVector3(posicionFinal.X, 0f,0f) - new TGCVector3(Beetle.position.X, 0f, 0f) ;
 
                 var posDiffLength = posDiff.LengthSq();
-                /*
-                System.Console.WriteLine("long diferencia "+ posDiffLength);
-                System.Console.WriteLine("epsilon " + float.Epsilon);
-                
-                System.Console.WriteLine("Beetle position " + TGCVector3.PrintVector3(Beetle.position));
-                System.Console.WriteLine("Posicion objetivo " + TGCVector3.PrintVector3(posicionFinal));
-                System.Console.WriteLine("Posicion diff " + TGCVector3.PrintVector3(posDiff));
-                */
                 //Si esta a menos de 1 asumo que esta en la misma posicion
                 if (posDiffLength > 1)
                 {
                     //Intento mover el beetle interpolando por la velocidad
-                    //var currentVelocity = Beetle.VELOCIDADX * ElapsedTime;
-                    var currentVelocity = 200f * ElapsedTime;
+                    var currentVelocity = Beetle.VELOCIDADX * ElapsedTime;
                     posDiff.Normalize();
                     posDiff.Multiply(currentVelocity);
 
@@ -277,20 +216,8 @@ namespace TGC.Group.Model
                 }
             }
 
-            // para debug
-            if (Input.keyPressed(Key.E))
-                Beetle.escudo = true;
-
-            if (Input.keyPressed(Key.Escape))
-            {
-                if (Beetle.speed == 0f)
-                    Beetle.speed = Beetle.VELOCIDAD;
-                else if(Beetle.speed == Beetle.VELOCIDAD)
-                    Beetle.speed = 0f;
-            }
-
             //muevo beetle para adelante
-            PistaNivel.posActual = Beetle.Avanza(ElapsedTime, posX, posY, beetleDang);            
+            PistaNivel.posActual = Beetle.Avanza(ElapsedTime, posX, posY);            
 
             camaraInterna.Target = Beetle.position;
             
