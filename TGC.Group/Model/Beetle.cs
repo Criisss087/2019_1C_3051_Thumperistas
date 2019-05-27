@@ -1,12 +1,13 @@
-﻿using TGC.Core.Mathematica;
+﻿using Microsoft.DirectX.DirectInput;
+using TGC.Core.Mathematica;
 using TGC.Core.SceneLoader;
 using TGC.Core.BoundingVolumes;
 using System.Drawing;
 using System.Collections.Generic;
 using TGC.Core.Collision;
 using Microsoft.DirectX.Direct3D;
-using Microsoft.DirectX.DirectInput;
 using TGC.Core.Input;
+using TGC.Core.Sound;
 
 namespace TGC.Group.Model
 {
@@ -16,7 +17,6 @@ namespace TGC.Group.Model
         public const float VELOCIDAD_ANGULAR = 15f;
         public const float VELOCIDAD = 900f;
         public const float VELOCIDADX = 200f;
-
         private TgcSceneLoader loader;
         public TgcScene beetle { get; set; }
         public float speed { get; set; }
@@ -68,7 +68,7 @@ namespace TGC.Group.Model
 
         }
 
-        public void Update(TgcD3dInput Input, float ElapsedTime)
+        public void Update(TgcD3dInput Input, float ElapsedTime, TgcStaticSound sound, TgcDirectSound DirectSound, string MediaDir)
         {
             if (Input.keyDown(Key.Space))
                 slide = true;
@@ -91,6 +91,11 @@ namespace TGC.Group.Model
                 if (distAng > Geometry.DegreeToRadian(45))
                     distAng -= Beetle.VELOCIDAD_ANGULAR * ElapsedTime;
 
+                // Sonido de choque contra la pared
+                sound.dispose();
+                sound.loadSound(MediaDir + "Thumper/Mp3/Colision.wav", DirectSound.DsDevice);
+                sound.play(false);
+
                 izquierda = true;
                 //Ver como activar arrastrado
             }
@@ -106,6 +111,11 @@ namespace TGC.Group.Model
             {
                 if (distAng < Geometry.DegreeToRadian(120))
                     distAng += Beetle.VELOCIDAD_ANGULAR * ElapsedTime;
+
+                // Sonido de choque contra la pared
+                sound.dispose();
+                sound.loadSound(MediaDir + "Thumper/Mp3/Colision.wav", DirectSound.DsDevice);
+                sound.play(false);
 
                 derecha = true;
                 //Ver como activar arrastrado
@@ -156,7 +166,7 @@ namespace TGC.Group.Model
         public bool ColisionandoConRecolectable(List<Recolectable> recolectables,ref Recolectable objetoColisionado)
         {
             foreach(Recolectable ObjRecoleactable in recolectables){
-                if (TgcCollisionUtils.testSphereOBB(ObjRecoleactable.Collider,collider))
+                if (TgcCollisionUtils.testSphereOBB(ObjRecoleactable.Collider, collider))
                 {
                     objetoColisionado = ObjRecoleactable;
                     return true;
