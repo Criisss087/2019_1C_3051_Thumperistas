@@ -60,7 +60,7 @@ namespace TGC.Group
 
         private void generarPista()
         {;
-            // Primero agrego un camino de 100 para el inicio 
+            // Primero agrego un camino de 50 para el inicio 
             for (int j = 0; j < 50; j++)
             {
                 this.SegmentosPista.Add(generarSegmentoPiso());
@@ -78,7 +78,7 @@ namespace TGC.Group
             {
                 TgcMesh MeshAux = cargarMesh(this.rutaTunelActual, 0);
                 MeshAux.Move(this.posUltimaPieza + TGCVector3.Up * 5);
-                MeshAux.Scale = TGCVector3.One * 3;
+                MeshAux.Scale = new TGCVector3(3, 3, 6); //.One * 3;
                 MeshAux.setColor(this.colorTunelActual);
                 this.SegmentosTunel.Add(MeshAux);
                 this.cantTunelActual--;
@@ -121,8 +121,8 @@ namespace TGC.Group
 
                 // Bloques de la curva
                 this.cantCurvaSuaveActual = this.rnd.Next(61);
-                if (this.cantTunelActual < 30)
-                    this.cantTunelActual += 30;
+                if (this.cantCurvaSuaveActual < 30)
+                    this.cantCurvaSuaveActual += 30;
 
                 switch (direccionCurvaSuave)
                 {
@@ -145,8 +145,8 @@ namespace TGC.Group
                         break;
                 }
 
-                if (!this.curvaSuaveActiva)
-                    this.cantCurvaSuaveActual = 0;
+                if (!curvaSuaveActiva)
+                    cantCurvaSuaveActual = 0;
 
                 this.trasCurvaActual += new TGCVector3(trasX, 0, 0);
                 this.rotCurvaActual += new TGCVector3(0, rotationY, 0);
@@ -189,6 +189,14 @@ namespace TGC.Group
                     this.rutaTunelActual = "";
                     this.tunelActivo = false;
                 }
+
+                if (!this.tunelActivo)
+                {
+                    this.cantTunelActual = 0;
+                    this.tunelActivo = false;
+                }
+                
+
             }
         }
        
