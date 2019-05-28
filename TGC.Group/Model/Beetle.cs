@@ -25,10 +25,10 @@ namespace TGC.Group.Model
         public bool derecha { get; set; } = false;
         public bool izquierda { get; set; } = false;
         public bool godMode { get; set; } = false;
-        public TgcBoundingOrientedBox collider;
-        public TgcBoundingOrientedBox colliderRecolectables;
-
-
+        public TgcBoundingOrientedBox colliderPista;
+        public TgcBoundingOrientedBox colliderRecolectablesOk;
+        public TgcBoundingOrientedBox colliderRecolectablesWrong;
+        
         public TGCMatrix translation { get; set; }
         public TGCMatrix scaling { get; set; }
         public TGCMatrix rotation { get; set; }
@@ -36,6 +36,13 @@ namespace TGC.Group.Model
         public float traslacionZ { get; set; }
         public bool poderActivado = false;
         public float distAng = FastMath.PI_HALF;
+
+        public enum TipoColision
+        {
+            Nada = 0,
+            Colision = 1,
+            Error = 2
+        }
 
         public Beetle(string _mediaDir)
         {
@@ -47,8 +54,7 @@ namespace TGC.Group.Model
             position = new TGCVector3(0, 8f, 0);
             translation = TGCMatrix.Translation(position);
             scaling = TGCMatrix.Scaling(TGCVector3.One * .5f);
-            //rotation = TGCMatrix.RotationY(Geometry.DegreeToRadian(45));         //FastMath.PI_HALF);
-
+            
             foreach (var mesh in beetle.Meshes)
             {
                 mesh.AutoTransformEnable = false;
@@ -56,17 +62,26 @@ namespace TGC.Group.Model
                 mesh.BoundingBox.transform(scaling * rotation * translation);
             }
 
-            //Seteo collider
+            //Seteo collider Ok
             beetle.BoundingBox.transform(translation * scaling * rotation);
-            colliderRecolectables = TgcBoundingOrientedBox.computeFromAABB(beetle.BoundingBox);
+            //colliderRecolectablesOk = TgcBoundingOrientedBox.computeFromAABB(beetle.BoundingBox);
 
             // Escalo el bb para un nuevo collider en la pista, para no salirme de la pista en X
             var newScaling = scaling;
             var newTrasnlsation = TGCMatrix.Translation(new TGCVector3(-40, 10, 60));
             newScaling.Scale(2, 1, 0.5f);
             beetle.BoundingBox.transform(newScaling * newTrasnlsation);
-            collider = TgcBoundingOrientedBox.computeFromAABB(beetle.BoundingBox);
+            colliderPista = TgcBoundingOrientedBox.computeFromAABB(beetle.BoundingBox);
 
+            //Collider para fallos
+            newTrasnlsation = TGCMatrix.Translation(new TGCVector3(-40, 10, -30));
+            beetle.BoundingBox.transform(newScaling * newTrasnlsation);
+            colliderRecolectablesWrong = TgcBoundingOrientedBox.computeFromAABB(beetle.BoundingBox);
+
+            newTrasnlsation = TGCMatrix.Translation(new TGCVector3(-40, 10, 16));
+            newScaling.Scale(2, 1, 1f);
+            beetle.BoundingBox.transform(newScaling * newTrasnlsation);
+            colliderRecolectablesOk = TgcBoundingOrientedBox.computeFromAABB(beetle.BoundingBox);
             this.speed = 900f;
 
         }
@@ -158,31 +173,35 @@ namespace TGC.Group.Model
             translation = TGCMatrix.Translation(position);
             rotation = TGCMatrix.RotationY(distAng);
 
-            collider.move(new TGCVector3(posX, posY, speed * ElapsedTime));
+            colliderPista.move(new TGCVector3(posX, posY, speed * ElapsedTime));
+            colliderRecolectablesOk.move(new TGCVector3(posX, posY, speed * ElapsedTime));
+            colliderRecolectablesWrong.move(new TGCVector3(posX, posY, speed * ElapsedTime));
 
             return position;
         }
 
-
-
-        public bool ColisionandoConRecolectable(List<Recolectable> recolectables, ref Recolectable objetoColisionado)
+        public TipoColision ColisionandoConRecolectable(List<Recolectable> recolectables, ref Recolectable objetoColisionado)
         {
             foreach (Recolectable ObjRecoleactable in recolectables)
             {
-                if (TgcCollisionUtils.testSphereOBB(ObjRecoleactable.Collider, colliderRecolectables))
+                if (TgcCollisionUtils.testSphereOBB(ObjRecoleactable.Collider, colliderRecolectablesOk))
                 {
                     objetoColisionado = ObjRecoleactable;
-                    return true;
+                    return TipoColision.Colision;
+                }
+                if (TgcCollisionUtils.testSphereOBB(ObjRecoleactable.Collider, colliderRecolectablesWrong))
+                {
+                    return TipoColision.Error;
                 }
             }
-            return false;
+            return TipoColision.Nada;
         }
 
         public bool ColisionandoConObstaculo(List<Obstaculo> obstaculos, ref Obstaculo objetoColisionado)
         {
             foreach (Obstaculo obs in obstaculos)
             {
-                if (TgcCollisionUtils.testObbObb(obs.Collider, colliderRecolectables))
+                if (TgcCollisionUtils.testObbObb(obs.Collider, colliderRecolectablesOk))
                 {
                     objetoColisionado = obs;
                     return true;
@@ -199,8 +218,14 @@ namespace TGC.Group.Model
                 mesh.BoundingBox.transform(scaling * rotation * translation);
             }
             beetle.RenderAll();
-            collider.setRenderColor(Color.Blue);
-            collider.Render();
+            colliderPista.setRenderColor(Color.Blue);
+            colliderPista.Render();
+
+            colliderRecolectablesOk.setRenderColor(Color.Yellow);
+            colliderRecolectablesOk.Render();
+
+            colliderRecolectablesWrong.setRenderColor(Color.Red);
+            colliderRecolectablesWrong.Render();
         }
 
         public void AumentarVelocidad()

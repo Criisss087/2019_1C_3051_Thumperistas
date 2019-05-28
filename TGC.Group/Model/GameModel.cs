@@ -47,14 +47,10 @@ namespace TGC.Group.Model
         private TgcThirdPersonCamera camaraInterna;
         private Beetle Beetle;
         private Pista PistaNivel;
-        private TgcMp3Player mp3PlayerMusica;
-        private TgcStaticSound sound;
         private Pantalla Pantalla;
-
-        private TgcStaticSound sound2;
-        private TgcStaticSound sound3;
-        private TgcStaticSound sound4;
+        private Reproductor Reproductor;
         private Temporizador Tiempo;
+        
         
         private bool applyMovement;
         public float posX = 0, posY = 0;
@@ -70,12 +66,7 @@ namespace TGC.Group.Model
         {
 
             //Instancio el reproductores sonido
-            mp3PlayerMusica = new TgcMp3Player();
-            mp3PlayerMusica.FileName = MediaDir + "Thumper/Mp3/Thumper OST - Spiral.mp3";
-            mp3PlayerMusica.play(true);
-
-            sound = new TgcStaticSound();
-
+            Reproductor = new Reproductor(MediaDir, DirectSound);
             Pantalla = new Pantalla(MediaDir);
             Beetle = new Beetle(MediaDir);
             PistaNivel = new Pista(MediaDir);
@@ -123,7 +114,7 @@ namespace TGC.Group.Model
             foreach (TgcMesh box2 in PistaNivel.SegmentosPista)
             {
                 //Reviso si el beetle colisiona con algun elemento de la pista  
-                if (TgcCollisionUtils.testObbAABB(Beetle.collider, box2.BoundingBox))
+                if (TgcCollisionUtils.testObbAABB(Beetle.colliderPista, box2.BoundingBox))
                 {
                     // Si no hay movimiento en X activo, capturo la posicion final a la que debe ir el beetle
                     if (!applyMovement)
@@ -236,9 +227,9 @@ namespace TGC.Group.Model
             DrawText.drawText("Con la tecla F se dibuja el bounding box.", 0, 20, Color.OrangeRed);
             DrawText.drawText("Posicion actual del jugador: " + TGCVector3.PrintVector3(Beetle.position), 0, 30, Color.OrangeRed);
             DrawText.drawText("Posicion actual ultima pieza: " + TGCVector3.PrintVector3(PistaNivel.posUltimaPieza), 0, 40, Color.OrangeRed);
-            DrawText.drawText("Giro de bloque: " + (PistaNivel.rotCurvaActual.Y), 0, 50, Color.OrangeRed);
-            DrawText.drawText("Level: " + (Pantalla.level), 0, 60, Color.OrangeRed);
-            DrawText.drawText("Sliding: " + Beetle.Sliding().ToString(), 0, 70, Color.OrangeRed);
+            DrawText.drawText("Cant obstaculos en lista: " + (PistaNivel.Obstaculos.Count), 0, 50, Color.OrangeRed);
+            DrawText.drawText("Obbstaculos activos: " + (PistaNivel.obstaculosActivos.ToString()), 0, 60, Color.OrangeRed);
+            DrawText.drawText("Obs pendientes: " + PistaNivel.cantObsActual, 0, 70, Color.OrangeRed);
             DrawText.drawText("Izquierda: " + Beetle.izquierda.ToString(), 0, 80, Color.OrangeRed);
             DrawText.drawText("Derecha: " + Beetle.derecha.ToString(), 0, 90, Color.OrangeRed);
             DrawText.drawText("Escudo: " + (Beetle.escudo.ToString()), 0, 100, Color.OrangeRed);
@@ -272,9 +263,7 @@ namespace TGC.Group.Model
             Beetle.Dispose();
             Pantalla.Dispose();
             //Cierra el reproductor
-            mp3PlayerMusica.closeFile();
-            sound.dispose();
-
+            
         }
 
         private void Colisiones()
@@ -283,11 +272,9 @@ namespace TGC.Group.Model
             if (Input.keyPressed(Key.Space) || Beetle.godMode)
             {
                 Recolectable objetoColisionado = new Recolectable(MediaDir, TGCVector3.One);
-                if (Beetle.ColisionandoConRecolectable(PistaNivel.Recolectables, ref objetoColisionado) || Beetle.godMode)
+                if (Beetle.ColisionandoConRecolectable(PistaNivel.Recolectables, ref objetoColisionado) == Beetle.TipoColision.Colision)
                 {
-                    sound.dispose();
-                    sound.loadSound(MediaDir + "Thumper/Mp3/laserBeat.wav", DirectSound.DsDevice);
-                    sound.play(false);
+                    Reproductor.Recolectar();
 
                     // 1/10 en recuperar escudo al colectar
                     if (this.rnd.Next(10) == 1)

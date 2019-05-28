@@ -43,8 +43,8 @@ namespace TGC.Group
         public TipoCurva tipoCurva = 0;
         private const float OFFSETPIEZAS = 60;
 
-        private bool obstaculosActivos;
-        private int cantObsActual = 0;
+        public bool obstaculosActivos;
+        public int cantObsActual = 0;
 
         public enum TipoCurva
         {
@@ -103,6 +103,26 @@ namespace TGC.Group
                     this.SegmentosTunel.RemoveAt(0);
             }
 
+            if (this.obstaculosActivos && !curvaSuaveActiva)
+            {
+                Obstaculo obs = new Obstaculo(this.posUltimaPieza);
+                obs.boxMesh.Move(this.posUltimaPieza + TGCVector3.Up * 5);
+                obs.boxMesh.Scale = new TGCVector3(3, 3, 6);
+ 
+                this.Obstaculos.Add(obs);
+                this.cantObsActual--;
+
+                if (this.cantObsActual == 0)
+                {
+                    this.obstaculosActivos = false;
+                }
+
+                // Revisar si hay que eliminarlo asi nomas
+                //if (this.Obstaculos.ElementAt(0).Position.Z < (this.posActual.Z - 100))
+                   //this.Obstaculos.RemoveAt(0);
+
+            }
+
             this.rotCurvaActual = new TGCVector3(0, 0, 0);
             this.trasCurvaActual = new TGCVector3(0, 0, 0);
             if (this.curvaSuaveActiva)
@@ -115,24 +135,6 @@ namespace TGC.Group
                 {
                     this.curvaSuaveActiva = false;
                 }
-            }
-
-            if (this.obstaculosActivos)
-            {
-                Obstaculo obs = new Obstaculo(this.posUltimaPieza);
-
-                this.Obstaculos.Add(obs);
-                this.cantObsActual--;
-
-                if (this.cantObsActual == 0)
-                {
-                    this.obstaculosActivos = false;
-                }
-
-                // Revisar si hay que eliminarlo asi nomas
-                if (this.Obstaculos.ElementAt(0).Position.Z < (this.posActual.Z - 100))
-                    this.Obstaculos.RemoveAt(0);
-
             }
 
             this.posUltimaPieza += (new TGCVector3(0, 0, OFFSETPIEZAS) + this.trasCurvaActual);
@@ -271,9 +273,9 @@ namespace TGC.Group
         {
             if (!this.obstaculosActivos)
             {
-                int generaObstaculos = elijoEntreTresProbabilidades(1000, 10, 10);
+                int generaObstaculos = elijoEntreTresProbabilidades(2, 90, 18);
 
-                this.cantTunelActual = this.rnd.Next(10) + 1;
+                this.cantObsActual = this.rnd.Next(10) + 1;
                 if (generaObstaculos == 1)
                 {
                     this.obstaculosActivos = true;
@@ -286,7 +288,7 @@ namespace TGC.Group
             }
         }
 
-        TgcMesh generarSegmentoPiso()
+        public TgcMesh generarSegmentoPiso()
         {
             TGCBox piso = new TGCBox();
             TGCVector3 Tamanio = new TGCVector3(30, 10, 30);
@@ -349,14 +351,13 @@ namespace TGC.Group
         void agregoRecolectables(TGCVector3 Posicion)
         {
 
-            if (elijoEntreTresProbabilidades(10, 50, 40) == 1)
+            if (elijoEntreTresProbabilidades(5, 50, 49) == 1 && !obstaculosActivos)
             {
                 Recolectable nuevoRecoletable = new Recolectable(MediaDir, Posicion);
                 Recolectables.Add(nuevoRecoletable);
             }
         }
-
-
+        
         int elijoEntreTresProbabilidades(int probA, int probB, int probC)
         {
             int probTotal = probA + probB + probC;
@@ -380,6 +381,12 @@ namespace TGC.Group
             {
                 AuxMesh.Render();
             }
+            foreach (Obstaculo AuxMesh in this.Obstaculos)
+            {
+                AuxMesh.Render();
+            }
+
+
         }
 
         public void BoundingBoxRender()
