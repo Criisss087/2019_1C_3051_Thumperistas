@@ -51,7 +51,6 @@ namespace TGC.Group.Model
         private Reproductor Reproductor;
         private Temporizador Tiempo;
         
-        
         private bool applyMovement;
         public float posX = 0, posY = 0;
         public TGCVector3 posicionFinal = new TGCVector3(0, 0, 0);
