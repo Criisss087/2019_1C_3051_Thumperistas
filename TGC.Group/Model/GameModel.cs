@@ -90,6 +90,9 @@ namespace TGC.Group.Model
         {
             PreUpdate();
 
+            if (Tiempo.Current == 0)
+                Beetle.godMode = false;
+
             // Cuando llego al final de la pista, se actualiza, el rango de vision es alrededor de 2500 Z
             if (PistaNivel.posUltimaPieza.Z - Beetle.position.Z <= 2500)
             {
@@ -140,26 +143,34 @@ namespace TGC.Group.Model
                             // Perdiste!
                             //Beetle.speed = 0f;
                             //Aca hay que ver como mantener la inmunidad hasta que se termine la curva!
+                            Reproductor.CurvaFallida();
                         }
                         else
                         {
                             Beetle.PerderEscudo();
+                            Reproductor.CurvaFallida();
+                            Tiempo.Current = 3f;
+                            Beetle.godMode = true;
                         }
                     }
                     else if (box2.Rotation.Y < 0 && // Si esta en una curva hacia la izq
                             !Beetle.izquierda &&    // Y no esta girando a la izq
                             !Beetle.godMode)		// Si no esta en godMode
                     {
-                        if (!Beetle.escudo)
-                        {
-                            //Perdiste!
-                            //Beetle.speed = 0f;
-                        }
+                            if (!Beetle.escudo)
+                            {
+                                //Perdiste!
+                                //Beetle.speed = 0f;
+                                Reproductor.CurvaFallida();
+                            }
 
-                        else
-                        {
-                            Beetle.PerderEscudo();
-                        }
+                            else
+                            {
+                                Beetle.PerderEscudo();
+                                Reproductor.CurvaFallida();
+                                Tiempo.Current = 3f;
+                                Beetle.godMode = true;
+                            }
                     }
 
                 }
@@ -292,31 +303,28 @@ namespace TGC.Group.Model
                 }
                 else if(col == Beetle.TipoColision.Error)
                 {
-                    Reproductor.ObstaculoDestruido();
+                    Reproductor.CurvaFallida();
                     PistaNivel.Recolectables.Remove(recolectableColisionado);
                     Pantalla.Error();
                 }
             }
 
-            // Colision con obstaculo 
-            //if (Beetle.Sliding())
-            
+            // Colision con obstaculo            
             Obstaculo objetoColisionado = new Obstaculo(TGCVector3.One);
             col = Beetle.ColisionandoConObstaculo(PistaNivel.Obstaculos, ref objetoColisionado);
 
-            if ( col == Beetle.TipoColision.Colision)
+            if (col == Beetle.TipoColision.Colision && Beetle.Sliding())
             {
                 // Cambiar sonido por obstaculo destruido
                 Reproductor.ObstaculoDestruido();
 
                 // Emitir particulas?
-
                 PistaNivel.Obstaculos.Remove(objetoColisionado);
                 Pantalla.Acierto();
             }
             else if (col == Beetle.TipoColision.Error)
             {
-                Reproductor.ObstaculoDestruido();
+                Reproductor.CurvaFallida();
                 PistaNivel.Obstaculos.Remove(objetoColisionado);
                 Pantalla.Error();
             }
