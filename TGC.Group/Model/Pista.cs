@@ -90,6 +90,17 @@ namespace TGC.Group
                 TgcMesh MeshAux = cargarMesh(this.rutaTunelActual, 0);
                 MeshAux.Move(this.posUltimaPieza + TGCVector3.Up * 5);
                 MeshAux.Scale = new TGCVector3(3, 3, 6); //.One * 3;
+				
+				// Copio rotacion del bloque del piso
+				TGCVector3 rot = new TGCVector3(0, 0, 0);
+				rot.X = Geometry.DegreeToRadian(this.rotCurvaActual.X);
+				if (cantCurvaSuaveActual != 0)
+					rot.Y = Geometry.DegreeToRadian(this.rotCurvaActual.Y / curvar(cantCurvaSuaveActual));
+				else
+					rot.Y = Geometry.DegreeToRadian(this.rotCurvaActual.Y);
+				rot.Z = Geometry.DegreeToRadian(this.rotCurvaActual.Z);
+				MeshAux.Transform = TGCMatrix.RotationYawPitchRoll(rot.Y, rot.X, rot.Z);
+				
                 MeshAux.setColor(this.colorTunelActual);
                 this.SegmentosTunel.Add(MeshAux);
                 this.cantTunelActual--;
@@ -142,6 +153,9 @@ namespace TGC.Group
 
             // Remuevo recolectables que ya pasaron al beetle
             Recolectables.RemoveAll(rec => rec.Position.Z < (posActual.Z - 300));
+			
+			// Revisar
+			Obstaculos.RemoveAll(obs => obs.Position.Z < (posActual.Z - 300));
 
         }
 

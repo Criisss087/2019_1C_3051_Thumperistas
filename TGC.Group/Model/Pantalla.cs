@@ -24,6 +24,7 @@ namespace TGC.Group.Model
         public Int32 multiplicador = 1;
         public Int32 AcumuladorAciertos { get; set; } = 0;
         public Int32 AcumuladorEventos { get; set; } = 0;
+		public Int32 AcumuladorPoder { get; set; } = 0;
         public Double scoreTemporal { get; set; } = 0;
         public Int32 level { get; set; } = 1;
 
@@ -107,28 +108,29 @@ namespace TGC.Group.Model
             scoreTemporal += 1 * this.Multiplicador;
         }
 
-        public void Acierto()
+        public bool Acierto()
         {
             AcumuladorAciertos++;
             AcumuladorEventos++;
+			AcumuladorPoder++;
             scoreTemporal += 100 * multiplicador;
 
             if ((AcumuladorAciertos % 3 == 0) && (Multiplicador < 8))
                 Multiplicador++;
 
-            FinDeNivel();
+            return FinDeNivel();
         }
 
-        public void Error()
+        public bool Error()
         {
             Multiplicador = 1;
             AcumuladorAciertos = 0;
             AcumuladorEventos++;
 
-            FinDeNivel();
+            return FinDeNivel();
         }
 
-        private void FinDeNivel()
+        private bool FinDeNivel()
         {
             if (AcumuladorEventos == 20)
             {
@@ -150,7 +152,11 @@ namespace TGC.Group.Model
 
                 if (level == 6)
                     FinDeJuego();
+				
+				return true;
             }
+			
+			return false;
         }
 
         private char obtenerRango(Int32 level, Double scoreTemporal)

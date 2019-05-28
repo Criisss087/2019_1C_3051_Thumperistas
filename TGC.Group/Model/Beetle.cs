@@ -189,7 +189,9 @@ namespace TGC.Group.Model
                     objetoColisionado = ObjRecoleactable;
                     return TipoColision.Colision;
                 }
-                if (TgcCollisionUtils.testSphereOBB(ObjRecoleactable.Collider, colliderRecolectablesWrong))
+                if (TgcCollisionUtils.testSphereOBB(ObjRecoleactable.Collider, colliderRecolectablesWrong)
+				|| TgcCollisionUtils.testSphereOBB(ObjRecoleactable.Collider, colliderPista)
+					)
                 {
                     return TipoColision.Error;
                 }
@@ -206,11 +208,12 @@ namespace TGC.Group.Model
                     objetoColisionado = obs;
                     return TipoColision.Colision;
                 }
-                if (TgcCollisionUtils.testObbObb(obs.Collider, colliderRecolectablesWrong))
+                /*
+				if (TgcCollisionUtils.testObbObb(obs.Collider, colliderRecolectablesWrong))
                 {
                     return TipoColision.Error;
                 }
-
+				*/	
             }
             return TipoColision.Nada;
         }

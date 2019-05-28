@@ -17,7 +17,7 @@ namespace TGC.Group.Model
         public TGCMatrix Rotation { get; set; }
         public TGCVector3 Position { get; set; }
         public TgcBoundingSphere Collider;
-        public static float speed = 1800f;
+        public static float speed = 1200f;
 
         public Disparo(String mediaDir, TGCVector3 PosicionInicial)
         {
@@ -30,7 +30,7 @@ namespace TGC.Group.Model
 
             Position = PosicionInicial;
             Rotation = TGCMatrix.Identity;
-            Translation = TGCMatrix.Translation(new TGCVector3(0, 10, 0) + PosicionInicial); // el +10 es para que este sobre la pista
+            Translation = TGCMatrix.Translation(new TGCVector3(0, 10, 0) + PosicionInicial); 
             Scaling = TGCMatrix.Scaling(TGCVector3.One * 0.2f);
 
             //seteo colisionador esfera
@@ -43,15 +43,16 @@ namespace TGC.Group.Model
 
         }
 
-        public void Avanza(float ElapsedTime, float posX, float posY)
+        public TGCVector3 Avanza(float ElapsedTime, float posX, float posY)
         {
             Position += new TGCVector3(posX, posY, speed * ElapsedTime);
             /*
             Translation = TGCMatrix.Translation(position);
             Rotation = TGCMatrix.RotationY(distAng);
+			*/
             Collider.move(new TGCVector3(posX, posY, speed * ElapsedTime));
 
-            return position;*/
+            return Position;
         }
 
         public void Render()

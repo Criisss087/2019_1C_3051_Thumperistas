@@ -44,14 +44,18 @@ namespace TGC.Group.Model
         //Atributos Globales
         //Boleano para ver si dibujamos el boundingbox
         private bool BoundingBox { get; set; }
+		private bool help { get; set; }
         private TgcThirdPersonCamera camaraInterna;
         private Beetle Beetle;
         private Pista PistaNivel;
         private Pantalla Pantalla;
         private Reproductor Reproductor;
-        private Temporizador Tiempo;
+		private Disparo Disparo;
+		public Temporizadores Temporizadores;
         
-        private bool applyMovement;
+        private bool applyMovement { get; set; }
+		private bool disparoActivo { get; set; }
+		private bool finDeNivel { get; set; }
         public float posX = 0, posY = 0;
         public TGCVector3 posicionFinal = new TGCVector3(0, 0, 0);
         private Random rnd = new Random();
@@ -69,10 +73,8 @@ namespace TGC.Group.Model
             Pantalla = new Pantalla(MediaDir);
             Beetle = new Beetle(MediaDir);
             PistaNivel = new Pista(MediaDir);
-
-            Tiempo = new Temporizador();
-            Tiempo.StopSegs = 0.5f;
-
+			Temporizadores = new Temporizadores();
+			
             Reproductor.ReproducirLevelPrincipal();
             camaraInterna = new TgcThirdPersonCamera(Beetle.position,20f,-100f);
             Camara = camaraInterna;  
@@ -89,16 +91,23 @@ namespace TGC.Group.Model
         public override void Update()
         {
             PreUpdate();
-
-            if (Tiempo.Current == 0)
-                Beetle.godMode = false;
-
+			
+			UpdateTemporizadores();
+			
             // Cuando llego al final de la pista, se actualiza, el rango de vision es alrededor de 2500 Z
             if (PistaNivel.posUltimaPieza.Z - Beetle.position.Z <= 2500)
-            {
-                PistaNivel.UpdateObstaculos();
-                PistaNivel.UpdateTunel();
-                PistaNivel.UpdateCurvaSuave();
+            {	
+				if(!finDeNivel)
+				{
+					PistaNivel.UpdateObstaculos();
+					PistaNivel.UpdateTunel();
+					PistaNivel.UpdateCurvaSuave();
+				}
+				else
+				{
+					Temporizadores.finDeNivel.reset();
+				}
+				
                 PistaNivel.UpdatePista();
             }
 
@@ -107,6 +116,21 @@ namespace TGC.Group.Model
             {
                 BoundingBox = !BoundingBox;
             }
+			
+			if(Input.keyPressed(Key.D) && Pantalla.AcumuladorPoder > 5)
+			{	
+				Disparo = new Disparo(MediaDir, Beetle.position);
+				Reproductor.Disparar();
+				Pantalla.AcumuladorPoder = 0;
+				disparoActivo = true;
+			}
+			
+			// Activar/Desactivar God Mode
+			if(Input.keyPressed(Key.G)) 
+				Beetle.godMode = !Beetle.godMode;
+			
+			if(Input.keyPressed(Key.H)) 
+				help = !help;			
 
             Beetle.Update(Input, ElapsedTime);
             Pantalla.ActualizarScore();
@@ -131,48 +155,13 @@ namespace TGC.Group.Model
                             applyMovement = true;
                             posicionFinal = box2.Position;
                         }
-
                     }
-
-                    if (box2.Rotation.Y > 0f &&     // Si esta en una curva hacia la derecha
-                        !Beetle.derecha &&          // si no está girando a la derecha
-                        !Beetle.godMode)			// Si no está en godMode
-                    {
-                        if (!Beetle.escudo)
-                        {
-                            // Perdiste!
-                            //Beetle.speed = 0f;
-                            //Aca hay que ver como mantener la inmunidad hasta que se termine la curva!
-                            Reproductor.CurvaFallida();
-                        }
-                        else
-                        {
-                            Beetle.PerderEscudo();
-                            Reproductor.CurvaFallida();
-                            Tiempo.Current = 3f;
-                            Beetle.godMode = true;
-                        }
-                    }
-                    else if (box2.Rotation.Y < 0 && // Si esta en una curva hacia la izq
-                            !Beetle.izquierda &&    // Y no esta girando a la izq
-                            !Beetle.godMode)		// Si no esta en godMode
-                    {
-                            if (!Beetle.escudo)
-                            {
-                                //Perdiste!
-                                //Beetle.speed = 0f;
-                                Reproductor.CurvaFallida();
-                            }
-
-                            else
-                            {
-                                Beetle.PerderEscudo();
-                                Reproductor.CurvaFallida();
-                                Tiempo.Current = 3f;
-                                Beetle.godMode = true;
-                            }
-                    }
-
+					
+					//Si esta en una curva
+					if (box2.Rotation.Y != 0f 
+					&& Temporizadores.curvaOk.update(ElapsedTime))
+						AccionesEnCurva(box2.Rotation.Y);					
+					
                 }
                 else
                 {
@@ -181,7 +170,7 @@ namespace TGC.Group.Model
                 }
             }
 
-            // Si todavia no alcanzó la pos final de movimiento
+            // Mantiene al Beetle en la pista
             if (applyMovement)
             {
                 //Ver si queda algo de distancia para mover
@@ -218,6 +207,18 @@ namespace TGC.Group.Model
 
             //muevo beetle para adelante
             PistaNivel.posActual = Beetle.Avanza(ElapsedTime, posX, posY);
+			
+			if(disparoActivo)
+			{
+				var dist = Disparo.Avanza(ElapsedTime, posX, posY);
+				if(dist.Z - Beetle.position.Z > 2000)
+				{	
+					Reproductor.Explosion();
+					disparoActivo = false;
+					Pantalla.scoreTemporal += 1000;
+				}
+			}
+				
             camaraInterna.Target = Beetle.position;
             Pantalla.Update(camaraInterna.Position);
 
@@ -233,18 +234,21 @@ namespace TGC.Group.Model
         {
             //Inicio el render de la escena, para ejemplos simples. Cuando tenemos postprocesado o shaders es mejor realizar las operaciones según nuestra conveniencia.
             PreRender();
-
-            //Dibuja un texto por pantalla
-            DrawText.drawText("Con la tecla F se dibuja el bounding box.", 0, 20, Color.OrangeRed);
-            DrawText.drawText("Posicion actual del jugador: " + TGCVector3.PrintVector3(Beetle.position), 0, 30, Color.OrangeRed);
-            DrawText.drawText("Posicion actual ultima pieza: " + TGCVector3.PrintVector3(PistaNivel.posUltimaPieza), 0, 40, Color.OrangeRed);
-            DrawText.drawText("Cant obstaculos en lista: " + (PistaNivel.Obstaculos.Count), 0, 50, Color.OrangeRed);
-            DrawText.drawText("Obbstaculos activos: " + (PistaNivel.obstaculosActivos.ToString()), 0, 60, Color.OrangeRed);
-            DrawText.drawText("Obs pendientes: " + PistaNivel.cantObsActual, 0, 70, Color.OrangeRed);
-            DrawText.drawText("Izquierda: " + Beetle.izquierda.ToString(), 0, 80, Color.OrangeRed);
-            DrawText.drawText("Derecha: " + Beetle.derecha.ToString(), 0, 90, Color.OrangeRed);
-            DrawText.drawText("Escudo: " + (Beetle.escudo.ToString()), 0, 100, Color.OrangeRed);
-
+			
+			if(help)
+			{
+				//Dibuja un texto por pantalla
+				DrawText.drawText("Con la tecla F se dibuja el bounding box.", 0, 20, Color.OrangeRed);
+				DrawText.drawText("Posicion actual del jugador: " + TGCVector3.PrintVector3(Beetle.position), 0, 30, Color.OrangeRed);
+				DrawText.drawText("Posicion actual ultima pieza: " + TGCVector3.PrintVector3(PistaNivel.posUltimaPieza), 0, 40, Color.OrangeRed);
+				DrawText.drawText("Cant obstaculos en lista: " + (PistaNivel.Obstaculos.Count), 0, 50, Color.OrangeRed);
+				DrawText.drawText("Obbstaculos activos: " + (PistaNivel.obstaculosActivos.ToString()), 0, 60, Color.OrangeRed);
+				DrawText.drawText("Obs pendientes: " + PistaNivel.cantObsActual, 0, 70, Color.OrangeRed);
+				DrawText.drawText("Izquierda: " + Beetle.izquierda.ToString(), 0, 80, Color.OrangeRed);
+				DrawText.drawText("Derecha: " + Beetle.derecha.ToString(), 0, 90, Color.OrangeRed);
+				DrawText.drawText("Escudo: " + (Beetle.escudo.ToString()), 0, 100, Color.OrangeRed);
+				DrawText.drawText("GodMode: " + (Beetle.godMode.ToString()), 0, 110, Color.OrangeRed);
+			}
 
             //Render de BoundingBox, muy útil para debug de colisiones.
             if (BoundingBox)
@@ -259,6 +263,9 @@ namespace TGC.Group.Model
             Beetle.Render();
             PistaNivel.Render();
             Pantalla.Render();
+			
+			if(disparoActivo)
+				Disparo.Render();
 
             PostRender();
         }
@@ -274,7 +281,7 @@ namespace TGC.Group.Model
             Beetle.Dispose();
             Pantalla.Dispose();
             //Cierra el reproductor
-            
+            Reproductor.Dispose();
         }
 
         private void Colisiones()
@@ -294,18 +301,19 @@ namespace TGC.Group.Model
 
                     // 1/10 en recuperar escudo al colectar
                     if (this.rnd.Next(10) == 1)
-                    {
+                    {	
+						Reproductor.GanarEscudo();
                         Beetle.GanarEscudo();
                     }
 
                     PistaNivel.Recolectables.Remove(recolectableColisionado);
-                    Pantalla.Acierto();
+                    finDeNivel = Pantalla.Acierto();
                 }
                 else if(col == Beetle.TipoColision.Error)
                 {
                     Reproductor.CurvaFallida();
                     PistaNivel.Recolectables.Remove(recolectableColisionado);
-                    Pantalla.Error();
+                    finDeNivel = Pantalla.Error();
                 }
             }
 
@@ -320,15 +328,74 @@ namespace TGC.Group.Model
 
                 // Emitir particulas?
                 PistaNivel.Obstaculos.Remove(objetoColisionado);
-                Pantalla.Acierto();
+                finDeNivel = Pantalla.Acierto();
             }
-            else if (col == Beetle.TipoColision.Error)
-            {
-                Reproductor.CurvaFallida();
-                PistaNivel.Obstaculos.Remove(objetoColisionado);
-                Pantalla.Error();
+            else if (col == Beetle.TipoColision.Colision && !Beetle.Sliding())
+            {	
+				CurvaError();
             }
             
         }
+		
+		private void UpdateTemporizadores()
+		{	
+			if(Temporizadores.inmunidadError.update(ElapsedTime))
+				Beetle.godMode = false;
+			
+			if(Temporizadores.finDeNivel.update(ElapsedTime))
+				finDeNivel = false;
+			
+		}
+		
+		private void CurvaOk()
+		{
+			Reproductor.CurvaTomada();
+			finDeNivel = Pantalla.Acierto();
+			Temporizadores.curvaOk.reset();
+		}
+		
+		private void CurvaError()
+		{
+			if (!Beetle.escudo)
+			{
+				// Perdiste!
+				//Aca hay que ver como mantener la inmunidad hasta que se termine la curva!
+				Beetle.speed = 0f;
+				Reproductor.Perder();
+			}
+			else
+			{
+				Beetle.PerderEscudo();
+				Reproductor.CurvaFallida();				
+				Temporizadores.inmunidadError.reset();
+				Beetle.godMode = true;
+				finDeNivel = Pantalla.Error();
+			}
+		}
+		
+		private void AccionesEnCurva(float rotacion)
+		{
+			if(Beetle.godMode)
+			{
+				CurvaOk();				
+			}
+			
+			//DERECHA
+			if (rotacion > 0f) 
+			{
+				if(Beetle.derecha)	
+					CurvaOk();
+				else
+					CurvaError();				
+			}			
+			// IZQUIERDA
+			else if (rotacion < 0f) 
+			{
+				if(Beetle.izquierda)	
+					CurvaOk();
+				else
+					CurvaError();
+			}		
+		}
     }
 }

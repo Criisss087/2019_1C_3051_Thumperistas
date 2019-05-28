@@ -10,11 +10,14 @@ namespace TGC.Group.Model
     public class Reproductor
     {
         private const string levelPrincipal = "Thumper/Mp3/Thumper OST - Spiral.mp3";
-        private const string recolectar = "Thumper/Mp3/Deploy.wav";
+        private const string recolectar = "Thumper/Mp3/laserBeat.wav";
         private const string obstaculoDestruido = "Thumper/Mp3/beat.wav";
         private const string curvaTomada = "Thumper/Mp3/Curva.wav";
         private const string curvaFallida = "Thumper/Mp3/Fail.wav";
-        private const string poderActivado = "Thumper/Mp3/Poder.wav";
+        private const string disparar = "Thumper/Mp3/Poder.wav";
+		private const string explosion = "Thumper/Mp3/explosion.wav";
+		private const string perder = "Thumper/Mp3/loss.wav";
+		private const string ganarEscudo = "Thumper/Mp3/winShield.wav";
 
         private String mediaDir;
         private TgcMp3Player mp3PlayerMusica;
@@ -37,46 +40,57 @@ namespace TGC.Group.Model
 
         public void Recolectar()
         {
-            sound.dispose();
-            sound.loadSound(mediaDir + recolectar, device.DsDevice);
-            sound.play(false);
+            Reproducir(mediaDir + recolectar);
         }
 
         public void ObstaculoDestruido()
-        {
-            sound.dispose();
-            sound.loadSound(mediaDir + obstaculoDestruido, device.DsDevice);
-            sound.play(false);
+        {     
+            Reproducir(mediaDir + obstaculoDestruido);
         }
 
         public void CurvaTomada()
         {
-            sound.dispose();
-            sound.loadSound(mediaDir + curvaTomada, device.DsDevice);
-            sound.play(false);
+            Reproducir(mediaDir + curvaTomada); 
         }
 
         public void CurvaFallida()
         {
-            sound.dispose();
-            sound.loadSound(mediaDir + curvaFallida, device.DsDevice);
-            sound.play(false);
+            Reproducir(mediaDir + curvaFallida);
+
         }
 
-        public void PoderActivado()
+        public void Disparar()
         {
-            sound.dispose();
-            sound.loadSound(mediaDir + poderActivado, device.DsDevice);
-            sound.play(false);
+            Reproducir(mediaDir + disparar);
         }
+		
+		public void Explosion()
+        {
+            Reproducir(mediaDir + explosion);
+        }
+		
+		
+		public void Perder()
+        {
+            Reproducir(mediaDir + perder);
+        }
+		
+		public void GanarEscudo()
+        {
+            Reproducir(mediaDir + ganarEscudo);
+        }
+		
+		private void Reproducir(String sonido)
+		{
+			sound.dispose();
+            sound.loadSound(sonido, device.DsDevice);
+            sound.play(false);
+		}
 
         public void Dispose()
         {
             mp3PlayerMusica.closeFile();
             sound.dispose();
         }
-
-
-
     }
 }
