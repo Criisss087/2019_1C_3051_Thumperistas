@@ -14,6 +14,8 @@ using TGC.Core.Sound;
 using TGC.Core.Collision;
 using Microsoft.DirectX.Direct3D;
 using TGC.Core.Terrain;
+using System.Threading;
+using TGC.Core.Interpolation;
 
 namespace TGC.Group.Model
 {
@@ -49,12 +51,14 @@ namespace TGC.Group.Model
         private TgcStaticSound sound2;
         private TgcStaticSound sound3;
         private TgcStaticSound sound4;
+        private Temporizador Tiempo;
         // private Pantalla Pantalla;
         private TgcSkyBox Fondo;
         private int Bolitas = 0;
         private int Score = 0;
         private int Multiplicador = 1;
 
+        private bool Chocable = true;
         private bool applyMovement;
         public float posX = 0, posY = 0;
         public TGCVector3 posicionFinal = new TGCVector3(0, 0, 0);
@@ -92,6 +96,9 @@ namespace TGC.Group.Model
             // Pantalla = new Pantalla(MediaDir);
             Beetle = new Beetle(MediaDir);
             PistaNivel = new Pista(MediaDir);
+
+            Tiempo = new Temporizador();
+            Tiempo.StopSegs = 0.5f;
 
             camaraInterna = new TgcThirdPersonCamera(Beetle.position,20f,-100f);
             Camara = camaraInterna;  
@@ -134,27 +141,23 @@ namespace TGC.Group.Model
                 {
                     System.Console.WriteLine("Recolecte un objeto!!!");
 
-                    if (PoderHabilitado)
+                    // Sino hace el sonido de recolección standard
+                    sound.dispose();
+                    sound.loadSound(MediaDir + "Thumper/Mp3/laserBeat.wav", DirectSound.DsDevice);
+                    sound.play(false);
+
+                    if (Bolitas >= 5)
                     {
+                        PoderHabilitado = true;
+                        Bolitas = 0;
+
                         // Si tiene el poder habilitado hace el sonido del rayo laser
                         sound3.dispose();
                         sound3.loadSound(MediaDir + "Thumper/Mp3/Poder.wav", DirectSound.DsDevice);
                         sound3.play(false);
                         PoderHabilitado = false;
                     }
-                    else
-                    {
-                        // Sino hace el sonido de recolección standard
-                        sound.dispose();
-                        sound.loadSound(MediaDir + "Thumper/Mp3/laserBeat.wav", DirectSound.DsDevice);
-                        sound.play(false);
-                        if (Bolitas >= 5)
-                        {
-                            PoderHabilitado = true;
-                            Bolitas = 0;
-                        }
-                        Bolitas++;
-                    }
+                    Bolitas++;
 
                     PistaNivel.Recolectables.Remove(objetoColisionado);
 
@@ -205,15 +208,15 @@ namespace TGC.Group.Model
                         {
                             Beetle.escudo = false;
                         }
-                            
+                        
                     }
-                    else if ((box2.Rotation.Y > 0 && Beetle.derecha) || (box2.Rotation.Y < 0 && Beetle.izquierda))
+                    else if (((box2.Rotation.Y > 0 && Beetle.derecha) || (box2.Rotation.Y < 0 && Beetle.izquierda)) && Tiempo.update(ElapsedTime))
                     {
                         // Sonido cuando agarra bien la curva
                         sound2.dispose();
                         sound2.loadSound(MediaDir + "Thumper/Mp3/Curva.wav", DirectSound.DsDevice);
                         sound2.play(false);
-
+                        
                         // Aumenta el score
                         if (PoderHabilitado)
                             Score += 100 * Multiplicador * 2;
@@ -222,6 +225,8 @@ namespace TGC.Group.Model
 
                         if (Multiplicador < 8)
                             Multiplicador++;
+
+                        Tiempo.reset();
                     }
                 }
                 else
