@@ -50,7 +50,7 @@ namespace TGC.Group.Model
             Translation = TGCMatrix.Translation(position);
             Rotation = TGCMatrix.RotationY(distAng);
 			*/
-            Collider.move(new TGCVector3(posX, posY, speed * ElapsedTime));
+            Collider.moveCenter(new TGCVector3(posX, posY, speed * ElapsedTime));
 
             return Position;
         }
