@@ -10,14 +10,17 @@ namespace TGC.Group.Model
     public class Reproductor
     {
         private const string levelPrincipal = "Thumper/Mp3/Thumper OST - Spiral.mp3";
-        private const string recolectar = "Thumper/Mp3/laserBeat.wav";
+        private const string recolectar = "Thumper/Mp3/Deploy.wav";
         private const string obstaculoDestruido = "Thumper/Mp3/laserBeat.wav";
+        private const string curvaTomada = "Thumper/Mp3/Curva.wav";
+        private const string curvaFallida = "Thumper/Mp3/Fail.wav";
+        private const string poderActivado = "Thumper/Mp3/Poder.wav";
 
         private String mediaDir;
         private TgcMp3Player mp3PlayerMusica;
         private TgcStaticSound sound;
         private TgcDirectSound device;
-        
+
         public Reproductor(String _mediaDir, TgcDirectSound _device)
         {
             mediaDir = _mediaDir;
@@ -43,6 +46,27 @@ namespace TGC.Group.Model
         {
             sound.dispose();
             sound.loadSound(mediaDir + obstaculoDestruido, device.DsDevice);
+            sound.play(false);
+        }
+
+        public void CurvaTomada()
+        {
+            sound.dispose();
+            sound.loadSound(mediaDir + curvaTomada, device.DsDevice);
+            sound.play(false);
+        }
+
+        public void CurvaFallida()
+        {
+            sound.dispose();
+            sound.loadSound(mediaDir + curvaFallida, device.DsDevice);
+            sound.play(false);
+        }
+
+        public void PoderActivado()
+        {
+            sound.dispose();
+            sound.loadSound(mediaDir + poderActivado, device.DsDevice);
             sound.play(false);
         }
 
