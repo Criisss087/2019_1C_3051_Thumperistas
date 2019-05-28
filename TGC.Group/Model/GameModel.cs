@@ -13,6 +13,10 @@ using TGC.Examples.Camara;
 using TGC.Core.Sound;
 using TGC.Core.Collision;
 using Microsoft.DirectX.Direct3D;
+using TGC.Core.Terrain;
+using System.Threading;
+using TGC.Core.Interpolation;
+
 
 namespace TGC.Group.Model
 {
@@ -47,6 +51,11 @@ namespace TGC.Group.Model
         private TgcStaticSound sound;
         private Pantalla Pantalla;
 
+        private TgcStaticSound sound2;
+        private TgcStaticSound sound3;
+        private TgcStaticSound sound4;
+        private Temporizador Tiempo;
+        
         private bool applyMovement;
         public float posX = 0, posY = 0;
         public TGCVector3 posicionFinal = new TGCVector3(0, 0, 0);
@@ -71,9 +80,11 @@ namespace TGC.Group.Model
             Beetle = new Beetle(MediaDir);
             PistaNivel = new Pista(MediaDir);
 
-            camaraInterna = new TgcThirdPersonCamera(Beetle.position, 20f, -100f);
-            Camara = camaraInterna;
+            Tiempo = new Temporizador();
+            Tiempo.StopSegs = 0.5f;
 
+            camaraInterna = new TgcThirdPersonCamera(Beetle.position,20f,-100f);
+            Camara = camaraInterna;  
         }
 
 
@@ -107,7 +118,6 @@ namespace TGC.Group.Model
             Pantalla.ActualizarScore();
 
             Colisiones();
-
 
             // Deteccion de curva INTENTAR MEJORAR Y DELEGAR
             foreach (TgcMesh box2 in PistaNivel.SegmentosPista)
@@ -144,7 +154,6 @@ namespace TGC.Group.Model
                         {
                             Beetle.PerderEscudo();
                         }
-
                     }
                     else if (box2.Rotation.Y < 0 && // Si esta en una curva hacia la izq
                             !Beetle.izquierda &&    // Y no esta girando a la izq
@@ -155,11 +164,11 @@ namespace TGC.Group.Model
                             //Perdiste!
                             //Beetle.speed = 0f;
                         }
+
                         else
                         {
                             Beetle.PerderEscudo();
                         }
-
                     }
 
                 }
