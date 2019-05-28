@@ -1,13 +1,12 @@
-﻿using Microsoft.DirectX.DirectInput;
-using TGC.Core.Mathematica;
+﻿using TGC.Core.Mathematica;
 using TGC.Core.SceneLoader;
 using TGC.Core.BoundingVolumes;
 using System.Drawing;
 using System.Collections.Generic;
 using TGC.Core.Collision;
 using Microsoft.DirectX.Direct3D;
+using Microsoft.DirectX.DirectInput;
 using TGC.Core.Input;
-using TGC.Core.Sound;
 
 namespace TGC.Group.Model
 {
@@ -17,6 +16,7 @@ namespace TGC.Group.Model
         public const float VELOCIDAD_ANGULAR = 15f;
         public const float VELOCIDAD = 900f;
         public const float VELOCIDADX = 200f;
+
         private TgcSceneLoader loader;
         public TgcScene beetle { get; set; }
         public float speed { get; set; }
@@ -24,8 +24,10 @@ namespace TGC.Group.Model
         public bool slide { get; set; } = false;
         public bool derecha { get; set; } = false;
         public bool izquierda { get; set; } = false;
+        public bool godMode { get; set; } = false;
         public TgcBoundingOrientedBox collider;
-        
+        public TgcBoundingOrientedBox colliderRecolectables;
+
 
         public TGCMatrix translation { get; set; }
         public TGCMatrix scaling { get; set; }
@@ -56,25 +58,26 @@ namespace TGC.Group.Model
 
             //Seteo collider
             beetle.BoundingBox.transform(translation * scaling * rotation);
+            colliderRecolectables = TgcBoundingOrientedBox.computeFromAABB(beetle.BoundingBox);
 
-            // Escalo el collider para no salirme de la pista en X, y para tener mas precision en Z con los recolectables
+            // Escalo el bb para un nuevo collider en la pista, para no salirme de la pista en X
             var newScaling = scaling;
-            var newTrasnlsation = TGCMatrix.Translation(new TGCVector3(-40,10,60));
-            newScaling.Scale(2,1,0.5f);
+            var newTrasnlsation = TGCMatrix.Translation(new TGCVector3(-40, 10, 60));
+            newScaling.Scale(2, 1, 0.5f);
             beetle.BoundingBox.transform(newScaling * newTrasnlsation);
             collider = TgcBoundingOrientedBox.computeFromAABB(beetle.BoundingBox);
-            
+
             this.speed = 900f;
 
         }
 
-        public void Update(TgcD3dInput Input, float ElapsedTime, TgcStaticSound sound, TgcDirectSound DirectSound, string MediaDir)
+        public void Update(TgcD3dInput Input, float ElapsedTime)
         {
             if (Input.keyDown(Key.Space))
                 slide = true;
             else
                 slide = false;
-                        
+
             // Cambie esto para desacelerar y acelerar, para pruebas
             if (Input.keyPressed(Key.A))
             {
@@ -85,16 +88,20 @@ namespace TGC.Group.Model
                 DesvanecerVelocidad(ElapsedTime);
             }
 
+            if (Input.keyPressed(Key.G) && godMode)
+            {
+                godMode = false;
+            }
+            if (Input.keyPressed(Key.G) && !godMode)
+            {
+                godMode = true;
+            }
+
             // Capturador de Giro
             if (Input.keyDown(Key.LeftArrow))
             {
                 if (distAng > Geometry.DegreeToRadian(45))
                     distAng -= Beetle.VELOCIDAD_ANGULAR * ElapsedTime;
-
-                // Sonido de choque contra la pared
-                sound.dispose();
-                sound.loadSound(MediaDir + "Thumper/Mp3/Colision.wav", DirectSound.DsDevice);
-                sound.play(false);
 
                 izquierda = true;
                 //Ver como activar arrastrado
@@ -111,11 +118,6 @@ namespace TGC.Group.Model
             {
                 if (distAng < Geometry.DegreeToRadian(120))
                     distAng += Beetle.VELOCIDAD_ANGULAR * ElapsedTime;
-
-                // Sonido de choque contra la pared
-                sound.dispose();
-                sound.loadSound(MediaDir + "Thumper/Mp3/Colision.wav", DirectSound.DsDevice);
-                sound.play(false);
 
                 derecha = true;
                 //Ver como activar arrastrado
@@ -157,16 +159,17 @@ namespace TGC.Group.Model
             rotation = TGCMatrix.RotationY(distAng);
 
             collider.move(new TGCVector3(posX, posY, speed * ElapsedTime));
-            
+
             return position;
         }
 
-        
 
-        public bool ColisionandoConRecolectable(List<Recolectable> recolectables,ref Recolectable objetoColisionado)
+
+        public bool ColisionandoConRecolectable(List<Recolectable> recolectables, ref Recolectable objetoColisionado)
         {
-            foreach(Recolectable ObjRecoleactable in recolectables){
-                if (TgcCollisionUtils.testSphereOBB(ObjRecoleactable.Collider, collider))
+            foreach (Recolectable ObjRecoleactable in recolectables)
+            {
+                if (TgcCollisionUtils.testSphereOBB(ObjRecoleactable.Collider, colliderRecolectables))
                 {
                     objetoColisionado = ObjRecoleactable;
                     return true;
@@ -174,7 +177,20 @@ namespace TGC.Group.Model
             }
             return false;
         }
-               
+
+        public bool ColisionandoConObstaculo(List<Obstaculo> obstaculos, ref Obstaculo objetoColisionado)
+        {
+            foreach (Obstaculo obs in obstaculos)
+            {
+                if (TgcCollisionUtils.testObbObb(obs.Collider, colliderRecolectables))
+                {
+                    objetoColisionado = obs;
+                    return true;
+                }
+            }
+            return false;
+        }
+
         public void Render()
         {
             foreach (var mesh in beetle.Meshes)
@@ -190,20 +206,21 @@ namespace TGC.Group.Model
         public void AumentarVelocidad()
         {
             speed += 50f;
-            //poderActivado = true;
         }
 
         public void DesvanecerVelocidad(float ElapsedTime)
         {
-            /*if (speed > 400f)
-                speed -= ElapsedTime*100;
-            else
-            {
-                speed = 400f;
-                System.Console.WriteLine("Desactive mi poder");
-                poderActivado = false;
-            }*/
             speed -= 50f;
+        }
+
+        public void GanarEscudo()
+        {
+            escudo = true;
+        }
+
+        public void PerderEscudo()
+        {
+            escudo = false;
         }
 
         public void Dispose()

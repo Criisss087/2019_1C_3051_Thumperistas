@@ -17,12 +17,25 @@ namespace TGC.Group.Model
     class Pantalla
     {
         //Datos internos
+        private String texturesPath;
         private TgcSkyBox fondo;
         private Double score = 0;
+        private Double[] Puntuaciones = new Double[4];
         public Int32 multiplicador = 1;
+        public Int32 AcumuladorAciertos { get; set; } = 0;
+        public Int32 AcumuladorEventos { get; set; } = 0;
+        public Double scoreTemporal { get; set; } = 0;
+        public Int32 level { get; set; } = 1;
 
+        //Texts
         public TgcText2D ScoreText;
         public TgcText2D MultiplicadorText;
+        public TgcText2D ScoreGanadoText;
+        public TgcText2D RangoLevelText;
+        public TgcText2D MultiplicadorFinalText;
+        public TgcText2D LevelText;
+        public static String font = "Arial Black";
+
 
         public Pantalla(String _mediaDir)
         {
@@ -30,7 +43,7 @@ namespace TGC.Group.Model
             fondo = new TgcSkyBox();
             fondo.Center = new TGCVector3(0, 500, 0);
             fondo.Size = new TGCVector3(10000, 10000, 10000);
-            var texturesPath = _mediaDir + "/Thumper/Textures/SkyBox1/";
+            texturesPath = _mediaDir + "/Thumper/Textures/SkyBox1/";
             fondo.setFaceTexture(TgcSkyBox.SkyFaces.Up, texturesPath + "1.jpg"); // "lostatseaday_up.jpg");
             fondo.setFaceTexture(TgcSkyBox.SkyFaces.Down, texturesPath + "1.jpg"); //"lostatseaday_dn.jpg");
             fondo.setFaceTexture(TgcSkyBox.SkyFaces.Left, texturesPath + "1.jpg"); //"lostatseaday_lf.jpg");
@@ -39,13 +52,13 @@ namespace TGC.Group.Model
             fondo.setFaceTexture(TgcSkyBox.SkyFaces.Back, texturesPath + "1.jpg"); //"lostatseaday_ft.jpg");
             fondo.Init();
 
-            // Creo el texto del marcador
+            // Creo el texto del score total
             ScoreText = new TgcText2D();
             ScoreText.Color = Color.Aquamarine;
             ScoreText.Align = TgcText2D.TextAlign.LEFT;
             ScoreText.Position = new Point(50, 500);
             //ScoreText.Size = new Size(300, 100);
-            ScoreText.changeFont(new Font("Arial", 23, FontStyle.Bold));
+            ScoreText.changeFont(new Font(font, 23, FontStyle.Bold));
             ScoreText.Text = Score.ToString();
 
             // Texto del Multiplicador
@@ -53,29 +66,116 @@ namespace TGC.Group.Model
             MultiplicadorText.Color = Color.Aquamarine;
             MultiplicadorText.Align = TgcText2D.TextAlign.LEFT;
             MultiplicadorText.Position = new Point(50, 410);
-            MultiplicadorText.Size = new Size(100,600);
-            MultiplicadorText.changeFont(new Font("Arial", 40, FontStyle.Bold));
-            MultiplicadorText.Text ="x"+Multiplicador.ToString();
+            MultiplicadorText.Size = new Size(100, 600);
+            MultiplicadorText.changeFont(new Font(font, 40, FontStyle.Bold));
+            MultiplicadorText.Text = "x" + Multiplicador.ToString();
+
+            //Score temporal
+            ScoreGanadoText = new TgcText2D();
+            ScoreGanadoText.Color = Color.Aquamarine;
+            ScoreGanadoText.Align = TgcText2D.TextAlign.LEFT;
+            ScoreGanadoText.Position = new Point(50, 500);
+            ScoreGanadoText.changeFont(new Font(font, 23, FontStyle.Bold));
+
+            // Rango
+            RangoLevelText = new TgcText2D();
+            RangoLevelText.Color = Color.Aquamarine;
+            RangoLevelText.Align = TgcText2D.TextAlign.LEFT;
+            RangoLevelText.Position = new Point(50, 500);
+            //ScoreText.Size = new Size(300, 100);
+            RangoLevelText.changeFont(new Font(font, 23, FontStyle.Bold));
+
+            //Multiplicador final MultiplicadorFinalText
+            MultiplicadorFinalText = new TgcText2D();
+            MultiplicadorFinalText.Color = Color.Aquamarine;
+            MultiplicadorFinalText.Align = TgcText2D.TextAlign.LEFT;
+            MultiplicadorFinalText.Position = new Point(50, 500);
+            MultiplicadorFinalText.changeFont(new Font(font, 23, FontStyle.Bold));
+
+            // Level
+            LevelText = new TgcText2D();
+            LevelText.Color = Color.Aquamarine;
+            LevelText.Align = TgcText2D.TextAlign.LEFT;
+            LevelText.Position = new Point(50, 500);
+            LevelText.changeFont(new Font(font, 23, FontStyle.Bold));
+
         }
 
-        public void AumentoPuntuacion(bool PoderActivado)
+        // Cada frame eleva el 
+        public void ActualizarScore()
         {
-            int MultiplicadorPoder;
+            scoreTemporal += 1 * this.Multiplicador;
+        }
 
-            if (PoderActivado)
-                MultiplicadorPoder = 2;
+        public void Acierto()
+        {
+            AcumuladorAciertos++;
+            AcumuladorEventos++;
+            scoreTemporal += 100 * multiplicador;
+
+            if ((AcumuladorAciertos % 3 == 0) && (Multiplicador < 8))
+                Multiplicador++;
+
+            FinDeNivel();
+        }
+
+        public void Error()
+        {
+            Multiplicador = 1;
+            AcumuladorAciertos = 0;
+            AcumuladorEventos++;
+
+            FinDeNivel();
+        }
+
+        private void FinDeNivel()
+        {
+            if (AcumuladorEventos == 20)
+            {
+                score += scoreTemporal;
+
+                ScoreText.Text = score.ToString();
+                MultiplicadorText.Text = Multiplicador.ToString();
+                ScoreGanadoText.Text = scoreTemporal.ToString();
+                //RangoLevelText.Text = "Rank: " + obtenerRango(level, scoreTemporal);
+                //MultiplicadorFinalText.Text = ;
+
+                level++;
+
+                LevelText.Text = "Level: " + level.ToString();
+
+                Multiplicador = 1;
+                AcumuladorAciertos = 0;
+                AcumuladorEventos = 0;
+
+                if (level == 6)
+                    FinDeJuego();
+            }
+        }
+
+        private char obtenerRango(Int32 level, Double scoreTemporal)
+        {
+            char R = '0';
+
+            Puntuaciones[level + 1] = scoreTemporal;
+            if (AcumuladorAciertos < 5)
+                R = 'D';
+            else if (AcumuladorAciertos < 10)
+                R = 'C';
+            else if (AcumuladorAciertos < 15)
+                R = 'B';
+            else if (AcumuladorAciertos < 20)
+                R = 'A';
             else
-                MultiplicadorPoder = 1;
+                R = 'S';
 
-            Score += 100 * multiplicador * MultiplicadorPoder;
-            
-            if(Multiplicador < 8)
-                this.Multiplicador +=1;
+            return R;
+
         }
 
-        public void PierdoCombo()
+        private void FinDeJuego()
         {
-            this.Multiplicador = 1;
+            //Implementar
         }
 
         public void Update(TGCVector3 posicionCamara)

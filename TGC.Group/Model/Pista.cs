@@ -17,15 +17,16 @@ using Microsoft.DirectX.Direct3D;
 
 namespace TGC.Group
 {
-    
+
     public class Pista
     {
 
         public List<TgcMesh> SegmentosPista = new List<TgcMesh>();
         public List<TgcMesh> SegmentosTunel = new List<TgcMesh>();
         public List<Recolectable> Recolectables = new List<Recolectable>();
+        public List<Obstaculo> Obstaculos = new List<Obstaculo>();
         public String MediaDir;
-        public TGCVector3 posActual = new TGCVector3(0,0,0);
+        public TGCVector3 posActual = new TGCVector3(0, 0, 0);
         public TGCVector3 posUltimaPieza = new TGCVector3(0, 0, 0);
         public TGCVector3 posUltimoTunel = new TGCVector3(0, 0, 0);
         private Random rnd = new Random();
@@ -39,8 +40,17 @@ namespace TGC.Group
         public int cantCurvaSuaveActual = 0;
         public TGCVector3 rotCurvaActual = new TGCVector3(0, 0, 0);
         public TGCVector3 trasCurvaActual = new TGCVector3(0, 0, 0);
+        public TipoCurva tipoCurva = 0;
         private const float OFFSETPIEZAS = 60;
 
+        private bool obstaculosActivos;
+        private int cantObsActual = 0;
+
+        public enum TipoCurva
+        {
+            Derecha = 1,
+            Izquierda = 2
+        }
 
         public Pista(String _MediaDir)
         {
@@ -59,7 +69,8 @@ namespace TGC.Group
         }
 
         private void generarPista()
-        {;
+        {
+            ;
             // Primero agrego un camino de 50 para el inicio 
             for (int j = 0; j < 50; j++)
             {
@@ -74,7 +85,7 @@ namespace TGC.Group
             this.SegmentosPista.Add(generarSegmentoPiso());
             this.SegmentosPista.RemoveAt(0);
 
-            if(this.tunelActivo)
+            if (this.tunelActivo)
             {
                 TgcMesh MeshAux = cargarMesh(this.rutaTunelActual, 0);
                 MeshAux.Move(this.posUltimaPieza + TGCVector3.Up * 5);
@@ -83,77 +94,137 @@ namespace TGC.Group
                 this.SegmentosTunel.Add(MeshAux);
                 this.cantTunelActual--;
 
-                if(this.cantTunelActual == 0)
+                if (this.cantTunelActual == 0)
                 {
                     this.tunelActivo = false;
                 }
 
-                if (this.SegmentosTunel.ElementAt(0).Position.Z < (this.posActual.Z - 100 ))
+                if (this.SegmentosTunel.ElementAt(0).Position.Z < (this.posActual.Z - 100))
                     this.SegmentosTunel.RemoveAt(0);
             }
 
+            this.rotCurvaActual = new TGCVector3(0, 0, 0);
+            this.trasCurvaActual = new TGCVector3(0, 0, 0);
             if (this.curvaSuaveActiva)
             {
+                this.trasCurvaActual += new TGCVector3(getTrasXCurva(), 0, 0);
+                this.rotCurvaActual += new TGCVector3(0, getAnguloYCurva(), 0);
+
                 cantCurvaSuaveActual--;
                 if (cantCurvaSuaveActual == 0)
                 {
                     this.curvaSuaveActiva = false;
-                    this.rotCurvaActual = new TGCVector3(0, 0, 0);
-                    this.trasCurvaActual = new TGCVector3(0, 0, 0);
-                }                    
+                }
             }
 
-            this.posUltimaPieza += (new TGCVector3(0, 0, OFFSETPIEZAS) + this.trasCurvaActual );
+            if (this.obstaculosActivos)
+            {
+                Obstaculo obs = new Obstaculo(this.posUltimaPieza);
+
+                this.Obstaculos.Add(obs);
+                this.cantObsActual--;
+
+                if (this.cantObsActual == 0)
+                {
+                    this.obstaculosActivos = false;
+                }
+
+                // Revisar si hay que eliminarlo asi nomas
+                if (this.Obstaculos.ElementAt(0).Position.Z < (this.posActual.Z - 100))
+                    this.Obstaculos.RemoveAt(0);
+
+            }
+
+            this.posUltimaPieza += (new TGCVector3(0, 0, OFFSETPIEZAS) + this.trasCurvaActual);
             this.SegmentosPista.ElementAt(0).GetPosition(this.posActual);
 
             // Remuevo recolectables que ya pasaron al beetle
-            Recolectables.RemoveAll(rec => rec.Position.Z < ( posActual.Z - 300));
-           
+            Recolectables.RemoveAll(rec => rec.Position.Z < (posActual.Z - 300));
+
         }
 
         public void UpdateCurvaSuave()
-        {   
-            if(!this.curvaSuaveActiva)
+        {
+            if (!this.curvaSuaveActiva)
             {
-                int direccionCurvaSuave = rnd.Next(150);
-                float rotationY = 0;
-                float posX = this.posUltimaPieza.X;
-                float anguloY = 45f; // Geometry.DegreeToRadian(45);
-                float trasX;
-
-                trasX = 0f;
+                tipoCurva = (TipoCurva) rnd.Next(150);
 
                 // Bloques de la curva
                 this.cantCurvaSuaveActual = 5;
 
-                switch (direccionCurvaSuave)
+                switch (tipoCurva)
                 {
-                    //  Derecha                    
-                    case 1:
-                        Console.WriteLine("Dobla a la derecha?");
-                        rotationY = anguloY; // / cantCurvaSuaveActual;
-                        trasX = 50f / cantCurvaSuaveActual;
+                    case TipoCurva.Derecha:
+                    case TipoCurva.Izquierda:
                         this.curvaSuaveActiva = true;
                         break;
-                    // Izquierda
-                    case 2:
-                        Console.WriteLine("Dobla a la izquierda?");
-                        rotationY = -anguloY; // / cantCurvaSuaveActual;
-                        trasX = -(50f / cantCurvaSuaveActual);
-                        this.curvaSuaveActiva = true;
-                        break;
-                    
+
                     default:
-                        
+                        curvaSuaveActiva = false;
                         break;
                 }
 
                 if (!curvaSuaveActiva)
                     cantCurvaSuaveActual = 0;
 
-                this.trasCurvaActual += new TGCVector3(trasX, 0, 0);
-                this.rotCurvaActual += new TGCVector3(0, rotationY, 0);
             }
+        }
+
+        private float getAnguloYCurva()
+        {
+            float f = 0f;
+
+            switch(cantCurvaSuaveActual)
+            {
+                case 5:
+                    f = 75f;
+                    break;
+                case 4:
+                    f = 100f;
+                    break;
+                case 3:
+                    f = 150f;
+                    break;
+                case 2:
+                    f = 100f;
+                    break;
+                case 1:
+                    f = 1f;
+                    break;
+                default:
+                    f = 75f;
+                    break;
+            }
+
+            return f;
+        }
+
+        private float getTrasXCurva()
+        {
+            float f = 0f;
+
+            switch (cantCurvaSuaveActual)
+            {
+                case 5:
+                    f = 2f;
+                    break;
+                case 4:
+                    f = 8f;
+                    break;
+                case 3:
+                    f = 12f;
+                    break;
+                case 2:
+                    f = 8f;
+                    break;
+                case 1:
+                    f = 2f;
+                    break;
+                default:
+                    break;
+            }
+
+            return f;
         }
 
         public void UpdateTunel()
@@ -195,7 +266,26 @@ namespace TGC.Group
 
             }
         }
-       
+
+        public void UpdateObstaculos()
+        {
+            if (!this.obstaculosActivos)
+            {
+                int generaObstaculos = elijoEntreTresProbabilidades(1000, 10, 10);
+
+                this.cantTunelActual = this.rnd.Next(10) + 1;
+                if (generaObstaculos == 1)
+                {
+                    this.obstaculosActivos = true;
+                }
+                else
+                {
+                    this.obstaculosActivos = false;
+                    this.cantObsActual = 0;
+                }
+            }
+        }
+
         TgcMesh generarSegmentoPiso()
         {
             TGCBox piso = new TGCBox();
@@ -205,9 +295,9 @@ namespace TGC.Group
             piso.setTexture(texturaPiso);
             piso.Size = Tamanio;
 
-            TGCVector3 rot = new TGCVector3(0,0,0);
+            TGCVector3 rot = new TGCVector3(0, 0, 0);
             rot.X = Geometry.DegreeToRadian(this.rotCurvaActual.X);
-            if(cantCurvaSuaveActual != 0)
+            if (cantCurvaSuaveActual != 0)
                 rot.Y = Geometry.DegreeToRadian(this.rotCurvaActual.Y / curvar(cantCurvaSuaveActual));
             else
                 rot.Y = Geometry.DegreeToRadian(this.rotCurvaActual.Y);
@@ -215,9 +305,9 @@ namespace TGC.Group
 
             // YAW = Y, va primero
             piso.Transform = TGCMatrix.Scaling(new TGCVector3(1, 1, 2)) *
-                             TGCMatrix.RotationYawPitchRoll(rot.Y, rot.X, rot.Z) *  
+                             TGCMatrix.RotationYawPitchRoll(rot.Y, rot.X, rot.Z) *
                              TGCMatrix.Translation(this.posUltimaPieza);
-            
+
 
             piso.updateValues();
 
@@ -225,7 +315,7 @@ namespace TGC.Group
 
             pisoMesh.AutoUpdateBoundingBox = false;
             pisoMesh.Position = this.posUltimaPieza;
-            pisoMesh.Rotation = new TGCVector3(0,rot.Y,0);
+            pisoMesh.Rotation = new TGCVector3(0, rot.Y, 0);
             agregoRecolectables(this.posUltimaPieza);
             return pisoMesh;
         }
@@ -233,10 +323,8 @@ namespace TGC.Group
         // buscar una funcion que de F(1)=-3 F(2)=-1.5 F(3)=1 F(4)=1.5 F(5)=3
         public float curvar(int x)
         {
-            //float y = ((x-3) / 1.5f) * ((x - 3) / 1.5f) * ((x - 3) / 1.5f) + 1;
-            //Console.WriteLine("y = "+y);
             float y = 0;
-            switch(x)
+            switch (x)
             {
                 case 1:
                     y = 30f;
@@ -269,18 +357,18 @@ namespace TGC.Group
         }
 
 
-        int elijoEntreTresProbabilidades(int probA,int probB,int probC)
+        int elijoEntreTresProbabilidades(int probA, int probB, int probC)
         {
             int probTotal = probA + probB + probC;
             int randomNumber = rnd.Next(probTotal);
             if (randomNumber < probA) return 1;
-            else if (randomNumber < probA+probB) return 2;
+            else if (randomNumber < probA + probB) return 2;
             else return 3;
         }
 
         public void Render()
         {
-            foreach(Recolectable AuxRec in Recolectables)
+            foreach (Recolectable AuxRec in Recolectables)
             {
                 AuxRec.Render();
             }
