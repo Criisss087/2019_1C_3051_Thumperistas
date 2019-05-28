@@ -84,6 +84,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Model\Beetle.cs" />
+    <Compile Include="Model\Reproductor.cs" />
     <Compile Include="Model\Disparo.cs" />
     <Compile Include="Model\Obstaculo.cs" />
     <Compile Include="Model\Recolectable.cs" />

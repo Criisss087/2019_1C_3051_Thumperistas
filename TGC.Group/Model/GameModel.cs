@@ -74,6 +74,7 @@ namespace TGC.Group.Model
             Tiempo = new Temporizador();
             Tiempo.StopSegs = 0.5f;
 
+            Reproductor.ReproducirLevelPrincipal();
             camaraInterna = new TgcThirdPersonCamera(Beetle.position,20f,-100f);
             Camara = camaraInterna;  
         }
@@ -298,9 +299,7 @@ namespace TGC.Group.Model
                 if (Beetle.ColisionandoConObstaculo(PistaNivel.Obstaculos, ref objetoColisionado) || Beetle.godMode)
                 {
                     // Cambiar sonido por obstaculo destruido
-                    sound.dispose();
-                    sound.loadSound(MediaDir + "Thumper/Mp3/laserBeat.wav", DirectSound.DsDevice);
-                    sound.play(false);
+                    Reproductor.ObstaculoDestruido();
 
                     // Emitir particulas?
 
