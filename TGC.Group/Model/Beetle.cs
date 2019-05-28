@@ -197,17 +197,22 @@ namespace TGC.Group.Model
             return TipoColision.Nada;
         }
 
-        public bool ColisionandoConObstaculo(List<Obstaculo> obstaculos, ref Obstaculo objetoColisionado)
+        public TipoColision ColisionandoConObstaculo(List<Obstaculo> obstaculos, ref Obstaculo objetoColisionado)
         {
             foreach (Obstaculo obs in obstaculos)
             {
                 if (TgcCollisionUtils.testObbObb(obs.Collider, colliderRecolectablesOk))
                 {
                     objetoColisionado = obs;
-                    return true;
+                    return TipoColision.Colision;
                 }
+                if (TgcCollisionUtils.testObbObb(obs.Collider, colliderRecolectablesWrong))
+                {
+                    return TipoColision.Error;
+                }
+
             }
-            return false;
+            return TipoColision.Nada;
         }
 
         public void Render()

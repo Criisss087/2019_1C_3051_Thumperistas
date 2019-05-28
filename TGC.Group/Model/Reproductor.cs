@@ -11,7 +11,7 @@ namespace TGC.Group.Model
     {
         private const string levelPrincipal = "Thumper/Mp3/Thumper OST - Spiral.mp3";
         private const string recolectar = "Thumper/Mp3/laserBeat.wav";
-        private const string obstaculoDestruido = "Thumper/Mp3/laserBeat.wav";
+        private const string obstaculoDestruido = "Thumper/Mp3/beat.wav";
 
         private String mediaDir;
         private TgcMp3Player mp3PlayerMusica;

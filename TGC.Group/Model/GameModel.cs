@@ -269,11 +269,16 @@ namespace TGC.Group.Model
 
         private void Colisiones()
         {
+            Beetle.TipoColision col; 
+
             // Colision con recolectable 
-            if (Input.keyPressed(Key.Space) || Beetle.godMode)
+            if (Input.keyPressed(Key.Space))
             {
-                Recolectable objetoColisionado = new Recolectable(MediaDir, TGCVector3.One);
-                if (Beetle.ColisionandoConRecolectable(PistaNivel.Recolectables, ref objetoColisionado) == Beetle.TipoColision.Colision)
+                Recolectable recolectableColisionado = new Recolectable(MediaDir, TGCVector3.One);
+
+                 col = Beetle.ColisionandoConRecolectable(PistaNivel.Recolectables, ref recolectableColisionado);
+
+                if(col == Beetle.TipoColision.Colision)
                 {
                     Reproductor.Recolectar();
 
@@ -283,34 +288,40 @@ namespace TGC.Group.Model
                         Beetle.GanarEscudo();
                     }
 
-                    PistaNivel.Recolectables.Remove(objetoColisionado);
+                    PistaNivel.Recolectables.Remove(recolectableColisionado);
                     Pantalla.Acierto();
                 }
-                else
+                else if(col == Beetle.TipoColision.Error)
                 {
+                    Reproductor.ObstaculoDestruido();
+                    PistaNivel.Recolectables.Remove(recolectableColisionado);
                     Pantalla.Error();
                 }
             }
 
             // Colision con obstaculo 
-            if (Beetle.Sliding() || Beetle.godMode)
+            //if (Beetle.Sliding())
+            
+            Obstaculo objetoColisionado = new Obstaculo(TGCVector3.One);
+            col = Beetle.ColisionandoConObstaculo(PistaNivel.Obstaculos, ref objetoColisionado);
+
+            if ( col == Beetle.TipoColision.Colision)
             {
-                Obstaculo objetoColisionado = new Obstaculo(TGCVector3.One);
-                if (Beetle.ColisionandoConObstaculo(PistaNivel.Obstaculos, ref objetoColisionado) || Beetle.godMode)
-                {
-                    // Cambiar sonido por obstaculo destruido
-                    Reproductor.ObstaculoDestruido();
+                // Cambiar sonido por obstaculo destruido
+                Reproductor.ObstaculoDestruido();
 
-                    // Emitir particulas?
+                // Emitir particulas?
 
-                    PistaNivel.Obstaculos.Remove(objetoColisionado);
-                    Pantalla.Acierto();
-                }
-                else
-                {
-                    Pantalla.Error();
-                }
+                PistaNivel.Obstaculos.Remove(objetoColisionado);
+                Pantalla.Acierto();
             }
+            else if (col == Beetle.TipoColision.Error)
+            {
+                Reproductor.ObstaculoDestruido();
+                PistaNivel.Obstaculos.Remove(objetoColisionado);
+                Pantalla.Error();
+            }
+            
         }
     }
 }
