@@ -74,15 +74,15 @@ namespace TGC.Group
             // Primero agrego un camino de 50 para el inicio 
             for (int j = 0; j < 50; j++)
             {
-                this.SegmentosPista.Add(generarSegmentoPiso());
+                this.SegmentosPista.Add(generarSegmentoPiso(true));
                 this.posUltimaPieza += new TGCVector3(0, 0, OFFSETPIEZAS);
             }
         }
 
-        public void UpdatePista()
+        public void UpdatePista(bool soloPista)
         {
             // La pista se mantiene infinita, agrego un elemento al final, y remuevo el primero, que ya lo paso el beetle
-            this.SegmentosPista.Add(generarSegmentoPiso());
+            this.SegmentosPista.Add(generarSegmentoPiso(soloPista));
             this.SegmentosPista.RemoveAt(0);
 
             if (this.tunelActivo)
@@ -154,8 +154,8 @@ namespace TGC.Group
             // Remuevo recolectables que ya pasaron al beetle
             Recolectables.RemoveAll(rec => rec.Position.Z < (posActual.Z - 300));
 			
-			// Revisar
-			Obstaculos.RemoveAll(obs => obs.Position.Z < (posActual.Z - 300));
+			//Revisar
+			//Obstaculos.RemoveAll(obs => obs.Position.Z < (posActual.Z - 2000));
 
         }
 
@@ -285,10 +285,12 @@ namespace TGC.Group
 
         public void UpdateObstaculos()
         {
+            
             if (!this.obstaculosActivos)
             {
-                int generaObstaculos = elijoEntreTresProbabilidades(2, 90, 18);
 
+                int generaObstaculos = elijoEntreTresProbabilidades(2, 90, 18);
+                
                 this.cantObsActual = this.rnd.Next(10) + 1;
                 if (generaObstaculos == 1)
                 {
@@ -302,7 +304,7 @@ namespace TGC.Group
             }
         }
 
-        public TgcMesh generarSegmentoPiso()
+        public TgcMesh generarSegmentoPiso(bool soloPista)
         {
             TGCBox piso = new TGCBox();
             TGCVector3 Tamanio = new TGCVector3(30, 10, 30);
@@ -332,7 +334,10 @@ namespace TGC.Group
             pisoMesh.AutoUpdateBoundingBox = false;
             pisoMesh.Position = this.posUltimaPieza;
             pisoMesh.Rotation = new TGCVector3(0, rot.Y, 0);
-            agregoRecolectables(this.posUltimaPieza);
+
+            if(!soloPista)
+                agregoRecolectables(this.posUltimaPieza);
+
             return pisoMesh;
         }
 

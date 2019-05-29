@@ -59,6 +59,7 @@ namespace TGC.Group.Model
         private bool curvaActiva { get; set; }
 		private bool finDeNivel { get; set; }
         private bool finDeJuego { get; set; }
+        private bool soloPista { get; set; }
         public float posX = 0, posY = 0;
         public TGCVector3 posicionFinal = new TGCVector3(0, 0, 0);
         private Random rnd = new Random();
@@ -102,18 +103,20 @@ namespace TGC.Group.Model
                 // Cuando llego al final de la pista, se actualiza, el rango de vision es alrededor de 2500 Z
                 if (PistaNivel.posUltimaPieza.Z - Beetle.position.Z <= 2500)
                 {
-                    if (!finDeNivel)
+                    if (finDeNivel)
+                    {
+                        Temporizadores.finDeNivel.reset();
+                        soloPista = true;
+                    }
+                    //Console.WriteLine(Temporizadores.finDeNivel.Current + "asa" + finDeNivel.ToString());
+
+                    if (!soloPista)
                     {
                         PistaNivel.UpdateObstaculos();
                         PistaNivel.UpdateTunel();
                         PistaNivel.UpdateCurvaSuave();
                     }
-                    else
-                    {
-                        Temporizadores.finDeNivel.reset();
-                    }
-
-                    PistaNivel.UpdatePista();
+                    PistaNivel.UpdatePista(soloPista);
                 }
 
                 //Capturar Input teclado
@@ -250,7 +253,10 @@ namespace TGC.Group.Model
 				DrawText.drawText("Inmunidad temporal: " + Beetle.inmunidadTemp.ToString(), 0, 90, Color.OrangeRed);
 				DrawText.drawText("Escudo: " + (Beetle.escudo.ToString()), 0, 100, Color.OrangeRed);
 				DrawText.drawText("GodMode: " + (Beetle.godMode.ToString()), 0, 110, Color.OrangeRed);
-			}
+                DrawText.drawText("Fin de Nivel: " + finDeNivel, 0, 120, Color.OrangeRed);
+                DrawText.drawText("Score total: " + Pantalla.Score, 0, 130, Color.OrangeRed);
+                DrawText.drawText("Multiplcador: " + Pantalla.Multiplicador, 0, 140, Color.OrangeRed);
+            }
 
             //Render de BoundingBox, muy útil para debug de colisiones.
             if (BoundingBox)
@@ -293,50 +299,61 @@ namespace TGC.Group.Model
             Beetle.TipoColision col; 
 
             // Colision con recolectable 
-            if (Input.keyPressed(Key.Space))
+
+            Recolectable recolectableColisionado = new Recolectable(MediaDir, TGCVector3.One);
+
+            col = Beetle.ColisionandoConRecolectable(PistaNivel.Recolectables, ref recolectableColisionado);
+            
+            if (col == Beetle.TipoColision.Colision) 
             {
-                Recolectable recolectableColisionado = new Recolectable(MediaDir, TGCVector3.One);
-
-                 col = Beetle.ColisionandoConRecolectable(PistaNivel.Recolectables, ref recolectableColisionado);
-
-                if(col == Beetle.TipoColision.Colision)
+                if(Beetle.godMode || (Input.keyPressed(Key.Space)))
                 {
                     Reproductor.Recolectar();
 
                     // 1/10 en recuperar escudo al colectar
                     if (this.rnd.Next(10) == 1)
-                    {	
-						Reproductor.GanarEscudo();
+                    {
+                        Reproductor.GanarEscudo();
                         Beetle.GanarEscudo();
                     }
 
                     PistaNivel.Recolectables.Remove(recolectableColisionado);
                     finDeNivel = Pantalla.Acierto();
                 }
-                else if(col == Beetle.TipoColision.Error)
-                {
-                    Reproductor.CurvaFallida();
-                    PistaNivel.Recolectables.Remove(recolectableColisionado);
-                    finDeNivel = Pantalla.Error();
-                }
+                
             }
+            else if(col == Beetle.TipoColision.Error)
+            {
+                Reproductor.NoRecolectar();
+                PistaNivel.Recolectables.Remove(recolectableColisionado);
+                finDeNivel = Pantalla.Error();
+            }
+            
 
             // Colision con obstaculo            
             Obstaculo objetoColisionado = new Obstaculo(TGCVector3.One);
             col = Beetle.ColisionandoConObstaculo(PistaNivel.Obstaculos, ref objetoColisionado);
 
-            if (col == Beetle.TipoColision.Colision && Beetle.Sliding())
-            {
-                // Cambiar sonido por obstaculo destruido
-                Reproductor.ObstaculoDestruido();
+            if (col == Beetle.TipoColision.Colision) 
+            {   
+                if(Beetle.Sliding()) 
+                {
+                    // Cambiar sonido por obstaculo destruido
+                    Reproductor.ObstaculoDestruido();
 
-                // Emitir particulas?
-                PistaNivel.Obstaculos.Remove(objetoColisionado);
-                finDeNivel = Pantalla.Acierto();
-            }
-            else if (col == Beetle.TipoColision.Colision && !Beetle.Sliding())
-            {	
-				CurvaError();
+                    // Emitir particulas?
+                    PistaNivel.Obstaculos.Remove(objetoColisionado);
+                    finDeNivel = Pantalla.Acierto();
+                }
+                else if(Beetle.Inmunidad())
+                {
+                    // Nada, simplemente no moris
+                }
+                else
+                {
+                    CurvaError();
+                }
+
             }
             
         }
@@ -345,9 +362,9 @@ namespace TGC.Group.Model
 		{	
 			if(Temporizadores.inmunidadError.update(ElapsedTime))
 				Beetle.inmunidadTemp = false;
-			
-			if(Temporizadores.finDeNivel.update(ElapsedTime))
-				finDeNivel = false;
+
+            if (Temporizadores.finDeNivel.update(ElapsedTime))
+				soloPista = false;
 
             curvaActiva = !Temporizadores.curvaOk.update(ElapsedTime);
 
@@ -373,12 +390,11 @@ namespace TGC.Group.Model
 			else
 			{
 				Beetle.PerderEscudo();
-				Reproductor.CurvaFallida();				
-				Temporizadores.inmunidadError.reset();
-                Temporizadores.curvaOk.reset();
+				Reproductor.CurvaFallida();
+                Temporizadores.inmunidadError.reset();
                 Beetle.inmunidadTemp = true;
-				finDeNivel = Pantalla.Error();
-                
+                Temporizadores.curvaOk.reset();
+                finDeNivel = Pantalla.Error();                
             }
             
         }

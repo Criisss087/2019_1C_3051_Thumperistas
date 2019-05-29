@@ -17,7 +17,8 @@ namespace TGC.Group.Model
         private const string disparar = "Thumper/Mp3/Poder.wav";
 		private const string explosion = "Thumper/Mp3/explosion.wav";
 		private const string perder = "Thumper/Mp3/loss.wav";
-		private const string ganarEscudo = "Thumper/Mp3/winShield.wav";
+        private const string missReco = "Thumper/Mp3/missReco.wav";
+        private const string ganarEscudo = "Thumper/Mp3/winShield.wav";
 
         private String mediaDir;
         private TgcMp3Player mp3PlayerMusica;
@@ -41,6 +42,11 @@ namespace TGC.Group.Model
         public void Recolectar()
         {
             Reproducir(mediaDir + recolectar);
+        }
+
+        public void NoRecolectar()
+        {
+            Reproducir(mediaDir + missReco);
         }
 
         public void ObstaculoDestruido()

@@ -190,11 +190,18 @@ namespace TGC.Group.Model
                     objetoColisionado = ObjRecoleactable;
                     return TipoColision.Colision;
                 }
-                if (TgcCollisionUtils.testSphereOBB(ObjRecoleactable.Collider, colliderRecolectablesWrong)
-				|| TgcCollisionUtils.testSphereOBB(ObjRecoleactable.Collider, colliderPista)
-					)
+                if (TgcCollisionUtils.testSphereOBB(ObjRecoleactable.Collider, colliderRecolectablesWrong))
                 {
-                    return TipoColision.Error;
+                    if(godMode)
+                    {
+                        objetoColisionado = ObjRecoleactable;
+                        return TipoColision.Colision;
+                    }
+                    else
+                    {
+                        return TipoColision.Error;
+                    }
+                        
                 }
             }
             return TipoColision.Nada;
