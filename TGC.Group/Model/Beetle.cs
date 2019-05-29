@@ -95,6 +95,7 @@ namespace TGC.Group.Model
                 slide = false;
 
             // Cambie esto para desacelerar y acelerar, para pruebas
+            /*
             if (Input.keyPressed(Key.A))
             {
                 AumentarVelocidad();
@@ -103,6 +104,7 @@ namespace TGC.Group.Model
             {
                 DesvanecerVelocidad(ElapsedTime);
             }
+            */
 
             // Capturador de Giro
             if (Input.keyDown(Key.LeftArrow))
