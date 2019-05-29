@@ -17,7 +17,7 @@ namespace TGC.Group.Model
         public TGCMatrix Rotation { get; set; }
         public TGCVector3 Position { get; set; }
         public TgcBoundingSphere Collider;
-        public static float speed = 1200f;
+        public static float speed = 1800f;
 
         public Disparo(String mediaDir, TGCVector3 PosicionInicial)
         {
@@ -46,10 +46,10 @@ namespace TGC.Group.Model
         public TGCVector3 Avanza(float ElapsedTime, float posX, float posY)
         {
             Position += new TGCVector3(posX, posY, speed * ElapsedTime);
-            /*
-            Translation = TGCMatrix.Translation(position);
-            Rotation = TGCMatrix.RotationY(distAng);
-			*/
+            
+            Translation = TGCMatrix.Translation(Position);
+            //Rotation = TGCMatrix.RotationY(distAng);
+			
             Collider.moveCenter(new TGCVector3(posX, posY, speed * ElapsedTime));
 
             return Position;
@@ -62,7 +62,7 @@ namespace TGC.Group.Model
                 mesh.Transform = Scaling * Rotation * Translation;
                 mesh.Render();
             }
-            Collider.Render();
+            //Collider.Render();
         }
 
     }

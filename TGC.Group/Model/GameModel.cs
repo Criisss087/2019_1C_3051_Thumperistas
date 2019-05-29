@@ -52,10 +52,13 @@ namespace TGC.Group.Model
         private Reproductor Reproductor;
 		private Disparo Disparo;
 		public Temporizadores Temporizadores;
+		private Pantalla.FaseTexto FaseTexto { get; set; } = Pantalla.FaseTexto.Nada;
         
         private bool applyMovement { get; set; }
 		private bool disparoActivo { get; set; }
+        private bool curvaActiva { get; set; }
 		private bool finDeNivel { get; set; }
+        private bool finDeJuego { get; set; }
         public float posX = 0, posY = 0;
         public TGCVector3 posicionFinal = new TGCVector3(0, 0, 0);
         private Random rnd = new Random();
@@ -93,135 +96,134 @@ namespace TGC.Group.Model
             PreUpdate();
 			
 			UpdateTemporizadores();
-			
-            // Cuando llego al final de la pista, se actualiza, el rango de vision es alrededor de 2500 Z
-            if (PistaNivel.posUltimaPieza.Z - Beetle.position.Z <= 2500)
-            {	
-				if(!finDeNivel)
-				{
-					PistaNivel.UpdateObstaculos();
-					PistaNivel.UpdateTunel();
-					PistaNivel.UpdateCurvaSuave();
-				}
-				else
-				{
-					Temporizadores.finDeNivel.reset();
-				}
-				
-                PistaNivel.UpdatePista();
-            }
 
-            //Capturar Input teclado
-            if (Input.keyPressed(Key.F))
+            if (!finDeJuego)
             {
-                BoundingBox = !BoundingBox;
-            }
-			
-			if(Input.keyPressed(Key.D) && Pantalla.AcumuladorPoder > 5)
-			{	
-				Disparo = new Disparo(MediaDir, Beetle.position);
-				Reproductor.Disparar();
-				Pantalla.AcumuladorPoder = 0;
-				disparoActivo = true;
-			}
-			
-			// Activar/Desactivar God Mode
-			if(Input.keyPressed(Key.G)) 
-				Beetle.godMode = !Beetle.godMode;
-			
-			if(Input.keyPressed(Key.H)) 
-				help = !help;			
-
-            Beetle.Update(Input, ElapsedTime);
-            Pantalla.ActualizarScore();
-
-            Colisiones();
-
-            // Deteccion de curva INTENTAR MEJORAR Y DELEGAR
-            foreach (TgcMesh box2 in PistaNivel.SegmentosPista)
-            {
-                //Reviso si el beetle colisiona con algun elemento de la pista  
-                if (TgcCollisionUtils.testObbAABB(Beetle.colliderPista, box2.BoundingBox))
+                // Cuando llego al final de la pista, se actualiza, el rango de vision es alrededor de 2500 Z
+                if (PistaNivel.posUltimaPieza.Z - Beetle.position.Z <= 2500)
                 {
-                    // Si no hay movimiento en X activo, capturo la posicion final a la que debe ir el beetle
-                    if (!applyMovement)
+                    if (!finDeNivel)
+                    {
+                        PistaNivel.UpdateObstaculos();
+                        PistaNivel.UpdateTunel();
+                        PistaNivel.UpdateCurvaSuave();
+                    }
+                    else
+                    {
+                        Temporizadores.finDeNivel.reset();
+                    }
+
+                    PistaNivel.UpdatePista();
+                }
+
+                //Capturar Input teclado
+                if (Input.keyPressed(Key.F))
+                {
+                    BoundingBox = !BoundingBox;
+                }
+
+                if (Input.keyPressed(Key.D) && Pantalla.AcumuladorPoder > 5)
+                {
+                    Disparo = new Disparo(MediaDir, Beetle.position);
+                    Reproductor.Disparar();
+                    Pantalla.AcumuladorPoder = 0;
+                    disparoActivo = true;
+                }
+
+                if (Input.keyPressed(Key.H))
+                    help = !help;
+
+                Beetle.Update(Input, ElapsedTime);
+                Colisiones();
+
+                // Deteccion de curva INTENTAR MEJORAR Y DELEGAR
+                foreach (TgcMesh box2 in PistaNivel.SegmentosPista)
+                {
+                    //Reviso si el beetle colisiona con algun elemento de la pista  
+                    if (TgcCollisionUtils.testObbAABB(Beetle.colliderPista, box2.BoundingBox))
+                    {
+                        // Si no hay movimiento en X activo, capturo la posicion final a la que debe ir el beetle
+                        if (!applyMovement)
+                        {
+                            // Color para detectar la colision, testing
+                            //box2.setColor(Color.Red);
+                            posX = box2.Position.X - Beetle.position.X;
+                            posY = box2.Position.Y - Beetle.position.Y + 8;
+                            if (posX != 0 || posY != 0)
+                            {
+                                applyMovement = true;
+                                posicionFinal = box2.Position;
+                            }
+                        }
+
+                        //Si esta en una curva
+                        if (box2.Rotation.Y != 0f
+                        && !curvaActiva)
+                        {
+                            AccionesEnCurva(box2.Rotation.Y);
+                        }
+
+
+                    }
+                    else
                     {
                         // Color para detectar la colision, testing
-                        //box2.setColor(Color.Red);
-                        posX = box2.Position.X - Beetle.position.X;
-                        posY = box2.Position.Y - Beetle.position.Y + 8;
-                        if (posX != 0 || posY != 0)
-                        {
-                            applyMovement = true;
-                            posicionFinal = box2.Position;
-                        }
+                        //box2.setColor(Color.Blue);
                     }
-					
-					//Si esta en una curva
-					if (box2.Rotation.Y != 0f 
-					&& Temporizadores.curvaOk.update(ElapsedTime))
-						AccionesEnCurva(box2.Rotation.Y);					
-					
                 }
-                else
+
+                // Mantiene al Beetle en la pista
+                if (applyMovement)
                 {
-                    // Color para detectar la colision, testing
-                    //box2.setColor(Color.Blue);
-                }
-            }
+                    //Ver si queda algo de distancia para mover
+                    var posDiff = new TGCVector3(posicionFinal.X, 0f, 0f) - new TGCVector3(Beetle.position.X, 0f, 0f);
 
-            // Mantiene al Beetle en la pista
-            if (applyMovement)
-            {
-                //Ver si queda algo de distancia para mover
-                var posDiff = new TGCVector3(posicionFinal.X, 0f, 0f) - new TGCVector3(Beetle.position.X, 0f, 0f);
-
-                var posDiffLength = posDiff.LengthSq();
-                //Si esta a menos de 1 asumo que esta en la misma posicion
-                if (posDiffLength > 1)
-                {
-                    //Intento mover el beetle interpolando por la velocidad
-                    var currentVelocity = Beetle.VELOCIDADX * ElapsedTime;
-                    posDiff.Normalize();
-                    posDiff.Multiply(currentVelocity);
-
-                    //Ajustar cuando llegamos al final del recorrido
-                    var newPos = Beetle.position + posDiff;
-                    if (posDiff.LengthSq() > posDiffLength)
+                    var posDiffLength = posDiff.LengthSq();
+                    //Si esta a menos de 1 asumo que esta en la misma posicion
+                    if (posDiffLength > 1)
                     {
-                        newPos = posicionFinal;
+                        //Intento mover el beetle interpolando por la velocidad
+                        var currentVelocity = Beetle.VELOCIDADX * ElapsedTime;
+                        posDiff.Normalize();
+                        posDiff.Multiply(currentVelocity);
+
+                        //Ajustar cuando llegamos al final del recorrido
+                        var newPos = Beetle.position + posDiff;
+                        if (posDiff.LengthSq() > posDiffLength)
+                        {
+                            newPos = posicionFinal;
+                        }
+
+                        posX = posDiff.X;
+                        //posY = posDiff.Y;
+
                     }
-
-                    posX = posDiff.X;
-                    //posY = posDiff.Y;
-
+                    //Se acabo el movimiento
+                    else
+                    {
+                        posX = 0;
+                        posY = 0;
+                        applyMovement = false;
+                    }
                 }
-                //Se acabo el movimiento
-                else
+
+                //muevo beetle para adelante
+                PistaNivel.posActual = Beetle.Avanza(ElapsedTime, posX, posY);
+
+                if (disparoActivo)
                 {
-                    posX = 0;
-                    posY = 0;
-                    applyMovement = false;
+                    var dist = Disparo.Avanza(ElapsedTime, posX, posY);
+                    if (dist.Z - Beetle.position.Z > 2000)
+                    {
+                        Reproductor.Explosion();
+                        disparoActivo = false;
+                        Pantalla.scoreTemporal += 1000;
+                    }
                 }
+
+                camaraInterna.Target = Beetle.position;
+                Pantalla.Update(camaraInterna.Position);
             }
-
-            //muevo beetle para adelante
-            PistaNivel.posActual = Beetle.Avanza(ElapsedTime, posX, posY);
-			
-			if(disparoActivo)
-			{
-				var dist = Disparo.Avanza(ElapsedTime, posX, posY);
-				if(dist.Z - Beetle.position.Z > 2000)
-				{	
-					Reproductor.Explosion();
-					disparoActivo = false;
-					Pantalla.scoreTemporal += 1000;
-				}
-			}
-				
-            camaraInterna.Target = Beetle.position;
-            Pantalla.Update(camaraInterna.Position);
-
             PostUpdate();
         }
 
@@ -241,11 +243,11 @@ namespace TGC.Group.Model
 				DrawText.drawText("Con la tecla F se dibuja el bounding box.", 0, 20, Color.OrangeRed);
 				DrawText.drawText("Posicion actual del jugador: " + TGCVector3.PrintVector3(Beetle.position), 0, 30, Color.OrangeRed);
 				DrawText.drawText("Posicion actual ultima pieza: " + TGCVector3.PrintVector3(PistaNivel.posUltimaPieza), 0, 40, Color.OrangeRed);
-				DrawText.drawText("Cant obstaculos en lista: " + (PistaNivel.Obstaculos.Count), 0, 50, Color.OrangeRed);
-				DrawText.drawText("Obbstaculos activos: " + (PistaNivel.obstaculosActivos.ToString()), 0, 60, Color.OrangeRed);
-				DrawText.drawText("Obs pendientes: " + PistaNivel.cantObsActual, 0, 70, Color.OrangeRed);
-				DrawText.drawText("Izquierda: " + Beetle.izquierda.ToString(), 0, 80, Color.OrangeRed);
-				DrawText.drawText("Derecha: " + Beetle.derecha.ToString(), 0, 90, Color.OrangeRed);
+				DrawText.drawText("Cant Aciertos: " + (Pantalla.AcumuladorAciertos), 0, 50, Color.OrangeRed);
+				DrawText.drawText("Cant Eventos: " + (Pantalla.AcumuladorEventos), 0, 60, Color.OrangeRed);
+				DrawText.drawText("Cant para poder: " + Pantalla.AcumuladorPoder, 0, 70, Color.OrangeRed);
+				DrawText.drawText("Nivel: " + Pantalla.level, 0, 80, Color.OrangeRed);
+				DrawText.drawText("Inmunidad temporal: " + Beetle.inmunidadTemp.ToString(), 0, 90, Color.OrangeRed);
 				DrawText.drawText("Escudo: " + (Beetle.escudo.ToString()), 0, 100, Color.OrangeRed);
 				DrawText.drawText("GodMode: " + (Beetle.godMode.ToString()), 0, 110, Color.OrangeRed);
 			}
@@ -260,9 +262,11 @@ namespace TGC.Group.Model
                 }
             }
 
-            Beetle.Render();
+            if(!finDeJuego)
+                Beetle.Render();
+
             PistaNivel.Render();
-            Pantalla.Render();
+            Pantalla.Render(FaseTexto);
 			
 			if(disparoActivo)
 				Disparo.Render();
@@ -340,12 +344,14 @@ namespace TGC.Group.Model
 		private void UpdateTemporizadores()
 		{	
 			if(Temporizadores.inmunidadError.update(ElapsedTime))
-				Beetle.godMode = false;
+				Beetle.inmunidadTemp = false;
 			
 			if(Temporizadores.finDeNivel.update(ElapsedTime))
 				finDeNivel = false;
-			
-		}
+
+            curvaActiva = !Temporizadores.curvaOk.update(ElapsedTime);
+
+        }
 		
 		private void CurvaOk()
 		{
@@ -358,44 +364,52 @@ namespace TGC.Group.Model
 		{
 			if (!Beetle.escudo)
 			{
-				// Perdiste!
-				//Aca hay que ver como mantener la inmunidad hasta que se termine la curva!
-				Beetle.speed = 0f;
-				Reproductor.Perder();
-			}
+                // Perdiste!
+                //Aca hay que ver como mantener la inmunidad hasta que se termine la curva!
+                Reproductor.Perder();
+                Beetle.speed = 0f;
+                finDeJuego = true;
+            }
 			else
 			{
 				Beetle.PerderEscudo();
 				Reproductor.CurvaFallida();				
 				Temporizadores.inmunidadError.reset();
-				Beetle.godMode = true;
+                Temporizadores.curvaOk.reset();
+                Beetle.inmunidadTemp = true;
 				finDeNivel = Pantalla.Error();
-			}
-		}
+                
+            }
+            
+        }
 		
 		private void AccionesEnCurva(float rotacion)
 		{
-			if(Beetle.godMode)
+			if(Beetle.Inmunidad())
 			{
 				CurvaOk();				
 			}
+            else
+            {
+                //DERECHA
+                if (rotacion > 0f)
+                {
+                    if (Beetle.derecha)
+                        CurvaOk();
+                    else
+                        CurvaError();
+                }
+                // IZQUIERDA
+                else if (rotacion < 0f)
+                {
+                    if (Beetle.izquierda)
+                        CurvaOk();
+                    else
+                        CurvaError();
+                }
+            }
 			
-			//DERECHA
-			if (rotacion > 0f) 
-			{
-				if(Beetle.derecha)	
-					CurvaOk();
-				else
-					CurvaError();				
-			}			
-			// IZQUIERDA
-			else if (rotacion < 0f) 
-			{
-				if(Beetle.izquierda)	
-					CurvaOk();
-				else
-					CurvaError();
-			}		
+	
 		}
     }
 }

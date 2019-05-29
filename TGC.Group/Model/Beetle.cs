@@ -25,6 +25,7 @@ namespace TGC.Group.Model
         public bool derecha { get; set; } = false;
         public bool izquierda { get; set; } = false;
         public bool godMode { get; set; } = false;
+        public bool inmunidadTemp { get; set; } = false;
         public TgcBoundingOrientedBox colliderPista;
         public TgcBoundingOrientedBox colliderRecolectablesOk;
         public TgcBoundingOrientedBox colliderRecolectablesWrong;
@@ -103,15 +104,6 @@ namespace TGC.Group.Model
                 DesvanecerVelocidad(ElapsedTime);
             }
 
-            if (Input.keyPressed(Key.G) && godMode)
-            {
-                godMode = false;
-            }
-            if (Input.keyPressed(Key.G) && !godMode)
-            {
-                godMode = true;
-            }
-
             // Capturador de Giro
             if (Input.keyDown(Key.LeftArrow))
             {
@@ -145,6 +137,10 @@ namespace TGC.Group.Model
                 derecha = false;
             }
 
+            // Activar/Desactivar God Mode
+            if (Input.keyPressed(Key.G))
+                godMode = !godMode;
+
 
             // para debug
             if (Input.keyPressed(Key.E))
@@ -164,6 +160,11 @@ namespace TGC.Group.Model
         public bool Sliding()
         {
             return slide || izquierda || derecha;
+        }
+
+        public bool Inmunidad()
+        {
+            return godMode || inmunidadTemp;
         }
 
         public TGCVector3 Avanza(float ElapsedTime, float posX, float posY)
@@ -226,14 +227,16 @@ namespace TGC.Group.Model
                 mesh.BoundingBox.transform(scaling * rotation * translation);
             }
             beetle.RenderAll();
+            
+            //Render Colliders para debug
             colliderPista.setRenderColor(Color.Blue);
-            colliderPista.Render();
+            //colliderPista.Render();
 
             colliderRecolectablesOk.setRenderColor(Color.Yellow);
-            colliderRecolectablesOk.Render();
+            //colliderRecolectablesOk.Render();
 
             colliderRecolectablesWrong.setRenderColor(Color.Red);
-            colliderRecolectablesWrong.Render();
+            //colliderRecolectablesWrong.Render();
         }
 
         public void AumentarVelocidad()

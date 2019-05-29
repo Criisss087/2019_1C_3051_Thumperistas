@@ -25,18 +25,42 @@ namespace TGC.Group.Model
         public Int32 AcumuladorAciertos { get; set; } = 0;
         public Int32 AcumuladorEventos { get; set; } = 0;
 		public Int32 AcumuladorPoder { get; set; } = 0;
+		public bool Danio { get; set; }
         public Double scoreTemporal { get; set; } = 0;
         public Int32 level { get; set; } = 1;
 
         //Texts
-        public TgcText2D ScoreText;
-        public TgcText2D MultiplicadorText;
-        public TgcText2D ScoreGanadoText;
-        public TgcText2D RangoLevelText;
-        public TgcText2D MultiplicadorFinalText;
-        public TgcText2D LevelText;
+		//Fase 1
+        public TgcText2D LevelText;		
+		//Fase 2
+		public TgcText2D ScoreText;
+		public TgcText2D AddAciertosText;
+		public TgcText2D AciertosText;
+		public TgcText2D AddMultiplicadorText;
+		public TgcText2D MultiplicadorText;		
+		public TgcText2D AddFallosText;
+		public TgcText2D FallosText;
+		public TgcText2D AddDanioText;
+		public TgcText2D DanioText;		
+		// Fase 3
+		public TgcText2D RangoLevelText;
+		public TgcText2D RankText;
+		// Fase 4
+        public TgcText2D CambioMultiplicadorText;
+		
         public static String font = "Arial Black";
-
+		private static Int32 PuntosAcierto = 100;
+		private static Int32 PuntosSinFallos = 1000;
+		private static Int32 PuntosSinDanio = 1000;
+        
+		public enum FaseTexto
+        {
+            Nada = 0,
+            Level = 1,
+            Resultados = 2,
+			Rank = 3,
+			CambioMult = 4
+        }
 
         public Pantalla(String _mediaDir)
         {
@@ -53,60 +77,38 @@ namespace TGC.Group.Model
             fondo.setFaceTexture(TgcSkyBox.SkyFaces.Back, texturesPath + "1.jpg"); //"lostatseaday_ft.jpg");
             fondo.Init();
 
-            // Creo el texto del score total
-            ScoreText = new TgcText2D();
-            ScoreText.Color = Color.Aquamarine;
-            ScoreText.Align = TgcText2D.TextAlign.LEFT;
-            ScoreText.Position = new Point(50, 500);
-            //ScoreText.Size = new Size(300, 100);
-            ScoreText.changeFont(new Font(font, 23, FontStyle.Bold));
-            ScoreText.Text = Score.ToString();
-
-            // Texto del Multiplicador
-            MultiplicadorText = new TgcText2D();
-            MultiplicadorText.Color = Color.Aquamarine;
-            MultiplicadorText.Align = TgcText2D.TextAlign.LEFT;
-            MultiplicadorText.Position = new Point(50, 410);
-            MultiplicadorText.Size = new Size(100, 600);
-            MultiplicadorText.changeFont(new Font(font, 40, FontStyle.Bold));
-            MultiplicadorText.Text = "x" + Multiplicador.ToString();
-
-            //Score temporal
-            ScoreGanadoText = new TgcText2D();
-            ScoreGanadoText.Color = Color.Aquamarine;
-            ScoreGanadoText.Align = TgcText2D.TextAlign.LEFT;
-            ScoreGanadoText.Position = new Point(50, 500);
-            ScoreGanadoText.changeFont(new Font(font, 23, FontStyle.Bold));
-
-            // Rango
-            RangoLevelText = new TgcText2D();
-            RangoLevelText.Color = Color.Aquamarine;
-            RangoLevelText.Align = TgcText2D.TextAlign.LEFT;
-            RangoLevelText.Position = new Point(50, 500);
-            //ScoreText.Size = new Size(300, 100);
-            RangoLevelText.changeFont(new Font(font, 23, FontStyle.Bold));
-
-            //Multiplicador final MultiplicadorFinalText
-            MultiplicadorFinalText = new TgcText2D();
-            MultiplicadorFinalText.Color = Color.Aquamarine;
-            MultiplicadorFinalText.Align = TgcText2D.TextAlign.LEFT;
-            MultiplicadorFinalText.Position = new Point(50, 500);
-            MultiplicadorFinalText.changeFont(new Font(font, 23, FontStyle.Bold));
-
-            // Level
-            LevelText = new TgcText2D();
-            LevelText.Color = Color.Aquamarine;
-            LevelText.Align = TgcText2D.TextAlign.LEFT;
-            LevelText.Position = new Point(50, 500);
-            LevelText.changeFont(new Font(font, 23, FontStyle.Bold));
+            // Textos
+			LevelText = nuevoTexto(20,20,25); 
+			
+            ScoreText = nuevoTexto(20,20,25);         
+			
+			AddAciertosText = nuevoTexto(20,40,20); 
+			AciertosText = nuevoTexto(80,40,20);			
+			AddMultiplicadorText = nuevoTexto(20,50,20); 
+			MultiplicadorText = nuevoTexto(80,50,20); 			
+			AddFallosText = nuevoTexto(20,60,20); 
+			FallosText = nuevoTexto(80,60,20); 
+			AddDanioText = nuevoTexto(20,60,20); 
+			DanioText = nuevoTexto(80,60,20); 
+			
+			RangoLevelText = nuevoTexto(20,40,20); 
+			RankText = nuevoTexto(30,40,20); 
+			
+			CambioMultiplicadorText = nuevoTexto(200,20,25); 
 
         }
-
-        // Cada frame eleva el 
-        public void ActualizarScore()
-        {
-            scoreTemporal += 1 * this.Multiplicador;
-        }
+		
+		private TgcText2D nuevoTexto(int x, int y, int tamanio)
+		{
+			TgcText2D text = new TgcText2D();
+            text.Color = Color.White;
+            text.Align = TgcText2D.TextAlign.LEFT;
+            text.Position = new Point(x, y);
+            text.Size = new Size(300, 100);
+            text.changeFont(new Font(font, tamanio, FontStyle.Bold));
+            			
+			return text;
+		}
 
         public bool Acierto()
         {
@@ -126,6 +128,7 @@ namespace TGC.Group.Model
             Multiplicador = 1;
             AcumuladorAciertos = 0;
             AcumuladorEventos++;
+			Danio = true;
 
             return FinDeNivel();
         }
@@ -137,11 +140,7 @@ namespace TGC.Group.Model
                 score += scoreTemporal;
 
                 ScoreText.Text = score.ToString();
-                MultiplicadorText.Text = Multiplicador.ToString();
-                ScoreGanadoText.Text = scoreTemporal.ToString();
-                //RangoLevelText.Text = "Rank: " + obtenerRango(level, scoreTemporal);
-                //MultiplicadorFinalText.Text = ;
-
+                
                 level++;
 
                 LevelText.Text = "Level: " + level.ToString();
@@ -149,6 +148,7 @@ namespace TGC.Group.Model
                 Multiplicador = 1;
                 AcumuladorAciertos = 0;
                 AcumuladorEventos = 0;
+				Danio = false;
 
                 if (level == 6)
                     FinDeJuego();
@@ -189,11 +189,38 @@ namespace TGC.Group.Model
             fondo.Center = posicionCamara;
         }
 
-        public void Render()
+        public void Render(FaseTexto fase)
         {
             fondo.Render();
-            ScoreText.render();
-            MultiplicadorText.render();
+			
+			switch(fase)
+			{
+				case FaseTexto.Level:
+			        LevelText.render();
+					break;
+				case FaseTexto.Resultados:
+					ScoreText.render();
+					AddAciertosText.render();
+					AciertosText.render();
+					AddMultiplicadorText.render();
+					MultiplicadorText.render();
+					AddFallosText.render();
+					FallosText.render();
+					AddDanioText.render();
+					DanioText.render();				
+					break;
+				case FaseTexto.Rank:
+					ScoreText.render();
+					RangoLevelText.render();
+					RankText.render();
+					break;
+				case FaseTexto.CambioMult:
+				    CambioMultiplicadorText.render();
+					break;
+				default:
+					break;
+			}				
+			
         }
 
         public void Dispose()
