@@ -241,6 +241,32 @@ namespace TGC.Group.Model
 			}
             */
 
+            if (!Temporizadores.textScoreTotal.update(ElapsedTime))
+            {
+                ScoreText.render();
+                AddAciertosText.render();
+                AciertosText.render();
+                AddMultiplicadorText.render();
+                MultiplicadorText.render();
+                AddFallosText.render();
+                FallosText.render();
+                AddDanioText.render();
+                DanioText.render();
+            }
+
+            if (!Temporizadores.textRank.update(ElapsedTime))
+            {
+                ScoreText.render();
+                RangoLevelText.render();
+                RankText.render();
+            }
+
+            if (!Temporizadores.textNextLvl.update(ElapsedTime))
+            {
+                LevelText.Text = "Level 1-" + level.ToString();
+                LevelText.render();
+            }
+            
             if (!Temporizadores.textCambioMult.update(ElapsedTime))
             {
                 CambioMultiplicadorText.render();

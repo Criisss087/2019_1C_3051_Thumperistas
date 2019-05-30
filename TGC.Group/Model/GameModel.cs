@@ -16,7 +16,7 @@ using Microsoft.DirectX.Direct3D;
 using TGC.Core.Terrain;
 using System.Threading;
 using TGC.Core.Interpolation;
-
+using TGC.Core.Utils;
 
 namespace TGC.Group.Model
 {
@@ -108,7 +108,6 @@ namespace TGC.Group.Model
                         Temporizadores.finDeNivel.reset();
                         soloPista = true;
                     }
-                    //Console.WriteLine(Temporizadores.finDeNivel.Current + "asa" + finDeNivel.ToString());
 
                     if (!soloPista)
                     {
@@ -364,6 +363,25 @@ namespace TGC.Group.Model
 				soloPista = false;
 
             curvaActiva = !Temporizadores.curvaOk.update(ElapsedTime);
+
+            if(soloPista)
+            {
+                if(ValidationUtils.validateFloatRange(Temporizadores.finDeNivel.Current.ToString(),3f,4f))
+                {
+                    Temporizadores.textScoreTotal.reset();
+                }
+
+                if (ValidationUtils.validateFloatRange(Temporizadores.finDeNivel.Current.ToString(), 5f, 6f))
+                {
+                    Temporizadores.textRank.reset();
+                }
+
+                if (ValidationUtils.validateFloatRange(Temporizadores.finDeNivel.Current.ToString(), 7f, 8f))
+                {
+                    Temporizadores.textNextLvl.reset();
+                }
+
+            }
 
         }
 		

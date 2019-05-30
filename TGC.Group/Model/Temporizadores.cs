@@ -45,7 +45,7 @@ namespace TGC.Group.Model
             textRank.Current = 2f;
             //textNextLvl = new Temporizador();
             textNextLvl.StopSegs = 3f;
-			textNextLvl.Current = 3f;
+			//textNextLvl.Current = 3f;
 
             //textCambioMult = new Temporizador();
             textCambioMult.StopSegs = 3f;
