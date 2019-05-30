@@ -51,7 +51,7 @@ namespace TGC.Group.Model
         private Pantalla Pantalla;
         private Reproductor Reproductor;
 		private Disparo Disparo;
-		public Temporizadores Temporizadores;
+		//public Temporizadores Temporizadores;
 		private Pantalla.FaseTexto FaseTexto { get; set; } = Pantalla.FaseTexto.Nada;
         
         private bool applyMovement { get; set; }
@@ -77,7 +77,7 @@ namespace TGC.Group.Model
             Pantalla = new Pantalla(MediaDir);
             Beetle = new Beetle(MediaDir);
             PistaNivel = new Pista(MediaDir);
-			Temporizadores = new Temporizadores();
+            Temporizadores.Init();
 			
             Reproductor.ReproducirLevelPrincipal();
             camaraInterna = new TgcThirdPersonCamera(Beetle.position,20f,-100f);
@@ -272,7 +272,7 @@ namespace TGC.Group.Model
                 Beetle.Render();
 
             PistaNivel.Render();
-            Pantalla.Render(FaseTexto);
+            Pantalla.Render(ElapsedTime);
 			
 			if(disparoActivo)
 				Disparo.Render();
@@ -299,7 +299,6 @@ namespace TGC.Group.Model
             Beetle.TipoColision col; 
 
             // Colision con recolectable 
-
             Recolectable recolectableColisionado = new Recolectable(MediaDir, TGCVector3.One);
 
             col = Beetle.ColisionandoConRecolectable(PistaNivel.Recolectables, ref recolectableColisionado);
@@ -329,11 +328,9 @@ namespace TGC.Group.Model
                 finDeNivel = Pantalla.Error();
             }
             
-
             // Colision con obstaculo            
             Obstaculo objetoColisionado = new Obstaculo(TGCVector3.One);
             col = Beetle.ColisionandoConObstaculo(PistaNivel.Obstaculos, ref objetoColisionado);
-
             if (col == Beetle.TipoColision.Colision) 
             {   
                 if(Beetle.Sliding()) 
@@ -394,7 +391,8 @@ namespace TGC.Group.Model
                 Temporizadores.inmunidadError.reset();
                 Beetle.inmunidadTemp = true;
                 Temporizadores.curvaOk.reset();
-                finDeNivel = Pantalla.Error();                
+                finDeNivel = Pantalla.Error();
+                Pantalla.Danio = true;
             }
             
         }
