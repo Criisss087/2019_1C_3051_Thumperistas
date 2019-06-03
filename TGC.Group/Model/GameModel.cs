@@ -71,10 +71,11 @@ namespace TGC.Group.Model
         /// </summary>
         public override void Init()
         {
-
             //Instancio el reproductores sonido
             Reproductor = new Reproductor(MediaDir, DirectSound);
             Pantalla = new Pantalla(MediaDir);
+            Pantalla.Score = 0;
+            Pantalla.scoreTemporal = 0;
             Beetle = new Beetle(MediaDir);
             PistaNivel = new Pista(MediaDir);
             Temporizadores.Init();
@@ -105,8 +106,10 @@ namespace TGC.Group.Model
                 {
                     if (finDeNivel)
                     {
+                        Pantalla.SetTextFinDeNivel();
                         Temporizadores.finDeNivel.reset();
                         soloPista = true;
+                        finDeNivel = false;
                     }
 
                     if (!soloPista)
@@ -255,6 +258,7 @@ namespace TGC.Group.Model
                 DrawText.drawText("Fin de Nivel: " + finDeNivel, 0, 120, Color.OrangeRed);
                 DrawText.drawText("Score total: " + Pantalla.Score, 0, 130, Color.OrangeRed);
                 DrawText.drawText("Multiplcador: " + Pantalla.Multiplicador, 0, 140, Color.OrangeRed);
+                DrawText.drawText("SoloPista: " + soloPista, 0, 150, Color.OrangeRed);
             }
 
             //Render de BoundingBox, muy útil para debug de colisiones.
@@ -360,7 +364,9 @@ namespace TGC.Group.Model
 				Beetle.inmunidadTemp = false;
 
             if (Temporizadores.finDeNivel.update(ElapsedTime))
+            {
 				soloPista = false;
+            }
 
             curvaActiva = !Temporizadores.curvaOk.update(ElapsedTime);
 
@@ -371,12 +377,12 @@ namespace TGC.Group.Model
                     Temporizadores.textScoreTotal.reset();
                 }
 
-                if (ValidationUtils.validateFloatRange(Temporizadores.finDeNivel.Current.ToString(), 5f, 6f))
+                if (ValidationUtils.validateFloatRange(Temporizadores.finDeNivel.Current.ToString(), 6f, 7f))
                 {
                     Temporizadores.textRank.reset();
                 }
 
-                if (ValidationUtils.validateFloatRange(Temporizadores.finDeNivel.Current.ToString(), 7f, 8f))
+                if (ValidationUtils.validateFloatRange(Temporizadores.finDeNivel.Current.ToString(), 9f, 10f))
                 {
                     Temporizadores.textNextLvl.reset();
                 }

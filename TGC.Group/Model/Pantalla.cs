@@ -20,7 +20,8 @@ namespace TGC.Group.Model
         private String texturesPath;
         private TgcSkyBox fondo;
         private Double score = 0;
-        private Double[] Puntuaciones = new Double[4];
+        private Dictionary<int, Double> Puntuaciones = new Dictionary<int, Double>();
+
         public Int32 multiplicador = 1;
         public Int32 AcumuladorAciertos { get; set; } = 0;
         public Int32 AcumuladorEventos { get; set; } = 0;
@@ -127,7 +128,7 @@ namespace TGC.Group.Model
             AcumuladorAciertos++;
             AcumuladorEventos++;
 			AcumuladorPoder++;
-            scoreTemporal += 100 * multiplicador;
+            scoreTemporal += 100;
 
             if ((AcumuladorAciertos % 5 == 0) && (Multiplicador < 8))
             {
@@ -154,44 +155,34 @@ namespace TGC.Group.Model
 
         private bool FinDeNivel()
         {
-            if (AcumuladorEventos == 20)
+            if (AcumuladorEventos > 20)
             {
-                score += scoreTemporal;
-
-                ScoreText.Text = score.ToString();
-                
-                level++;
-
-                LevelText.Text = "Level: " + level.ToString();
-
-                AcumuladorAciertos = 0;
+                //score += scoreTemporal;
+                //ScoreText.Text = score.ToString();
                 AcumuladorEventos = 0;
-				Danio = false;
-
-                if (level == 6)
-                    FinDeJuego();
-				
+                level++;
+                LevelText.Text = "Level: " + level.ToString();			
 				return true;
             }
 			
 			return false;
         }
 
-        private char obtenerRango(Int32 level, Double scoreTemporal)
+        private String obtenerRango(Int32 level, Double scoreTemporal)
         {
-            char R = '0';
+            String R = "0";
 
             Puntuaciones[level + 1] = scoreTemporal;
             if (AcumuladorAciertos < 5)
-                R = 'D';
+                R = "D";
             else if (AcumuladorAciertos < 10)
-                R = 'C';
+                R = "C";
             else if (AcumuladorAciertos < 15)
-                R = 'B';
+                R = "B";
             else if (AcumuladorAciertos < 20)
-                R = 'A';
+                R = "A";
             else
-                R = 'S';
+                R = "S";
 
             return R;
 
@@ -207,39 +198,35 @@ namespace TGC.Group.Model
             fondo.Center = posicionCamara;
         }
 
+        public void SetTextFinDeNivel()
+        {
+            ScoreText.Text = Score.ToString();
+            AddAciertosText.Text = scoreTemporal.ToString();
+            AciertosText.Text = "x" + AcumuladorAciertos.ToString();
+            AddMultiplicadorText.Text = "x" + Multiplicador.ToString();
+
+            scoreTemporal += AcumuladorAciertos * multiplicador;
+
+            if (AcumuladorAciertos == 20)
+            {
+                scoreTemporal += PuntosSinFallos;
+            }
+
+            if (!Danio)
+            {
+                scoreTemporal += PuntosSinDanio;
+            }
+
+            Puntuaciones.Add(level+1,scoreTemporal);
+            Score += scoreTemporal;
+
+            scoreTemporal = 0;
+            AcumuladorAciertos = 0;
+        }
+
         public void Render(float ElapsedTime)
         {
             fondo.Render();
-            /*
-			switch(fase)
-			{
-				case FaseTexto.Level:
-                    LevelText.Text = "Level 1-" + level.ToString();
-			        LevelText.render();
-					break;
-				case FaseTexto.Resultados:
-					ScoreText.render();
-					AddAciertosText.render();
-					AciertosText.render();
-					AddMultiplicadorText.render();
-					MultiplicadorText.render();
-					AddFallosText.render();
-					FallosText.render();
-					AddDanioText.render();
-					DanioText.render();				
-					break;
-				case FaseTexto.Rank:
-					ScoreText.render();
-					RangoLevelText.render();
-					RankText.render();
-					break;
-				case FaseTexto.CambioMult:
-				    CambioMultiplicadorText.render();
-					break;
-				default:
-					break;
-			}
-            */
 
             if (!Temporizadores.textScoreTotal.update(ElapsedTime))
             {
@@ -248,14 +235,24 @@ namespace TGC.Group.Model
                 AciertosText.render();
                 AddMultiplicadorText.render();
                 MultiplicadorText.render();
-                AddFallosText.render();
-                FallosText.render();
-                AddDanioText.render();
-                DanioText.render();
+
+                if (AcumuladorAciertos >= 20)
+                {
+                    AddFallosText.render();
+                    FallosText.render();
+                }
+
+                if (!Danio)
+                {
+                    AddDanioText.render();
+                    DanioText.render();
+                }
+                
             }
 
             if (!Temporizadores.textRank.update(ElapsedTime))
             {
+                ScoreText.Text = Score.ToString();
                 ScoreText.render();
                 RangoLevelText.render();
                 RankText.render();
@@ -290,7 +287,7 @@ namespace TGC.Group.Model
             set
             {
                 score = value;
-                ScoreText.Text = value.ToString();
+                //ScoreText.Text = value.ToString();
             }
 
         }
