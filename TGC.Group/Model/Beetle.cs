@@ -26,7 +26,7 @@ namespace TGC.Group.Model
         public bool izquierda { get; set; } = false;
         public bool godMode { get; set; } = false;
         public bool inmunidadTemp { get; set; } = false;
-        public TgcBoundingOrientedBox colliderPista;
+        public TgcBoundingOrientedBox colliderPista { get; }
         public TgcBoundingOrientedBox colliderRecolectablesOk;
         public TgcBoundingOrientedBox colliderRecolectablesWrong;
         
