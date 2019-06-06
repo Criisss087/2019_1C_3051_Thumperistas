@@ -278,7 +278,7 @@ namespace TGC.Group.Model
             Pantalla.Render(ElapsedTime);
 			
 			if(disparoActivo)
-				Disparo.Render();
+				Disparo.Render(ElapsedTime);
 
             PostRender();
         }

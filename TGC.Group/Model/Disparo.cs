@@ -4,7 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TGC.Core.BoundingVolumes;
+using TGC.Core.Direct3D;
 using TGC.Core.Mathematica;
+using TGC.Core.Particle;
 using TGC.Core.SceneLoader;
 
 namespace TGC.Group.Model
@@ -12,12 +14,16 @@ namespace TGC.Group.Model
     public class Disparo
     {
         private TgcScene scene;
+        private ParticleEmitter emitter;
         public TGCMatrix Translation { get; set; }
         public TGCMatrix Scaling { get; set; }
         public TGCMatrix Rotation { get; set; }
         public TGCVector3 Position { get; set; }
         public TgcBoundingSphere Collider;
         public static float speed = 1800f;
+
+        private String particleTexturePath;
+        private static String particleFileName = "Thumper\\Particles\\pisada.png";
 
         public Disparo(String mediaDir, TGCVector3 PosicionInicial)
         {
@@ -36,6 +42,19 @@ namespace TGC.Group.Model
             //seteo colisionador esfera
             Collider = new TgcBoundingSphere(new TGCVector3(0, 10, 0) + PosicionInicial, 5f);
 
+            particleTexturePath = mediaDir + particleFileName;
+            emitter = new ParticleEmitter(particleTexturePath, 10);
+            emitter.Position = PosicionInicial;
+
+            emitter.MinSizeParticle = 3f;
+            emitter.MaxSizeParticle = 6f;
+            emitter.ParticleTimeToLive = 1f;
+            emitter.CreationFrecuency = 0.25f;
+            
+            D3DDevice.Instance.ParticlesEnabled = true;
+            D3DDevice.Instance.EnableParticles();
+
+
         }
 
         public void Update()
@@ -51,17 +70,21 @@ namespace TGC.Group.Model
             //Rotation = TGCMatrix.RotationY(distAng);
 			
             Collider.moveCenter(new TGCVector3(posX, posY, speed * ElapsedTime));
-
+            emitter.Position += new TGCVector3(posX, posY, speed * ElapsedTime);
+            
             return Position;
         }
 
-        public void Render()
+        public void Render(float ElapsedTime)
         {
             foreach (var mesh in scene.Meshes)
             {
                 mesh.Transform = Scaling * Rotation * Translation;
                 mesh.Render();
             }
+
+            emitter.render(ElapsedTime);
+
             //Collider.Render();
         }
 
