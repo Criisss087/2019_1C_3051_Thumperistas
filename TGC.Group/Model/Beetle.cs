@@ -7,6 +7,8 @@ using TGC.Core.Collision;
 using Microsoft.DirectX.Direct3D;
 using Microsoft.DirectX.DirectInput;
 using TGC.Core.Input;
+using TGC.Core.Particle;
+using System;
 
 namespace TGC.Group.Model
 {
@@ -16,6 +18,9 @@ namespace TGC.Group.Model
         public const float VELOCIDAD_ANGULAR = 15f;
         public const float VELOCIDAD = 900f;
         public const float VELOCIDADX = 200f;
+
+        private String particleTexturePath;
+        private static String particleFileName = "Thumper\\Particles\\humo.png";
 
         private TgcSceneLoader loader;
         public TgcScene beetle { get; set; }
@@ -29,7 +34,8 @@ namespace TGC.Group.Model
         public TgcBoundingOrientedBox colliderPista { get; }
         public TgcBoundingOrientedBox colliderRecolectablesOk;
         public TgcBoundingOrientedBox colliderRecolectablesWrong;
-        
+        private ParticleEmitter emitter;
+
         public TGCMatrix translation { get; set; }
         public TGCMatrix scaling { get; set; }
         public TGCMatrix rotation { get; set; }
@@ -83,6 +89,18 @@ namespace TGC.Group.Model
             newScaling.Scale(2, 1, 1f);
             beetle.BoundingBox.transform(newScaling * newTrasnlsation);
             colliderRecolectablesOk = TgcBoundingOrientedBox.computeFromAABB(beetle.BoundingBox);
+
+            // Emisor de particulas:
+            particleTexturePath = _mediaDir + particleFileName;
+            emitter = new ParticleEmitter(particleTexturePath, 30);
+            emitter.Position = position;
+
+            emitter.MinSizeParticle = 4f;
+            emitter.MaxSizeParticle = 6f;
+            emitter.ParticleTimeToLive = 2f;
+            emitter.CreationFrecuency = 0.1f;
+            emitter.Dispersion = 50;
+
             this.speed = 900f;
 
         }
@@ -95,7 +113,7 @@ namespace TGC.Group.Model
                 slide = false;
 
             // Cambie esto para desacelerar y acelerar, para pruebas
-            /*
+            
             if (Input.keyPressed(Key.A))
             {
                 AumentarVelocidad();
@@ -104,7 +122,7 @@ namespace TGC.Group.Model
             {
                 DesvanecerVelocidad(ElapsedTime);
             }
-            */
+            
 
             // Capturador de Giro
             if (Input.keyDown(Key.LeftArrow))
@@ -180,6 +198,8 @@ namespace TGC.Group.Model
             colliderRecolectablesOk.move(new TGCVector3(posX, posY, speed * ElapsedTime));
             colliderRecolectablesWrong.move(new TGCVector3(posX, posY, speed * ElapsedTime));
 
+            emitter.Position += new TGCVector3(posX, posY, speed * ElapsedTime);
+
             return position;
         }
 
@@ -228,7 +248,7 @@ namespace TGC.Group.Model
             return TipoColision.Nada;
         }
 
-        public void Render()
+        public void Render(float ElapsedTime, int AcumuladorPoder)
         {
             foreach (var mesh in beetle.Meshes)
             {
@@ -246,6 +266,9 @@ namespace TGC.Group.Model
 
             colliderRecolectablesWrong.setRenderColor(Color.Red);
             //colliderRecolectablesWrong.Render();
+
+            if (AcumuladorPoder > 5)
+                emitter.render(ElapsedTime);
         }
 
         public void AumentarVelocidad()
