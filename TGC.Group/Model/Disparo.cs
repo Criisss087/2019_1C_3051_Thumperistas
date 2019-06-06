@@ -46,14 +46,11 @@ namespace TGC.Group.Model
             emitter = new ParticleEmitter(particleTexturePath, 10);
             emitter.Position = PosicionInicial;
 
-            emitter.MinSizeParticle = 3f;
-            emitter.MaxSizeParticle = 6f;
-            emitter.ParticleTimeToLive = 1f;
+            emitter.MinSizeParticle = 0.5f;
+            emitter.MaxSizeParticle = 2f;
+            emitter.ParticleTimeToLive = 0.5f;
             emitter.CreationFrecuency = 0.25f;
-            
-            D3DDevice.Instance.ParticlesEnabled = true;
-            D3DDevice.Instance.EnableParticles();
-
+            emitter.Dispersion = 400;
 
         }
 

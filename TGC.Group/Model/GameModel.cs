@@ -82,7 +82,10 @@ namespace TGC.Group.Model
 			
             Reproductor.ReproducirLevelPrincipal();
             camaraInterna = new TgcThirdPersonCamera(Beetle.position,20f,-100f);
-            Camara = camaraInterna;  
+            Camara = camaraInterna;
+
+            D3DDevice.Instance.ParticlesEnabled = true;
+            D3DDevice.Instance.EnableParticles();
         }
 
 
@@ -218,7 +221,7 @@ namespace TGC.Group.Model
                 if (disparoActivo)
                 {
                     var dist = Disparo.Avanza(ElapsedTime, posX, posY);
-                    if (dist.Z - Beetle.position.Z > 2000)
+                    if (dist.Z - Beetle.position.Z > 2500)
                     {
                         Reproductor.Explosion();
                         disparoActivo = false;
@@ -272,7 +275,7 @@ namespace TGC.Group.Model
             }
 
             if(!finDeJuego)
-                Beetle.Render();
+                Beetle.Render(ElapsedTime, Pantalla.AcumuladorPoder);
 
             PistaNivel.Render();
             Pantalla.Render(ElapsedTime);
