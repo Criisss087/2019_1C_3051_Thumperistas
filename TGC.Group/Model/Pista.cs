@@ -256,7 +256,7 @@ namespace TGC.Group
                 if (this.cantTunelActual < 15)
                     this.cantTunelActual += 15;
 
-                this.colorTunelActual = Color.FromArgb(rnd.Next(256), rnd.Next(256), rnd.Next(256));
+                this.colorTunelActual = Color.FromArgb(rnd.Next(255), rnd.Next(255), rnd.Next(255));
 
                 if (eleccionPista == 1)
                 {
@@ -394,7 +394,7 @@ namespace TGC.Group
             else return 3;
         }
 
-        public void Render(TGCVector3 posicionCamara,TGCVector3 posicionLuzArbiitraria)
+        public void Render(TGCVector3 posicionCamara,TGCVector3 posicionLuzArbitraria)
         {
             foreach (Recolectable AuxRec in Recolectables)
             {
@@ -402,15 +402,15 @@ namespace TGC.Group
             }
             foreach (TgcMesh AuxMesh in this.SegmentosPista)
             {
-                AuxMesh.Effect.SetValue("matWorld", D3DDevice.Instance.Device.Transform.World);
+              /*  AuxMesh.Effect.SetValue("matWorld", D3DDevice.Instance.Device.Transform.World);
                 AuxMesh.Effect.SetValue("matWorldView", D3DDevice.Instance.Device.Transform.World * D3DDevice.Instance.Device.Transform.View);
                 AuxMesh.Effect.SetValue("matWorldViewProj",D3DDevice.Instance.Device.Transform.World* D3DDevice.Instance.Device.Transform.View * D3DDevice.Instance.Device.Transform.Projection);
                 AuxMesh.Effect.SetValue("matInverseTransposeWorld", Microsoft.DirectX.Matrix.Invert(Microsoft.DirectX.Matrix.TransposeMatrix(D3DDevice.Instance.Device.Transform.World)));
-                
+             */   
                 Microsoft.DirectX.Vector4 posicionCamaraEnV4 = new Microsoft.DirectX.Vector4(posicionCamara.X, posicionCamara.Y, posicionCamara.Z, 0);
-
+                
                 AuxMesh.Effect.SetValue("viewPos",posicionCamaraEnV4);
-                AuxMesh.Effect.SetValue("lightPos", new Microsoft.DirectX.Vector4(posicionLuzArbiitraria.X, posicionLuzArbiitraria.Y, posicionLuzArbiitraria.Z, 0));
+                AuxMesh.Effect.SetValue("lightPos", new Microsoft.DirectX.Vector4(posicionLuzArbitraria.X, posicionLuzArbitraria.Y, posicionLuzArbitraria.Z, 0));
 
 
                 AuxMesh.Render();

@@ -260,6 +260,7 @@ namespace TGC.Group.Model
             //Render Colliders para debug
             colliderPista.setRenderColor(Color.Blue);
             //colliderPista.Render();
+            
 
             colliderRecolectablesOk.setRenderColor(Color.Yellow);
             //colliderRecolectablesOk.Render();

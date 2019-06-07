@@ -244,7 +244,7 @@ namespace TGC.Group.Model
         {
             //Inicio el render de la escena, para ejemplos simples. Cuando tenemos postprocesado o shaders es mejor realizar las operaciones según nuestra conveniencia.
             PreRender();
-			
+            ClearTextures();
 			if(help)
 			{
 				//Dibuja un texto por pantalla
@@ -279,7 +279,7 @@ namespace TGC.Group.Model
 
 
             
-            PistaNivel.Render(Camara.Position,Beetle.colliderPista.Position + new TGCVector3(0,10,50));
+            PistaNivel.Render(Camara.Position,Beetle.position+TGCVector3.Up*5);
             Pantalla.Render(ElapsedTime);
 			
 			if(disparoActivo)
