@@ -14,6 +14,7 @@ using TGC.Core.SceneLoader;
 using TGC.Core.Textures;
 using TGC.Group.Model;
 using Microsoft.DirectX.Direct3D;
+using TGC.Core.Shaders;
 
 namespace TGC.Group
 {
@@ -255,7 +256,7 @@ namespace TGC.Group
                 if (this.cantTunelActual < 15)
                     this.cantTunelActual += 15;
 
-                this.colorTunelActual = Color.FromArgb(rnd.Next(256), rnd.Next(256), rnd.Next(256));
+                this.colorTunelActual = Color.FromArgb(rnd.Next(255), rnd.Next(255), rnd.Next(255));
 
                 if (eleccionPista == 1)
                 {
@@ -307,10 +308,7 @@ namespace TGC.Group
         public TgcMesh generarSegmentoPiso(bool soloPista)
         {
             TGCBox piso = new TGCBox();
-            TGCVector3 Tamanio = new TGCVector3(30, 10, 30);
-            TgcTexture texturaPiso = TgcTexture.createTexture(D3DDevice.Instance.Device, MediaDir + "Textures/gray.jpg");
-            piso.AutoTransformEnable = false;
-            piso.setTexture(texturaPiso);
+            TGCVector3 Tamanio = new TGCVector3(30, 10, 60);
             piso.Size = Tamanio;
 
             TGCVector3 rot = new TGCVector3(0, 0, 0);
@@ -322,15 +320,25 @@ namespace TGC.Group
             rot.Z = Geometry.DegreeToRadian(this.rotCurvaActual.Z);
 
             // YAW = Y, va primero
-            piso.Transform = TGCMatrix.Scaling(new TGCVector3(1, 1, 2)) *
+            piso.Transform = TGCMatrix.Scaling(new TGCVector3(1, 1, 1)) *
                              TGCMatrix.RotationYawPitchRoll(rot.Y, rot.X, rot.Z) *
                              TGCMatrix.Translation(this.posUltimaPieza);
 
-
+            TgcTexture texturaPiso = TgcTexture.createTexture(D3DDevice.Instance.Device, MediaDir + "Textures\\segmento.jpg");
+            piso.setTexture (texturaPiso);
             piso.updateValues();
 
             TgcMesh pisoMesh = piso.ToMesh("piso");
+            
+            //pisoMesh.addDiffuseMap(texturaPiso);
 
+            Microsoft.DirectX.Direct3D.Effect effect = TGCShaders.Instance.LoadEffect(MediaDir + "Shaders\\ShaderPiso.fx");
+            pisoMesh.Technique = "RenderScene";
+
+            piso.AutoTransformEnable = false;
+
+            pisoMesh.Effect = effect;
+            
             pisoMesh.AutoUpdateBoundingBox = false;
             pisoMesh.Position = this.posUltimaPieza;
             pisoMesh.Rotation = new TGCVector3(0, rot.Y, 0);
@@ -386,7 +394,7 @@ namespace TGC.Group
             else return 3;
         }
 
-        public void Render()
+        public void Render(TGCVector3 posicionCamara,TGCVector3 posicionLuzArbitraria)
         {
             foreach (Recolectable AuxRec in Recolectables)
             {
@@ -394,6 +402,17 @@ namespace TGC.Group
             }
             foreach (TgcMesh AuxMesh in this.SegmentosPista)
             {
+              /*  AuxMesh.Effect.SetValue("matWorld", D3DDevice.Instance.Device.Transform.World);
+                AuxMesh.Effect.SetValue("matWorldView", D3DDevice.Instance.Device.Transform.World * D3DDevice.Instance.Device.Transform.View);
+                AuxMesh.Effect.SetValue("matWorldViewProj",D3DDevice.Instance.Device.Transform.World* D3DDevice.Instance.Device.Transform.View * D3DDevice.Instance.Device.Transform.Projection);
+                AuxMesh.Effect.SetValue("matInverseTransposeWorld", Microsoft.DirectX.Matrix.Invert(Microsoft.DirectX.Matrix.TransposeMatrix(D3DDevice.Instance.Device.Transform.World)));
+             */   
+                Microsoft.DirectX.Vector4 posicionCamaraEnV4 = new Microsoft.DirectX.Vector4(posicionCamara.X, posicionCamara.Y, posicionCamara.Z, 0);
+                
+                AuxMesh.Effect.SetValue("viewPos",posicionCamaraEnV4);
+                AuxMesh.Effect.SetValue("lightPos", new Microsoft.DirectX.Vector4(posicionLuzArbitraria.X, posicionLuzArbitraria.Y, posicionLuzArbitraria.Z, 0));
+
+
                 AuxMesh.Render();
             }
             foreach (TgcMesh AuxMesh in this.SegmentosTunel)
@@ -420,6 +439,7 @@ namespace TGC.Group
         {
             foreach (TgcMesh AuxMesh in GetSegmentosPista())
             {
+                AuxMesh.Effect.Dispose();
                 AuxMesh.Dispose();
             }
 

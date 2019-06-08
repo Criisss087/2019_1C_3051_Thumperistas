@@ -35,7 +35,7 @@ namespace TGC.Group.Model
         public bool izquierda { get; set; } = false;
         public bool godMode { get; set; } = false;
         public bool inmunidadTemp { get; set; } = false;
-        public TgcBoundingOrientedBox colliderPista;
+        public TgcBoundingOrientedBox colliderPista { get; }
         public TgcBoundingOrientedBox colliderRecolectablesOk;
         public TgcBoundingOrientedBox colliderRecolectablesWrong;
         private ParticleEmitter emitter;
@@ -271,6 +271,7 @@ namespace TGC.Group.Model
             //Render Colliders para debug
             colliderPista.setRenderColor(Color.Blue);
             //colliderPista.Render();
+            
 
             colliderRecolectablesOk.setRenderColor(Color.Yellow);
             //colliderRecolectablesOk.Render();
