@@ -4,11 +4,13 @@ using TGC.Core.BoundingVolumes;
 using System.Drawing;
 using System.Collections.Generic;
 using TGC.Core.Collision;
+using TGC.Core.Shaders;
 using Microsoft.DirectX.Direct3D;
 using Microsoft.DirectX.DirectInput;
 using TGC.Core.Input;
 using TGC.Core.Particle;
 using System;
+using Effect = Microsoft.DirectX.Direct3D.Effect;
 
 namespace TGC.Group.Model
 {
@@ -19,6 +21,8 @@ namespace TGC.Group.Model
         public const float VELOCIDAD = 900f;
         public const float VELOCIDADX = 200f;
 
+        private String MediaDir;
+        private String ShadersDir;
         private String particleTexturePath;
         private static String particleFileName = "Thumper\\Particles\\humo.png";
 
@@ -35,6 +39,7 @@ namespace TGC.Group.Model
         public TgcBoundingOrientedBox colliderRecolectablesOk;
         public TgcBoundingOrientedBox colliderRecolectablesWrong;
         private ParticleEmitter emitter;
+        private Effect effect;
 
         public TGCMatrix translation { get; set; }
         public TGCMatrix scaling { get; set; }
@@ -51,11 +56,14 @@ namespace TGC.Group.Model
             Error = 2
         }
 
-        public Beetle(string _mediaDir)
+        public Beetle(string _mediaDir, string _shadersDir)
         {
-            this.loader = new TgcSceneLoader();
+            MediaDir = _mediaDir;
+            ShadersDir = _shadersDir;
 
-            beetle = loader.loadSceneFromFile(_mediaDir + "/Thumper/beetle-TgcScene.xml");
+            loader = new TgcSceneLoader();
+
+            beetle = loader.loadSceneFromFile(MediaDir + "/Thumper/beetle-TgcScene.xml");
 
             //Modifico como quiero que empiece el mesh
             position = new TGCVector3(0, 8f, 0);
@@ -100,6 +108,9 @@ namespace TGC.Group.Model
             emitter.ParticleTimeToLive = 2f;
             emitter.CreationFrecuency = 0.1f;
             emitter.Dispersion = 50;
+
+            // Shader Test
+            effect = TGCShaders.Instance.LoadEffect(ShadersDir + "BasicShader.fx");
 
             this.speed = 900f;
 
