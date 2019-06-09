@@ -77,7 +77,7 @@ namespace TGC.Group.Model
             Pantalla.Score = 0;
             Pantalla.scoreTemporal = 0;
             Beetle = new Beetle(MediaDir, ShadersDir);
-            PistaNivel = new Pista(MediaDir);
+            PistaNivel = new Pista(MediaDir, ShadersDir);
             Temporizadores.Init();
 			
             Reproductor.ReproducirLevelPrincipal();

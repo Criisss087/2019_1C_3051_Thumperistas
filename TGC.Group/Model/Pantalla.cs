@@ -21,6 +21,7 @@ namespace TGC.Group.Model
         private TgcSkyBox fondo;
         private Double score = 0;
         private Dictionary<int, Double> Puntuaciones = new Dictionary<int, Double>();
+        private Dictionary<int, String> Rangos = new Dictionary<int, String>();
 
         public Int32 multiplicador = 1;
         public Int32 AcumuladorAciertos { get; set; } = 0;
@@ -128,7 +129,7 @@ namespace TGC.Group.Model
             AcumuladorAciertos++;
             AcumuladorEventos++;
 			AcumuladorPoder++;
-            scoreTemporal += 100;
+            //scoreTemporal += 100;
 
             if ((AcumuladorAciertos % 5 == 0) && (Multiplicador < 8))
             {
@@ -205,9 +206,9 @@ namespace TGC.Group.Model
             AciertosText.Text = "x" + AcumuladorAciertos.ToString();
             AddMultiplicadorText.Text = "x" + Multiplicador.ToString();
 
-            scoreTemporal += AcumuladorAciertos * multiplicador;
+            scoreTemporal += (AcumuladorAciertos*100) * multiplicador;
 
-            if (AcumuladorAciertos == 20)
+            if (AcumuladorAciertos >= 20)
             {
                 scoreTemporal += PuntosSinFallos;
             }
@@ -216,6 +217,8 @@ namespace TGC.Group.Model
             {
                 scoreTemporal += PuntosSinDanio;
             }
+
+
 
             Puntuaciones.Add(level+1,scoreTemporal);
             Score += scoreTemporal;

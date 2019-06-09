@@ -15,6 +15,7 @@ using TGC.Core.Textures;
 using TGC.Group.Model;
 using Microsoft.DirectX.Direct3D;
 using TGC.Core.Shaders;
+using Effect = Microsoft.DirectX.Direct3D.Effect;
 
 namespace TGC.Group
 {
@@ -27,6 +28,7 @@ namespace TGC.Group
         public List<Recolectable> Recolectables = new List<Recolectable>();
         public List<Obstaculo> Obstaculos = new List<Obstaculo>();
         public String MediaDir;
+        public String ShadersDir;
         public TGCVector3 posActual = new TGCVector3(0, 0, 0);
         public TGCVector3 posUltimaPieza = new TGCVector3(0, 0, 0);
         public TGCVector3 posUltimoTunel = new TGCVector3(0, 0, 0);
@@ -53,9 +55,10 @@ namespace TGC.Group
             Izquierda = 2
         }
 
-        public Pista(String _MediaDir)
+        public Pista(String _MediaDir, String _ShadersDir)
         {
             this.MediaDir = _MediaDir;
+            this.ShadersDir = _ShadersDir;
             generarPista();
         }
 
@@ -327,18 +330,17 @@ namespace TGC.Group
             TgcTexture texturaPiso = TgcTexture.createTexture(D3DDevice.Instance.Device, MediaDir + "Textures\\segmento.jpg");
             piso.setTexture (texturaPiso);
             piso.updateValues();
-
-            TgcMesh pisoMesh = piso.ToMesh("piso");
-            
-            //pisoMesh.addDiffuseMap(texturaPiso);
-
-            Microsoft.DirectX.Direct3D.Effect effect = TGCShaders.Instance.LoadEffect(MediaDir + "Shaders\\ShaderPiso.fx");
-            pisoMesh.Technique = "RenderScene";
-
             piso.AutoTransformEnable = false;
 
-            pisoMesh.Effect = effect;
+            TgcMesh pisoMesh = piso.ToMesh("piso");
+                        
+            pisoMesh.addDiffuseMap(texturaPiso);
+
+            Effect effect = TGCShaders.Instance.LoadEffect(ShadersDir + "BasicShader.fx");            
             
+            pisoMesh.Effect = effect;
+            pisoMesh.Technique = "RenderScene";
+
             pisoMesh.AutoUpdateBoundingBox = false;
             pisoMesh.Position = this.posUltimaPieza;
             pisoMesh.Rotation = new TGCVector3(0, rot.Y, 0);
@@ -402,16 +404,17 @@ namespace TGC.Group
             }
             foreach (TgcMesh AuxMesh in this.SegmentosPista)
             {
-              /*  AuxMesh.Effect.SetValue("matWorld", D3DDevice.Instance.Device.Transform.World);
+                /*
+                AuxMesh.Effect.SetValue("matWorld", D3DDevice.Instance.Device.Transform.World);
                 AuxMesh.Effect.SetValue("matWorldView", D3DDevice.Instance.Device.Transform.World * D3DDevice.Instance.Device.Transform.View);
                 AuxMesh.Effect.SetValue("matWorldViewProj",D3DDevice.Instance.Device.Transform.World* D3DDevice.Instance.Device.Transform.View * D3DDevice.Instance.Device.Transform.Projection);
                 AuxMesh.Effect.SetValue("matInverseTransposeWorld", Microsoft.DirectX.Matrix.Invert(Microsoft.DirectX.Matrix.TransposeMatrix(D3DDevice.Instance.Device.Transform.World)));
-             */   
+              */
                 Microsoft.DirectX.Vector4 posicionCamaraEnV4 = new Microsoft.DirectX.Vector4(posicionCamara.X, posicionCamara.Y, posicionCamara.Z, 0);
                 
                 AuxMesh.Effect.SetValue("viewPos",posicionCamaraEnV4);
                 AuxMesh.Effect.SetValue("lightPos", new Microsoft.DirectX.Vector4(posicionLuzArbitraria.X, posicionLuzArbitraria.Y, posicionLuzArbitraria.Z, 0));
-
+                
 
                 AuxMesh.Render();
             }
