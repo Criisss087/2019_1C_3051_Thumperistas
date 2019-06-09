@@ -87,9 +87,9 @@ float4 ps_main(VS_OUTPUT Input) : COLOR0
 {  
     float4 colorBase = tex2D(diffuseMap,Input.Texcoord);
 
-    float4 colorIluminacion = float4(1,0,1,1);
+    float4 colorIluminacion = float4(1,1,1,1);
 
-    float4 ambientLight = 0.5 * colorIluminacion; 
+    float4 ambientLight = 0.1 * colorIluminacion; 
     
     // //R = 2 * N * (N dot L) - L
 
@@ -104,11 +104,11 @@ float4 ps_main(VS_OUTPUT Input) : COLOR0
     float4 specularLight = 0.3 * float4(1,1,1,1) * max(pow(dot(R,V), 100),0)*length(Input.Color);
 
 
-    float4 diffuseLight = 0.8 * colorIluminacion * dot(N,L);
+    float4 diffuseLight = 0.4 * colorIluminacion * dot(N,L);
 
     float4 light = diffuseLight+specularLight+ambientLight;
 
-    return colorBase+specularLight+diffuseLight;
+    return diffuseLight+colorBase;
 }
 
 // ------------------------------------------------------------------

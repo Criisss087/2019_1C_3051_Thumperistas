@@ -141,8 +141,9 @@ namespace TGC.Group.Model
                 if (Input.keyPressed(Key.H))
                     help = !help;
 
-                Beetle.Update(Input, ElapsedTime);
                 Colisiones();
+                Beetle.Update(Input, ElapsedTime);
+                
 
                 // Deteccion de curva INTENTAR MEJORAR Y DELEGAR
                 foreach (TgcMesh box2 in PistaNivel.SegmentosPista)
@@ -279,7 +280,7 @@ namespace TGC.Group.Model
 
 
             
-            PistaNivel.Render(Camara.Position,Beetle.position+TGCVector3.Up*5);
+            PistaNivel.Render(Camara.Position,Beetle.position+TGCVector3.Up*20);
             Pantalla.Render(ElapsedTime);
 			
 			if(disparoActivo)
