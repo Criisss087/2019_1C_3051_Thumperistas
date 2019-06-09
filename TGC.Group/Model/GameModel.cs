@@ -276,7 +276,7 @@ namespace TGC.Group.Model
             }
 
             if(!finDeJuego)
-                Beetle.Render(ElapsedTime, Pantalla.AcumuladorPoder);
+                Beetle.Render(ElapsedTime, Pantalla.AcumuladorPoder, camaraInterna.Position);
 
 
             

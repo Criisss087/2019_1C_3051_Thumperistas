@@ -404,12 +404,7 @@ namespace TGC.Group
             }
             foreach (TgcMesh AuxMesh in this.SegmentosPista)
             {
-                /*
-                AuxMesh.Effect.SetValue("matWorld", D3DDevice.Instance.Device.Transform.World);
-                AuxMesh.Effect.SetValue("matWorldView", D3DDevice.Instance.Device.Transform.World * D3DDevice.Instance.Device.Transform.View);
-                AuxMesh.Effect.SetValue("matWorldViewProj",D3DDevice.Instance.Device.Transform.World* D3DDevice.Instance.Device.Transform.View * D3DDevice.Instance.Device.Transform.Projection);
-                AuxMesh.Effect.SetValue("matInverseTransposeWorld", Microsoft.DirectX.Matrix.Invert(Microsoft.DirectX.Matrix.TransposeMatrix(D3DDevice.Instance.Device.Transform.World)));
-              */
+
                 Microsoft.DirectX.Vector4 posicionCamaraEnV4 = new Microsoft.DirectX.Vector4(posicionCamara.X, posicionCamara.Y, posicionCamara.Z, 0);
                 
                 AuxMesh.Effect.SetValue("viewPos",posicionCamaraEnV4);

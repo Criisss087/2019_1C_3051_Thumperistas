@@ -21,6 +21,10 @@ namespace TGC.Group.Model
         public const float VELOCIDAD = 900f;
         public const float VELOCIDADX = 200f;
 
+        private static float[] ambientColor = new float[] { 10, 10, 10 };
+        private static float[] diffuseColor = new float[] { 60, 60, 60 };
+        private static float[] specularColor = new float[] { 200, 200, 200 };
+        
         private String MediaDir;
         private String ShadersDir;
         private String particleTexturePath;
@@ -48,6 +52,7 @@ namespace TGC.Group.Model
         public float traslacionZ { get; set; }
         public bool poderActivado = false;
         public float distAng = FastMath.PI_HALF;
+        private float time;
 
         public enum TipoColision
         {
@@ -69,12 +74,18 @@ namespace TGC.Group.Model
             position = new TGCVector3(0, 8f, 0);
             translation = TGCMatrix.Translation(position);
             scaling = TGCMatrix.Scaling(TGCVector3.One * .5f);
-            
+
+            // Shader Test
+            effect = TGCShaders.Instance.LoadEffect(ShadersDir + "BeetleShader.fx");
+
             foreach (var mesh in beetle.Meshes)
             {
                 mesh.AutoTransformEnable = false;
                 mesh.Transform = scaling * rotation * translation;
                 mesh.BoundingBox.transform(scaling * rotation * translation);
+
+                mesh.Effect = effect;
+                mesh.Technique = "ConEscudoMetalico";
             }
 
             //Seteo collider Ok
@@ -109,9 +120,7 @@ namespace TGC.Group.Model
             emitter.CreationFrecuency = 0.1f;
             emitter.Dispersion = 50;
 
-            // Shader Test
-            effect = TGCShaders.Instance.LoadEffect(ShadersDir + "BasicShader.fx");
-
+                        
             this.speed = 900f;
 
         }
@@ -175,7 +184,7 @@ namespace TGC.Group.Model
 
             // para debug
             if (Input.keyPressed(Key.E))
-                escudo = true;
+                GanarEscudo();
 
             // Para armar un menu de pausa... falta desarrollar
             if (Input.keyPressed(Key.Escape))
@@ -249,22 +258,41 @@ namespace TGC.Group.Model
                     objetoColisionado = obs;
                     return TipoColision.Colision;
                 }
-                /*
-				if (TgcCollisionUtils.testObbObb(obs.Collider, colliderRecolectablesWrong))
-                {
-                    return TipoColision.Error;
-                }
-				*/	
             }
             return TipoColision.Nada;
         }
 
-        public void Render(float ElapsedTime, int AcumuladorPoder)
+        private TGCVector3 getLigthPos(float ElapsedTime)
         {
+            TGCVector3 ligthPos = new TGCVector3(0,0,0);
+
+            float x = FastMath.Abs(FastMath.Cos(time*100)*200);
+            float y = 600f + FastMath.Cos(time*100) *50;
+            
+            ligthPos = position + new TGCVector3(x, y, 0);
+
+            return ligthPos;
+        }
+
+        public void Render(float ElapsedTime, int AcumuladorPoder, TGCVector3 PosicionCamara)
+        {
+            time += ElapsedTime;
+
             foreach (var mesh in beetle.Meshes)
             {
                 mesh.Transform = scaling * rotation * translation;
                 mesh.BoundingBox.transform(scaling * rotation * translation);
+
+                TGCVector3 ligthPos = getLigthPos(ElapsedTime);
+                TGCVector3 eyePosition = PosicionCamara + new TGCVector3(0, 600, -100);
+
+                mesh.Effect.SetValue("lightPosition", TGCVector3.Vector3ToFloat4Array(ligthPos));
+                mesh.Effect.SetValue("eyePosition", TGCVector3.Vector3ToFloat4Array(eyePosition));
+                mesh.Effect.SetValue("ambientColor", ambientColor);
+                mesh.Effect.SetValue("diffuseColor", diffuseColor);
+                mesh.Effect.SetValue("specularColor", specularColor );
+                mesh.Effect.SetValue("specularExp", 300f);
+
             }
             beetle.RenderAll();
             
@@ -272,7 +300,6 @@ namespace TGC.Group.Model
             colliderPista.setRenderColor(Color.Blue);
             //colliderPista.Render();
             
-
             colliderRecolectablesOk.setRenderColor(Color.Yellow);
             //colliderRecolectablesOk.Render();
 
@@ -295,12 +322,23 @@ namespace TGC.Group.Model
 
         public void GanarEscudo()
         {
+            foreach (var mesh in beetle.Meshes)
+            {
+                mesh.Technique = "ConEscudoMetalico";
+            }
+
             escudo = true;
         }
 
         public void PerderEscudo()
         {
+            foreach (var mesh in beetle.Meshes)
+            {
+                mesh.Technique = "SinEscudo";
+            }
+
             escudo = false;
+
         }
 
         public void Dispose()

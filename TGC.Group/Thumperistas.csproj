@@ -182,6 +182,7 @@
     <Content Include="Media\Shaders\ShaderRecolectable.fx" />
     <Content Include="Media\Textures\beetle.jpg" />
     <Content Include="Media\Textures\gray.jpg" />
+    <Content Include="Shaders\BeetleShader.fx" />
     <Content Include="Shaders\BasicShader.fx" />
     <Content Include="Shaders\ShaderPiso.fx" />
   </ItemGroup>
