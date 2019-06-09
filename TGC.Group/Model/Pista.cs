@@ -226,19 +226,19 @@ namespace TGC.Group
             switch (cantCurvaSuaveActual)
             {
                 case 5:
-                    f = 2f;
+                    f = 2.65f;
                     break;
                 case 4:
-                    f = 8f;
+                    f = 7.8f;
                     break;
                 case 3:
-                    f = 12f;
+                    f = 10.5f;
                     break;
                 case 2:
-                    f = 8f;
+                    f = 7.3f;
                     break;
                 case 1:
-                    f = 2f;
+                    f = 2.2f;
                     break;
                 default:
                     break;
@@ -323,7 +323,7 @@ namespace TGC.Group
             rot.Z = Geometry.DegreeToRadian(this.rotCurvaActual.Z);
 
             // YAW = Y, va primero
-            piso.Transform = TGCMatrix.Scaling(new TGCVector3(1, 1, 1)) *
+            piso.Transform = TGCMatrix.Scaling(new TGCVector3(1, 1, 1.05f)) *
                              TGCMatrix.RotationYawPitchRoll(rot.Y, rot.X, rot.Z) *
                              TGCMatrix.Translation(this.posUltimaPieza);
 
@@ -336,7 +336,7 @@ namespace TGC.Group
                         
             pisoMesh.addDiffuseMap(texturaPiso);
 
-            Effect effect = TGCShaders.Instance.LoadEffect(ShadersDir + "BasicShader.fx");            
+            Effect effect = TGCShaders.Instance.LoadEffect(ShadersDir + "ShaderPiso.fx");            
             
             pisoMesh.Effect = effect;
             pisoMesh.Technique = "RenderScene";
