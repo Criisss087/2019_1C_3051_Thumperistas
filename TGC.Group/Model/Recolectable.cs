@@ -27,8 +27,8 @@ namespace TGC.Group.Model
             foreach (var mesh in scene.Meshes)
             {
                 mesh.AutoTransformEnable = false;
-                mesh.Effect = TGCShaders.Instance.LoadEffect(mediaDir + "\\TgcMeshSpotLightShader.fx");
-                mesh.Technique = TGCShaders.Instance.GetTGCMeshTechnique(mesh.RenderType);
+                mesh.Effect = TGCShaders.Instance.LoadEffect(mediaDir + "ShaderRecolectable.fx");
+                mesh.Technique = "RenderScene";
             }
 
             Rotation = TGCMatrix.Identity;
@@ -60,23 +60,6 @@ namespace TGC.Group.Model
             foreach (var mesh in scene.Meshes)
             {
                 mesh.Transform = Scaling * Rotation * Translation;
-
-                var FuenteDeLuz = new TGCVector3(mesh.Position.X, mesh.Position.Y, mesh.Position.Z - 10);
-
-                var DirDeLuz = new TGCVector3(-FuenteDeLuz.X, -FuenteDeLuz.Y, -FuenteDeLuz.Z);
-                DirDeLuz.Normalize();
-
-                mesh.Effect.SetValue("lightPosition", TGCVector3.Vector3ToFloat4Array(FuenteDeLuz));
-                mesh.Effect.SetValue("eyePosition", TGCVector3.Vector3ToFloat4Array(PosicionCamara));
-                mesh.Effect.SetValue("spotLightDir", TGCVector3.Vector3ToFloat4Array(DirDeLuz));
-                mesh.Effect.SetValue("lightIntensity", 1000);
-                mesh.Effect.SetValue("lightAttenuation", 15);
-                //mesh.Effect.SetValue("materialEmissiveColor", ColorValue.FromColor(Color.Yellow));
-                mesh.Effect.SetValue("materialAmbientColor", ColorValue.FromColor(Color.White));
-                mesh.Effect.SetValue("materialDiffuseColor", ColorValue.FromColor(Color.Yellow));
-                mesh.Effect.SetValue("materialSpecularColor", ColorValue.FromColor(Color.White));
-                mesh.Effect.SetValue("materialSpecularExp", 10);
-
                 mesh.Render();
             }
             //Collider.Render();

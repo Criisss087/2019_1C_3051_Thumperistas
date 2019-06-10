@@ -1,4 +1,3 @@
-
 // //Matrices de transformacion
 float4x4 matWorld; //Matriz de transformacion World
 float4x4 matWorldView; //Matriz World * View
@@ -51,9 +50,9 @@ VS_OUTPUT vs_main(VS_INPUT Input)
     return Output;
 }
 
-float4 ps_main(VS_OUTPUT Input) :COLOR0
+float4 ps_main(VS_OUTPUT Input) : COLOR0
 {
-    return Input.Texcoord.y > Input.Texcoord.x - 1.1f && Input.Texcoord.y < Input.Texcoord.x - 0.85f ? float4(1, 1, 1, 1) : float4(1, 1, 0, 1);
+    return Input.Texcoord.y > Input.Texcoord.x - 1.1f && Input.Texcoord.y < Input.Texcoord.x - 0.85f ? float4(0, 0, 1, 1) : float4(0, 1, 0, 1);
 }
 
 
