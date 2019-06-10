@@ -400,7 +400,7 @@ namespace TGC.Group
         {
             foreach (Recolectable AuxRec in Recolectables)
             {
-                AuxRec.Render();
+                AuxRec.Render(posicionCamara);
             }
             foreach (TgcMesh AuxMesh in this.SegmentosPista)
             {

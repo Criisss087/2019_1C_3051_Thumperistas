@@ -284,7 +284,7 @@ namespace TGC.Group.Model
             Pantalla.Render(ElapsedTime);
 			
 			if(disparoActivo)
-				Disparo.Render(ElapsedTime);
+				Disparo.Render(ElapsedTime, Camara.Position);
 
             PostRender();
         }
