@@ -2,6 +2,7 @@
 using System.Drawing;
 using Microsoft.DirectX.Direct3D;
 using TGC.Core.BoundingVolumes;
+using TGC.Core.Geometry;
 using TGC.Core.Mathematica;
 using TGC.Core.SceneLoader;
 using TGC.Core.Shaders;
@@ -60,16 +61,21 @@ namespace TGC.Group.Model
             {
                 mesh.Transform = Scaling * Rotation * Translation;
 
-                mesh.Effect.SetValue("lightPosition", TGCVector3.Vector3ToFloat4Array(new TGCVector3(mesh.Position.X, mesh.Position.Y, mesh.Position.Z - 100)));
+                var FuenteDeLuz = new TGCVector3(mesh.Position.X, mesh.Position.Y, mesh.Position.Z - 10);
+
+                var DirDeLuz = new TGCVector3(-FuenteDeLuz.X, -FuenteDeLuz.Y, -FuenteDeLuz.Z);
+                DirDeLuz.Normalize();
+
+                mesh.Effect.SetValue("lightPosition", TGCVector3.Vector3ToFloat4Array(FuenteDeLuz));
                 mesh.Effect.SetValue("eyePosition", TGCVector3.Vector3ToFloat4Array(PosicionCamara));
-                mesh.Effect.SetValue("spotLightDir", TGCVector3.Vector3ToFloat4Array(new TGCVector3(0, 0, 1)));
+                mesh.Effect.SetValue("spotLightDir", TGCVector3.Vector3ToFloat4Array(DirDeLuz));
                 mesh.Effect.SetValue("lightIntensity", 1000);
                 mesh.Effect.SetValue("lightAttenuation", 15);
-                mesh.Effect.SetValue("materialEmissiveColor", ColorValue.FromColor(Color.Yellow));
-                mesh.Effect.SetValue("materialAmbientColor", ColorValue.FromColor(Color.Yellow));
+                //mesh.Effect.SetValue("materialEmissiveColor", ColorValue.FromColor(Color.Yellow));
+                mesh.Effect.SetValue("materialAmbientColor", ColorValue.FromColor(Color.White));
                 mesh.Effect.SetValue("materialDiffuseColor", ColorValue.FromColor(Color.Yellow));
-                mesh.Effect.SetValue("materialSpecularColor", ColorValue.FromColor(Color.Yellow));
-                mesh.Effect.SetValue("materialSpecularExp", 300f);
+                mesh.Effect.SetValue("materialSpecularColor", ColorValue.FromColor(Color.White));
+                mesh.Effect.SetValue("materialSpecularExp", 10);
 
                 mesh.Render();
             }
