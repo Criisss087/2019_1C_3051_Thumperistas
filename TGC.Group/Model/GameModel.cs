@@ -57,7 +57,8 @@ namespace TGC.Group.Model
         private bool applyMovement { get; set; }
 		private bool disparoActivo { get; set; }
         private bool curvaActiva { get; set; }
-		private bool finDeNivel { get; set; }
+        private bool recolectableActivo { get; set; }
+        private bool finDeNivel { get; set; }
         private bool finDeJuego { get; set; }
         private bool soloPista { get; set; }
         public float posX = 0, posY = 0;
@@ -130,11 +131,12 @@ namespace TGC.Group.Model
                     BoundingBox = !BoundingBox;
                 }
 
-                if (Input.keyPressed(Key.D) && Pantalla.AcumuladorPoder > 5)
+                if (Input.keyPressed(Key.D) && Pantalla.AcumuladorPoder > 10)
                 {
                     Disparo = new Disparo(MediaDir, Beetle.position);
                     Reproductor.Disparar();
                     Pantalla.AcumuladorPoder = 0;
+                    Pantalla.AcumuladorDisparos += 1;
                     disparoActivo = true;
                 }
 
@@ -249,20 +251,21 @@ namespace TGC.Group.Model
 			if(help)
 			{
 				//Dibuja un texto por pantalla
-				DrawText.drawText("Con la tecla F se dibuja el bounding box.", 0, 20, Color.OrangeRed);
-				DrawText.drawText("Posicion actual del jugador: " + TGCVector3.PrintVector3(Beetle.position), 0, 30, Color.OrangeRed);
-				DrawText.drawText("Posicion actual ultima pieza: " + TGCVector3.PrintVector3(PistaNivel.posUltimaPieza), 0, 40, Color.OrangeRed);
-				DrawText.drawText("Cant Aciertos: " + (Pantalla.AcumuladorAciertos), 0, 50, Color.OrangeRed);
-				DrawText.drawText("Cant Eventos: " + (Pantalla.AcumuladorEventos), 0, 60, Color.OrangeRed);
-				DrawText.drawText("Cant para poder: " + Pantalla.AcumuladorPoder, 0, 70, Color.OrangeRed);
-				DrawText.drawText("Nivel: " + Pantalla.level, 0, 80, Color.OrangeRed);
-				DrawText.drawText("Inmunidad temporal: " + Beetle.inmunidadTemp.ToString(), 0, 90, Color.OrangeRed);
-				DrawText.drawText("Escudo: " + (Beetle.escudo.ToString()), 0, 100, Color.OrangeRed);
-				DrawText.drawText("GodMode: " + (Beetle.godMode.ToString()), 0, 110, Color.OrangeRed);
-                DrawText.drawText("Fin de Nivel: " + finDeNivel, 0, 120, Color.OrangeRed);
-                DrawText.drawText("Score total: " + Pantalla.Score, 0, 130, Color.OrangeRed);
-                DrawText.drawText("Multiplcador: " + Pantalla.Multiplicador, 0, 140, Color.OrangeRed);
-                DrawText.drawText("SoloPista: " + soloPista, 0, 150, Color.OrangeRed);
+				DrawText.drawText("Con la tecla F se dibuja el bounding box.", 1000, 20, Color.OrangeRed);
+				DrawText.drawText("Posicion actual del jugador: " + TGCVector3.PrintVector3(Beetle.position), 1000, 30, Color.OrangeRed);
+				DrawText.drawText("Posicion actual ultima pieza: " + TGCVector3.PrintVector3(PistaNivel.posUltimaPieza), 1000, 40, Color.OrangeRed);
+				DrawText.drawText("Cant Aciertos: " + (Pantalla.AcumuladorAciertos), 1000, 50, Color.OrangeRed);
+				DrawText.drawText("Cant Eventos: " + (Pantalla.AcumuladorEventos), 1000, 60, Color.OrangeRed);
+				DrawText.drawText("Cant para poder: " + Pantalla.AcumuladorPoder, 1000, 70, Color.OrangeRed);
+				DrawText.drawText("Nivel: " + Pantalla.level, 1000, 80, Color.OrangeRed);
+				DrawText.drawText("Inmunidad temporal: " + Beetle.inmunidadTemp.ToString(), 1000, 90, Color.OrangeRed);
+				DrawText.drawText("Escudo: " + (Beetle.escudo.ToString()), 1000, 100, Color.OrangeRed);
+				DrawText.drawText("GodMode: " + (Beetle.godMode.ToString()), 1000, 110, Color.OrangeRed);
+                DrawText.drawText("Fin de Nivel: " + finDeNivel, 1000, 120, Color.OrangeRed);
+                DrawText.drawText("Score total: " + Pantalla.Score, 1000, 130, Color.OrangeRed);
+                DrawText.drawText("Multiplcador: " + Pantalla.Multiplicador, 1000, 140, Color.OrangeRed);
+                DrawText.drawText("SoloPista: " + soloPista, 1000, 150, Color.OrangeRed);
+                DrawText.drawText("Acum Disparo: " + Pantalla.AcumuladorDisparos, 1000, 160, Color.OrangeRed);
             }
 
             //Render de BoundingBox, muy útil para debug de colisiones.
@@ -277,9 +280,7 @@ namespace TGC.Group.Model
 
             if(!finDeJuego)
                 Beetle.Render(ElapsedTime, Pantalla.AcumuladorPoder, camaraInterna.Position);
-
-
-            
+                                    
             PistaNivel.Render(Camara.Position,Beetle.position+TGCVector3.Up*20);
             Pantalla.Render(ElapsedTime);
 			
@@ -311,7 +312,7 @@ namespace TGC.Group.Model
             Recolectable recolectableColisionado = new Recolectable(MediaDir, TGCVector3.One);
 
             col = Beetle.ColisionandoConRecolectable(PistaNivel.Recolectables, ref recolectableColisionado);
-            
+           
             if (col == Beetle.TipoColision.Colision) 
             {
                 if(Beetle.godMode || (Input.keyPressed(Key.Space)))
@@ -332,10 +333,15 @@ namespace TGC.Group.Model
             }
             else if(col == Beetle.TipoColision.Error)
             {
-                Reproductor.NoRecolectar();
-                PistaNivel.Recolectables.Remove(recolectableColisionado);
-                finDeNivel = Pantalla.Error();
+                if (!recolectableActivo)
+                {
+                    Reproductor.NoRecolectar();
+                    PistaNivel.Recolectables.Remove(recolectableColisionado);
+                    finDeNivel = Pantalla.Error();
+                    Temporizadores.recolectableOk.reset();
+                }
             }
+
             
             // Colision con obstaculo            
             Obstaculo objetoColisionado = new Obstaculo(TGCVector3.One);
@@ -375,22 +381,24 @@ namespace TGC.Group.Model
             }
 
             curvaActiva = !Temporizadores.curvaOk.update(ElapsedTime);
+            recolectableActivo = !Temporizadores.recolectableOk.update(ElapsedTime);
 
             if(soloPista)
             {
-                if(ValidationUtils.validateFloatRange(Temporizadores.finDeNivel.Current.ToString(),3f,4f))
+                if(ValidationUtils.validateFloatRange(Temporizadores.finDeNivel.Current.ToString(),5f,6f))
                 {
                     Temporizadores.textScoreTotal.reset();
                 }
 
-                if (ValidationUtils.validateFloatRange(Temporizadores.finDeNivel.Current.ToString(), 6f, 7f))
+                if (ValidationUtils.validateFloatRange(Temporizadores.finDeNivel.Current.ToString(), 8f, 9f))
                 {
                     Temporizadores.textRank.reset();
                 }
 
-                if (ValidationUtils.validateFloatRange(Temporizadores.finDeNivel.Current.ToString(), 9f, 10f))
+                if (ValidationUtils.validateFloatRange(Temporizadores.finDeNivel.Current.ToString(), 11f, 12f))
                 {
                     Temporizadores.textNextLvl.reset();
+                    Pantalla.restartLevel();
                 }
 
             }

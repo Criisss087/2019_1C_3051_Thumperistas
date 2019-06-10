@@ -295,7 +295,7 @@ namespace TGC.Group
 
                 int generaObstaculos = elijoEntreTresProbabilidades(2, 90, 18);
                 
-                this.cantObsActual = this.rnd.Next(10) + 1;
+                this.cantObsActual = this.rnd.Next(4) + 1;
                 if (generaObstaculos == 1)
                 {
                     this.obstaculosActivos = true;

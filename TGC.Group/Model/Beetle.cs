@@ -306,7 +306,7 @@ namespace TGC.Group.Model
             colliderRecolectablesWrong.setRenderColor(Color.Red);
             //colliderRecolectablesWrong.Render();
 
-            if (AcumuladorPoder > 5)
+            if (AcumuladorPoder > 10)
                 emitter.render(ElapsedTime);
         }
 

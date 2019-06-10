@@ -27,7 +27,8 @@ namespace TGC.Group.Model
         public Int32 AcumuladorAciertos { get; set; } = 0;
         public Int32 AcumuladorEventos { get; set; } = 0;
 		public Int32 AcumuladorPoder { get; set; } = 0;
-		public bool Danio { get; set; }
+        public Int32 AcumuladorDisparos { get; set; } = 0;
+        public bool Danio { get; set; }
         public Double scoreTemporal { get; set; } = 0;
         public Int32 level { get; set; } = 1;
 
@@ -39,20 +40,23 @@ namespace TGC.Group.Model
 		public TgcText2D AddAciertosText;
 		public TgcText2D AciertosText;
 		public TgcText2D AddMultiplicadorText;
-		public TgcText2D MultiplicadorText;		
-		public TgcText2D AddFallosText;
+		public TgcText2D MultiplicadorText;
+        public TgcText2D AddDisparosText;
+        public TgcText2D DisparosText;
+        public TgcText2D AddFallosText;
 		public TgcText2D FallosText;
 		public TgcText2D AddDanioText;
-		public TgcText2D DanioText;		
-		// Fase 3
-		public TgcText2D RangoLevelText;
+		public TgcText2D DanioText;
+        // Fase 3
+        public TgcText2D RangoLevelText;
 		public TgcText2D RankText;
 		// Fase 4
         public TgcText2D CambioMultiplicadorText;
 		
         public static String font = "Arial Black";
 		private static Int32 PuntosAcierto = 100;
-		private static Int32 PuntosSinFallos = 1000;
+        private static Int32 PuntosSinFallos = 1000;
+		private static Int32 PuntosDisparo = 2500;
 		private static Int32 PuntosSinDanio = 1000;
 
         private static int tamanioSubtitulo = 25;
@@ -90,17 +94,20 @@ namespace TGC.Group.Model
 			AddAciertosText = nuevoTexto(20,75, tamanioDetalles, Color.Aquamarine); 
 			AciertosText = nuevoTexto(120,75, tamanioDetalles, Color.White);			
 			AddMultiplicadorText = nuevoTexto(20,100, tamanioDetalles, Color.Aquamarine); 
-			MultiplicadorText = nuevoTexto(120,100, tamanioDetalles, Color.White); 			
-			AddFallosText = nuevoTexto(20,125, tamanioDetalles, Color.Aquamarine); 
-			FallosText = nuevoTexto(120,125, tamanioDetalles, Color.White); 
-			AddDanioText = nuevoTexto(20,150, tamanioDetalles, Color.Aquamarine); 
-			DanioText = nuevoTexto(120,150, tamanioDetalles, Color.White);            
+			MultiplicadorText = nuevoTexto(120,100, tamanioDetalles, Color.White);
+            AddDisparosText = nuevoTexto(20, 125, tamanioDetalles, Color.Aquamarine);
+            DisparosText = nuevoTexto(120, 125, tamanioDetalles, Color.White);
+            AddFallosText = nuevoTexto(20,150, tamanioDetalles, Color.Aquamarine); 
+			FallosText = nuevoTexto(120,150, tamanioDetalles, Color.White); 
+			AddDanioText = nuevoTexto(20,175, tamanioDetalles, Color.Aquamarine); 
+			DanioText = nuevoTexto(120,175, tamanioDetalles, Color.White);            
             
             MultiplicadorText.Text = "Multiplicador";
             AddFallosText.Text = "+" + PuntosSinFallos.ToString();
             FallosText.Text = "Sin Fallos";
             AddDanioText.Text = "+" + PuntosSinDanio.ToString();
             DanioText.Text = "Sin Daño";
+            AddDisparosText.Text = "+" + PuntosDisparo.ToString();
             
             RangoLevelText = nuevoTexto(20,65, 20, Color.Yellow); 
 			RankText = nuevoTexto(50,75, tamanioDetalles, Color.White);
@@ -129,7 +136,6 @@ namespace TGC.Group.Model
             AcumuladorAciertos++;
             AcumuladorEventos++;
 			AcumuladorPoder++;
-            //scoreTemporal += 100;
 
             if ((AcumuladorAciertos % 5 == 0) && (Multiplicador < 8))
             {
@@ -148,7 +154,7 @@ namespace TGC.Group.Model
             if(Multiplicador!= 1)
                 Multiplicador = 1;  
 
-            AcumuladorAciertos = 0;
+            //AcumuladorAciertos = 0;
             AcumuladorEventos++;
             
             return FinDeNivel();
@@ -158,32 +164,45 @@ namespace TGC.Group.Model
         {
             if (AcumuladorEventos > 20)
             {
-                //score += scoreTemporal;
-                //ScoreText.Text = score.ToString();
                 AcumuladorEventos = 0;
                 level++;
-                LevelText.Text = "Level: " + level.ToString();			
-				return true;
+                LevelText.Text = "Level: " + level.ToString();
+
+                return true;
             }
 			
 			return false;
         }
 
-        private String obtenerRango(Int32 level, Double scoreTemporal)
+        private String obtenerRango()
         {
             String R = "0";
 
-            Puntuaciones[level + 1] = scoreTemporal;
             if (AcumuladorAciertos < 5)
+            {
                 R = "D";
+                RangoLevelText.Color = Color.Red;
+            }                
             else if (AcumuladorAciertos < 10)
+            {
                 R = "C";
+                RangoLevelText.Color = Color.White;
+            }
             else if (AcumuladorAciertos < 15)
+            {
                 R = "B";
+                RangoLevelText.Color = Color.White;
+            }
             else if (AcumuladorAciertos < 20)
+            {
                 R = "A";
+                RangoLevelText.Color = Color.White;
+            }
             else
+            {
                 R = "S";
+                RangoLevelText.Color = Color.Yellow;
+            }
 
             return R;
 
@@ -202,11 +221,16 @@ namespace TGC.Group.Model
         public void SetTextFinDeNivel()
         {
             ScoreText.Text = Score.ToString();
+
+            scoreTemporal += (AcumuladorAciertos * 100);
+
             AddAciertosText.Text = scoreTemporal.ToString();
             AciertosText.Text = "x" + AcumuladorAciertos.ToString();
             AddMultiplicadorText.Text = "x" + Multiplicador.ToString();
+            DisparosText.Text = "x" + AcumuladorDisparos.ToString();
 
-            scoreTemporal += (AcumuladorAciertos*100) * multiplicador;
+            scoreTemporal *=   multiplicador;
+            scoreTemporal += AcumuladorDisparos * PuntosDisparo;
 
             if (AcumuladorAciertos >= 20)
             {
@@ -218,13 +242,21 @@ namespace TGC.Group.Model
                 scoreTemporal += PuntosSinDanio;
             }
 
+            RangoLevelText.Text = obtenerRango();
 
-
-            Puntuaciones.Add(level+1,scoreTemporal);
+            Puntuaciones.Add(level + 1, scoreTemporal);
+            Rangos.Add(level + 1, obtenerRango());
             Score += scoreTemporal;
+            
+        }
 
+        public void restartLevel()
+        {
             scoreTemporal = 0;
             AcumuladorAciertos = 0;
+            AcumuladorEventos = 0;
+            AcumuladorDisparos = 0;
+            Danio = false;
         }
 
         public void Render(float ElapsedTime)
@@ -238,6 +270,12 @@ namespace TGC.Group.Model
                 AciertosText.render();
                 AddMultiplicadorText.render();
                 MultiplicadorText.render();
+
+                if(AcumuladorDisparos > 0)
+                {
+                    AddDisparosText.render();
+                    DisparosText.render();
+                }
 
                 if (AcumuladorAciertos >= 20)
                 {
@@ -271,7 +309,6 @@ namespace TGC.Group.Model
             {
                 CambioMultiplicadorText.render();
             }
-            
         }
 
         public void Dispose()
@@ -290,7 +327,6 @@ namespace TGC.Group.Model
             set
             {
                 score = value;
-                //ScoreText.Text = value.ToString();
             }
 
         }

@@ -12,6 +12,7 @@ namespace TGC.Group.Model
     {
         public static Temporizador inmunidadError = new Temporizador();
         public static Temporizador curvaOk = new Temporizador();
+        public static Temporizador recolectableOk = new Temporizador();
         static public Temporizador finDeNivel = new Temporizador();
 
         public static Temporizador textFinNivel = new Temporizador();
@@ -30,9 +31,12 @@ namespace TGC.Group.Model
             curvaOk.StopSegs = 1f;
             curvaOk.Current = 1f;
 
+            recolectableOk.StopSegs = 1f;
+            recolectableOk.Current = 1f;
+
             //finDeNivel = new Temporizador();
-            finDeNivel.StopSegs = 10f;
-            finDeNivel.Current = 10f;
+            finDeNivel.StopSegs = 12f;
+            finDeNivel.Current = 12f;
 
             //textFinNivel = new Temporizador();
             textFinNivel.StopSegs = 3f;			
@@ -50,6 +54,7 @@ namespace TGC.Group.Model
             //textCambioMult = new Temporizador();
             textCambioMult.StopSegs = 3f;
             textCambioMult.Current = 3f;
+
         }
 
     }
