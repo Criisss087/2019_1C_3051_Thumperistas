@@ -53,6 +53,7 @@ namespace TGC.Group.Model
         public bool poderActivado = false;
         public float distAng = FastMath.PI_HALF;
         private float time;
+        public string technique;
 
         public enum TipoColision
         {
@@ -61,12 +62,14 @@ namespace TGC.Group.Model
             Error = 2
         }
 
-        public Beetle(string _mediaDir, string _shadersDir)
+        public Beetle(string _mediaDir, string _shadersDir, string Tecnica)
         {
             MediaDir = _mediaDir;
             ShadersDir = _shadersDir;
 
             loader = new TgcSceneLoader();
+
+            technique = Tecnica;
 
             beetle = loader.loadSceneFromFile(MediaDir + "/Thumper/beetle-TgcScene.xml");
 
@@ -85,7 +88,7 @@ namespace TGC.Group.Model
                 mesh.BoundingBox.transform(scaling * rotation * translation);
 
                 mesh.Effect = effect;
-                mesh.Technique = "ConEscudoMetalico";
+                mesh.Technique = technique;
             }
 
             //Seteo collider Ok
@@ -284,6 +287,7 @@ namespace TGC.Group.Model
                 mesh.Effect.SetValue("diffuseColor", diffuseColor);
                 mesh.Effect.SetValue("specularColor", specularColor);
                 mesh.Effect.SetValue("specularExp", 300f);
+                mesh.Effect.SetValue("time", time);
 
             }
             beetle.RenderAll();
@@ -338,5 +342,12 @@ namespace TGC.Group.Model
             this.beetle.DisposeAll();
         }
 
+        internal void Explotar()
+        {
+            foreach (var mesh in beetle.Meshes) 
+            {
+                mesh.Technique = "Explosiva";
+            }
+        }
     }
 }

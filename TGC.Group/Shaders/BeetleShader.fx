@@ -27,6 +27,7 @@ float3 specularColor; //Color RGB para Ambient de la luz
 float specularExp; //Exponente de specular
 float4 lightPosition; //Posicion de la luz
 float4 eyePosition; //Posicion de la camara
+float time = 0;
 
 /**************************************************************************************/
 /* DIFFUSE_MAP */
@@ -143,5 +144,81 @@ technique SinEscudo
     {
         VertexShader = compile vs_3_0 vs_DiffuseMap();
         PixelShader = compile ps_3_0 ps_SinEscudo();
+    }
+}
+
+struct VS_INPUT
+{
+    float4 Position : POSITION0;
+    float4 Color : COLOR0;
+    float2 Texcoord : TEXCOORD0;
+    float3 Normal : NORMAL0;
+    float4 RealPos : TEXCOORD1;
+};
+
+struct VS_OUTPUT
+{
+    float4 Position : POSITION0;
+    float2 Texcoord : TEXCOORD0;
+    float4 RealPos : TEXCOORD3;
+    float3 Normal : NORMAL0;
+    float3 WorldNormal : TEXCOORD1;
+    float3 LightVec : TEXCOORD2;
+    float4 Color : COLOR0;
+};
+
+VS_OUTPUT vs_explosivo(VS_INPUT Input)
+{
+    VS_OUTPUT Output;
+
+    Output.RealPos = float4(100 * sin(time) * Input.Position.x, 100 * sin(time) * Input.Position.y, 100 * sin(time) * Input.Position.z, 1);
+
+    Output.Position = mul(Output.RealPos, matWorldViewProj);
+
+    Output.Texcoord = Input.Texcoord;
+
+    Output.Normal = Input.Normal;
+
+    Output.Color = Input.Color;
+
+    Output.WorldNormal = mul(Input.Normal, matInverseTransposeWorld).xyz;
+
+    Output.LightVec = lightPosition.xyz - mul(Input.Position, matWorld).xyz;
+
+    return Output;
+}
+
+float4 ps_explosivo(VS_OUTPUT Input) : COLOR0
+{
+    float4 ColorBase = float4(1, 0, 0, 1);
+
+    float4 ColorIluminacion = float4(1, 1, 1, 1);
+
+    float4 LuzAmbiente = 0.1 * ColorIluminacion;
+
+    float3 PosicionRealCamara = mul(eyePosition.xyz, matWorld);
+
+    float3 VectorRealLuz = mul(Input.LightVec.xyz, matWorld);
+
+    float3 N = normalize(Input.WorldNormal);
+    float3 L = normalize(VectorRealLuz);
+    float3 R = normalize(2 * N * dot(N, L) - L);
+    float3 V = normalize(PosicionRealCamara - Input.RealPos.xyz);
+
+    float4 LuzEspecular = 0.3 * float4(1, 1, 1, 1) * max(pow(dot(R, V), 100), 0) * length(Input.Color);
+
+    float4 LuzDifusa = 0.5 * ColorIluminacion * dot(N, L);
+
+    float4 Luz = LuzDifusa + LuzEspecular + LuzAmbiente;
+
+    return Luz + ColorBase;
+}
+
+technique Explosiva
+{
+    pass Pass_0
+    {
+        VertexShader = compile vs_3_0 vs_explosivo();
+        PixelShader = compile ps_3_0 ps_explosivo();
     }
 }

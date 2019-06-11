@@ -14,6 +14,7 @@ namespace TGC.Group.Model
         public static Temporizador curvaOk = new Temporizador();
         public static Temporizador recolectableOk = new Temporizador();
         static public Temporizador finDeNivel = new Temporizador();
+        static public Temporizador finDelJuego = new Temporizador();
 
         public static Temporizador textFinNivel = new Temporizador();
         public static Temporizador textScoreTotal = new Temporizador();
@@ -37,6 +38,9 @@ namespace TGC.Group.Model
             //finDeNivel = new Temporizador();
             finDeNivel.StopSegs = 12f;
             finDeNivel.Current = 12f;
+            //finDelJuego = new Temporizador();
+            finDelJuego.StopSegs = 1f;
+            finDelJuego.Current = 1f;
 
             //textFinNivel = new Temporizador();
             textFinNivel.StopSegs = 3f;			

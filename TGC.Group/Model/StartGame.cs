@@ -41,6 +41,9 @@ namespace TGC.Group.Model
 
         private bool applyMovement { get; set; }
         private bool disparoActivo { get; set; }
+
+        private bool reproductor;
+
         private bool curvaActiva { get; set; }
         private bool recolectableActivo { get; set; }
         private bool finDeNivel { get; set; }
@@ -52,6 +55,7 @@ namespace TGC.Group.Model
         public float posX = 0, posY = 0;
         public TGCVector3 posicionFinal = new TGCVector3(0, 0, 0);
         private Random rnd = new Random();
+        private bool perdiste = false;
 
         public StartGame(GameModel _gameModel)
         {
@@ -62,7 +66,7 @@ namespace TGC.Group.Model
             Pantalla = new Pantalla(GameModel.MediaDir);
             Pantalla.Score = 0;
             Pantalla.scoreTemporal = 0;
-            Beetle = new Beetle(GameModel.MediaDir, GameModel.ShadersDir);
+            Beetle = new Beetle(GameModel.MediaDir, GameModel.ShadersDir, "ConEscudoMetalico");
             PistaNivel = new Pista(GameModel.MediaDir, GameModel.ShadersDir);
             Temporizadores.Init();
 
@@ -117,7 +121,7 @@ namespace TGC.Group.Model
 
                 if (Input.keyPressed(Key.D) && Pantalla.AcumuladorPoder > 10)
                 {
-                    Disparo = new Disparo(GameModel.MediaDir, Beetle.position);
+                    Disparo = new Disparo(GameModel.MediaDir, Beetle.position, "RenderScene");
                     Reproductor.Disparar();
                     Pantalla.AcumuladorPoder = 0;
                     Pantalla.AcumuladorDisparos += 1;
@@ -208,10 +212,17 @@ namespace TGC.Group.Model
                 if (disparoActivo)
                 {
                     var dist = Disparo.Avanza(GameModel.ElapsedTime, posX, posY);
-                    if (dist.Z - Beetle.position.Z > 2500)
+                    if (dist.Z - Beetle.position.Z > 2000 && !reproductor)
                     {
                         Reproductor.Explosion();
+                        Disparo.technique = "Explosiva";
+                        reproductor = true;
+                    }
+
+                    if (dist.Z - Beetle.position.Z > 4000)
+                    {
                         disparoActivo = false;
+                        reproductor = false;
                     }
                 }
 
@@ -221,7 +232,7 @@ namespace TGC.Group.Model
                 if (Input.keyPressed(Key.Escape))
                 {
                     pausa = !pausa;
-                    
+
 
                     if (pausa)
                     {
@@ -237,7 +248,13 @@ namespace TGC.Group.Model
                 }
 
             }
-            else
+            else if (finDeJuego && !perdiste)
+            {
+                Temporizadores.finDelJuego.reset();
+                Beetle.Explotar();
+                perdiste = true;
+            }
+            else if (Temporizadores.finDelJuego.update(GameModel.ElapsedTime))
             {
                 GameModel.GameState = new EndMenu(GameModel, Pantalla, isWin);
                 this.Dispose();
@@ -291,12 +308,13 @@ namespace TGC.Group.Model
                 }
             }
 
+            Beetle.Render(GameModel.ElapsedTime, Pantalla.AcumuladorPoder, camaraInterna.Position);
+
             PistaNivel.Render(GameModel.Camara.Position, Beetle.position + TGCVector3.Up * 20);
             Pantalla.Render(GameModel.ElapsedTime);
 
             if (disparoActivo)
                 Disparo.Render(GameModel.ElapsedTime, GameModel.Camara.Position, Beetle.position);
-
         }
 
         public void Dispose()

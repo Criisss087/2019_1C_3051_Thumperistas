@@ -24,19 +24,25 @@ namespace TGC.Group.Model
         public TGCVector3 Position { get; set; }
         public TgcBoundingSphere Collider;
         public static float speed = 1800f;
+        public string technique;
 
         private String particleTexturePath;
         private static String particleFileName = "Thumper\\Particles\\pisada.png";
+        private float time;
 
-        public Disparo(String mediaDir, TGCVector3 PosicionInicial)
+        public Disparo(String mediaDir, TGCVector3 PosicionInicial, string Tecnica)
         {
             scene = new TgcSceneLoader().loadSceneFromFile(mediaDir + "/Thumper/Sphere-TgcScene.xml");
+
+            time = 0;
+
+            technique = Tecnica;
 
             foreach (var mesh in scene.Meshes)
             {
                 mesh.AutoTransformEnable = false;
                 mesh.Effect = TGCShaders.Instance.LoadEffect(mediaDir + "ShaderDisparo.fx");
-                mesh.Technique = "RenderScene";
+                mesh.Technique = technique;
             }
 
             Position = PosicionInicial;
@@ -83,8 +89,14 @@ namespace TGC.Group.Model
             {
                 mesh.Transform = Scaling * Rotation * Translation;
 
+                time += ElapsedTime;
+
+                mesh.Technique = technique;
+
                 mesh.Effect.SetValue("PosicionCamara", new Microsoft.DirectX.Vector4(PosicionCamara.X, PosicionCamara.Y, PosicionCamara.Z, 0));
                 mesh.Effect.SetValue("FuenteDeLuz", new Microsoft.DirectX.Vector4(FuenteDeLuz.X, FuenteDeLuz.Y, FuenteDeLuz.Z, 0));
+                mesh.Effect.SetValue("Posicion", new Microsoft.DirectX.Vector4(mesh.Position.X, mesh.Position.Y, mesh.Position.Z, 0));
+                mesh.Effect.SetValue("time", time);
 
                 mesh.Render();
             }
