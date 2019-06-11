@@ -291,7 +291,7 @@ namespace TGC.Group.Model
                 }
             }
 
-            PistaNivel.Render(GameModel.Camara.Position, Beetle.position + TGCVector3.Up * 20);
+            PistaNivel.Render(GameModel.Camara.Position, Beetle.position + TGCVector3.Up * 20,GameModel.ElapsedTime);
             Pantalla.Render(GameModel.ElapsedTime);
 
             if (disparoActivo)

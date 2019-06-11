@@ -22,6 +22,8 @@ namespace TGC.Group
 
     public class Pista
     {
+        Effect efectoTunel;
+        float time;
 
         public List<TgcMesh> SegmentosPista = new List<TgcMesh>();
         public List<TgcMesh> SegmentosTunel = new List<TgcMesh>();
@@ -56,9 +58,15 @@ namespace TGC.Group
         }
 
         public Pista(String _MediaDir, String _ShadersDir)
-        {
+        {        
+            
             this.MediaDir = _MediaDir;
             this.ShadersDir = _ShadersDir;
+
+
+
+            this.efectoTunel = CargarEfecto("TunelShader.fx");
+            this.time = 0;
             generarPista();
         }
 
@@ -396,8 +404,37 @@ namespace TGC.Group
             else return 3;
         }
 
-        public void Render(TGCVector3 posicionCamara,TGCVector3 posicionLuzArbitraria)
+
+        public void RenderTuneles(float time)
         {
+            efectoTunel.SetValue("time", time);
+            foreach (TgcMesh AuxMesh in this.SegmentosTunel)
+            {              
+                AuxMesh.Effect = efectoTunel;
+                AuxMesh.Technique = "Deformacion1";
+                AuxMesh.Render();
+            }
+        }
+
+        Effect CargarEfecto(String nombreEfecto)
+        {
+            string compilationErrors;
+            System.Console.WriteLine(ShadersDir + nombreEfecto);
+            Effect effect = Effect.FromFile(D3DDevice.Instance.Device, this.ShadersDir + nombreEfecto, null, null, ShaderFlags.PreferFlowControl, null, out compilationErrors);
+            if(effect == null)
+            {
+                throw new Exception("Error al cargar shader. Errores: " + compilationErrors);
+            }
+            return effect;
+        }
+
+
+
+        public void Render(TGCVector3 posicionCamara,TGCVector3 posicionLuzArbitraria,float elapsedTime)
+        {
+            time += elapsedTime;
+            RenderTuneles(time);
+
             foreach (Recolectable AuxRec in Recolectables)
             {
                 AuxRec.Render(posicionCamara, posicionLuzArbitraria);
@@ -413,10 +450,7 @@ namespace TGC.Group
 
                 AuxMesh.Render();
             }
-            foreach (TgcMesh AuxMesh in this.SegmentosTunel)
-            {
-                AuxMesh.Render();
-            }
+            
             foreach (Obstaculo AuxMesh in this.Obstaculos)
             {
                 AuxMesh.Render();

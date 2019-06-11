@@ -44,7 +44,6 @@ struct VS_INPUT
     float4 Color : COLOR0;
     float2 Texcoord : TEXCOORD0;
     float3 Normal : NORMAL0;
-    float4 RealPos : TEXCOORD1;
 };
 
 //Output del Vertex Shader
@@ -54,8 +53,7 @@ struct VS_OUTPUT
     float4 RealPos : TEXCOORD3;
 
     float2 Texcoord : TEXCOORD0;
-    float3 Normal : NORMAL0;
-    
+       
     float4 Color : COLOR0;
     float3 WorldNormal : TEXCOORD1;
     float3 LightVec : TEXCOORD2;
@@ -75,9 +73,6 @@ VS_OUTPUT vs_main(VS_INPUT Input)
    
 	//Propago las coordenadas de textura
     Output.Texcoord = Input.Texcoord;
-
-	//Propago la normal
-    Output.Normal = Input.Normal;
 
 	//Propago el color x vertice
     Output.Color = Input.Color;
