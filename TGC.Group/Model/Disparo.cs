@@ -77,11 +77,15 @@ namespace TGC.Group.Model
             return Position;
         }
 
-        public void Render(float ElapsedTime, TGCVector3 PosicionCamara)
+        public void Render(float ElapsedTime, TGCVector3 PosicionCamara, TGCVector3 FuenteDeLuz)
         {
             foreach (var mesh in scene.Meshes)
             {
                 mesh.Transform = Scaling * Rotation * Translation;
+
+                mesh.Effect.SetValue("PosicionCamara", new Microsoft.DirectX.Vector4(PosicionCamara.X, PosicionCamara.Y, PosicionCamara.Z, 0));
+                mesh.Effect.SetValue("FuenteDeLuz", new Microsoft.DirectX.Vector4(FuenteDeLuz.X, FuenteDeLuz.Y, FuenteDeLuz.Z, 0));
+
                 mesh.Render();
             }
 

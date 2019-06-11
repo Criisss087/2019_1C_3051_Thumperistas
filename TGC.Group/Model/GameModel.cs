@@ -280,11 +280,11 @@ namespace TGC.Group.Model
 
 
             
-            PistaNivel.Render(Camara.Position,Beetle.position+TGCVector3.Up*20);
+            PistaNivel.Render(Camara.Position, Beetle.position);
             Pantalla.Render(ElapsedTime);
 			
 			if(disparoActivo)
-				Disparo.Render(ElapsedTime, Camara.Position);
+				Disparo.Render(ElapsedTime, Camara.Position, Beetle.position);
 
             PostRender();
         }
