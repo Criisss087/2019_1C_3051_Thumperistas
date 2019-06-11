@@ -9,7 +9,7 @@ namespace TGC.Group.Model
 {
     public class Reproductor
     {
-        private const string levelPrincipal = "Thumper/Mp3/Thumper OST - Spiral.mp3";
+        private const string levelPrincipal = "Thumper/Mp3/Thumper OST - Pulser.mp3";
         private const string recolectar = "Thumper/Mp3/laserBeat.wav";
         private const string obstaculoDestruido = "Thumper/Mp3/beat.wav";
         private const string curvaTomada = "Thumper/Mp3/Curva.wav";

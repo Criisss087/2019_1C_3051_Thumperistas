@@ -221,14 +221,17 @@ namespace TGC.Group.Model
                 if (Input.keyPressed(Key.Escape))
                 {
                     pausa = !pausa;
+                    
 
                     if (pausa)
                     {
                         Beetle.speed = 0f;
+                        //Reproductor.pausarReproduccion();
                     }
                     else
                     {
                         Beetle.speed = Beetle.VELOCIDAD;
+                        //Reproductor.reanudarReproduccion();
                     }
 
                 }
@@ -292,7 +295,7 @@ namespace TGC.Group.Model
             Pantalla.Render(GameModel.ElapsedTime);
 
             if (disparoActivo)
-                Disparo.Render(GameModel.ElapsedTime);
+                Disparo.Render(GameModel.ElapsedTime, GameModel.Camara.Position, Beetle.position);
 
         }
 

@@ -18,6 +18,7 @@ namespace TGC.Group.Model
 
         private GameModel GameModel;
 
+        private Reproductor Reproductor;
         private Drawer2D drawer;
         private CustomSprite fondo;
         private CustomSprite bloqueTexto;
@@ -40,6 +41,8 @@ namespace TGC.Group.Model
         public StartMenu(GameModel _gameModel)
         {
             GameModel = _gameModel;
+
+            Reproductor = new Reproductor(GameModel.MediaDir, GameModel.DirectSound);
 
             drawer = new Drawer2D();
             fondo = new CustomSprite();
@@ -86,6 +89,7 @@ namespace TGC.Group.Model
             if (Input.keyPressed(Key.DownArrow) || Input.keyPressed(Key.UpArrow))
             {
                 FaseSeleccionada = (FaseSeleccionada == Fase.Start) ? Fase.Exit : Fase.Start;
+                Reproductor.Recolectar();
             }
 
             if (Input.keyPressed(Key.Return))
@@ -139,6 +143,7 @@ namespace TGC.Group.Model
 
             if (isStart)
             {
+                Reproductor.Explosion();
                 GameModel.GameState = new StartGame(GameModel);
                 this.Dispose();
             }
@@ -150,6 +155,7 @@ namespace TGC.Group.Model
             bloqueTexto.Dispose();
             playText.Dispose();
             exitText.Dispose();
+            
         }
 
     }
