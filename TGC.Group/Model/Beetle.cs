@@ -14,7 +14,7 @@ using Effect = Microsoft.DirectX.Direct3D.Effect;
 
 namespace TGC.Group.Model
 {
-    class Beetle
+    public class Beetle
     {
 
         public const float VELOCIDAD_ANGULAR = 15f;
@@ -24,7 +24,7 @@ namespace TGC.Group.Model
         private static float[] ambientColor = new float[] { 10, 10, 10 };
         private static float[] diffuseColor = new float[] { 60, 60, 60 };
         private static float[] specularColor = new float[] { 200, 200, 200 };
-        
+
         private String MediaDir;
         private String ShadersDir;
         private String particleTexturePath;
@@ -120,7 +120,7 @@ namespace TGC.Group.Model
             emitter.CreationFrecuency = 0.1f;
             emitter.Dispersion = 50;
 
-                        
+
             this.speed = 900f;
 
         }
@@ -133,7 +133,7 @@ namespace TGC.Group.Model
                 slide = false;
 
             // Cambie esto para desacelerar y acelerar, para pruebas
-            
+
             if (Input.keyPressed(Key.A))
             {
                 AumentarVelocidad();
@@ -142,7 +142,7 @@ namespace TGC.Group.Model
             {
                 DesvanecerVelocidad(ElapsedTime);
             }
-            
+
 
             // Capturador de Giro
             if (Input.keyDown(Key.LeftArrow))
@@ -186,14 +186,6 @@ namespace TGC.Group.Model
             if (Input.keyPressed(Key.E))
                 GanarEscudo();
 
-            // Para armar un menu de pausa... falta desarrollar
-            if (Input.keyPressed(Key.Escape))
-            {
-                if (speed == 0f)
-                    speed = Beetle.VELOCIDAD;
-                else if (speed == Beetle.VELOCIDAD)
-                    speed = 0f;
-            }
 
         }
 
@@ -234,7 +226,7 @@ namespace TGC.Group.Model
                 }
                 if (TgcCollisionUtils.testSphereOBB(ObjRecoleactable.Collider, colliderRecolectablesWrong))
                 {
-                    if(godMode)
+                    if (godMode)
                     {
                         objetoColisionado = ObjRecoleactable;
                         return TipoColision.Colision;
@@ -243,7 +235,7 @@ namespace TGC.Group.Model
                     {
                         return TipoColision.Error;
                     }
-                        
+
                 }
             }
             return TipoColision.Nada;
@@ -264,11 +256,11 @@ namespace TGC.Group.Model
 
         private TGCVector3 getLigthPos(float ElapsedTime)
         {
-            TGCVector3 ligthPos = new TGCVector3(0,0,0);
+            TGCVector3 ligthPos = new TGCVector3(0, 0, 0);
 
-            float x = FastMath.Abs(FastMath.Cos(time*100)*200);
-            float y = 600f + FastMath.Cos(time*100) *50;
-            
+            float x = FastMath.Abs(FastMath.Cos(time * 100) * 200);
+            float y = 600f + FastMath.Cos(time * 100) * 50;
+
             ligthPos = position + new TGCVector3(x, y, 0);
 
             return ligthPos;
@@ -290,16 +282,16 @@ namespace TGC.Group.Model
                 mesh.Effect.SetValue("eyePosition", TGCVector3.Vector3ToFloat4Array(eyePosition));
                 mesh.Effect.SetValue("ambientColor", ambientColor);
                 mesh.Effect.SetValue("diffuseColor", diffuseColor);
-                mesh.Effect.SetValue("specularColor", specularColor );
+                mesh.Effect.SetValue("specularColor", specularColor);
                 mesh.Effect.SetValue("specularExp", 300f);
 
             }
             beetle.RenderAll();
-            
+
             //Render Colliders para debug
             colliderPista.setRenderColor(Color.Blue);
             //colliderPista.Render();
-            
+
             colliderRecolectablesOk.setRenderColor(Color.Yellow);
             //colliderRecolectablesOk.Render();
 

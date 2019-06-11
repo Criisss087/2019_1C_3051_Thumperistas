@@ -84,6 +84,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Model\Beetle.cs" />
+    <Compile Include="Model\2D\CustomBitmap.cs" />
+    <Compile Include="Model\2D\CustomSprite.cs" />
+    <Compile Include="Model\2D\Drawer2D.cs" />
+    <Compile Include="Model\EndMenu.cs" />
+    <Compile Include="Model\StartGame.cs" />
+    <Compile Include="Model\GameState.cs" />
     <Compile Include="Model\Reproductor.cs" />
     <Compile Include="Model\Disparo.cs" />
     <Compile Include="Model\Obstaculo.cs" />
@@ -102,6 +108,7 @@
       <DependentUpon>Game.settings</DependentUpon>
     </Compile>
     <Compile Include="Model\GameModel.cs" />
+    <Compile Include="Model\StartMenu.cs" />
     <Compile Include="Model\Temporizadores.cs" />
     <Compile Include="Model\TgcRotationalCamera.cs" />
     <Compile Include="Program.cs" />

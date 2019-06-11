@@ -13,10 +13,11 @@ using TGC.Examples.Camara;
 
 namespace TGC.Group.Model
 {
-    public class StartMenu : GameState
+    public class EndMenu : GameState
     {
 
         private GameModel GameModel;
+        private Pantalla Pantalla;
 
         private Drawer2D drawer;
         private CustomSprite fondo;
@@ -35,13 +36,14 @@ namespace TGC.Group.Model
 
         private Fase FaseSeleccionada = Fase.Start;
 
-        public StartMenu(GameModel _gameModel)
+        public EndMenu(GameModel _gameModel, Pantalla _pantalla)
         {
             GameModel = _gameModel;
+            Pantalla = _pantalla;
 
             drawer = new Drawer2D();
             fondo = new CustomSprite();
-            fondo.Bitmap = new CustomBitmap(GameModel.MediaDir + "Screens\\thumper_cover_loop.png", D3DDevice.Instance.Device);
+            fondo.Bitmap = new CustomBitmap(GameModel.MediaDir + "Screens\\purple_tentacles.png", D3DDevice.Instance.Device);
 
             var screenHeight = D3DDevice.Instance.Device.Viewport.Height;
             var screenWidth = D3DDevice.Instance.Device.Viewport.Width;
@@ -52,27 +54,33 @@ namespace TGC.Group.Model
             fondo.Scaling = new TGCVector2(scalingFactorX, scalingFactorY);
             var menuFont = new Font("Arial Black", 30, FontStyle.Bold);
 
+            // Tengo que mover esto al lugar vacio de la imagen
             bloqueTexto = new CustomSprite();
             bloqueTexto.Bitmap = new CustomBitmap(GameModel.MediaDir + "Textures\\bloqueTexto.png", D3DDevice.Instance.Device);
-            bloqueTexto.Color = Color.FromArgb(200, 0, 0, 0);
-            bloqueTexto.Scaling = new TGCVector2(2f, 1.3f);
-            bloqueTexto.Position = new TGCVector2( 
-                (screenWidth - bloqueTexto.Bitmap.Width * bloqueTexto.Scaling.X) /2, // Centro en X
-                screenHeight * 0.575f
+            bloqueTexto.Color = Color.FromArgb(188, 0, 0, 0);
+            bloqueTexto.Scaling = new TGCVector2(1, .1f);
+            bloqueTexto.Position = new TGCVector2(
+                (screenWidth - bloqueTexto.Bitmap.Width * bloqueTexto.Scaling.X) / 2,
+                (screenHeight - bloqueTexto.Bitmap.Height * bloqueTexto.Scaling.Y) / 2
+            );
+
+            bloqueTexto.Position = new TGCVector2(
+                bloqueTexto.Position.X,
+                screenHeight * (3f / 4)
             );
 
             //Play
             playText = new TgcText2D();
-            playText.Text = "Play";
+            playText.Text = "Restart";
             playText.Color = Color.Silver;
-            playText.Position = new Point(0, (int)(screenHeight * 0.6f));
+            playText.Position = new Point(-(int)(screenWidth * 0.194f), (int)(screenHeight * 0.52f));
             playText.changeFont(menuFont);
 
             //Exit
             exitText = new TgcText2D();
             exitText.Text = "Exit";
             exitText.Color = Color.Silver;
-            exitText.Position = new Point(0, (int)(screenHeight * 0.6f) + (int)(0.1f * screenHeight));
+            exitText.Position = new Point(-(int)(screenWidth * 0.194f), (int)(screenHeight * 0.52f) + (int)(0.147f * screenHeight));
             exitText.changeFont(menuFont);
 
             this.GameModel.Camara = new TgcThirdPersonCamera();

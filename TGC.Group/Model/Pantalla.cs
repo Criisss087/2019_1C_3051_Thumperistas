@@ -14,7 +14,7 @@ namespace TGC.Group.Model
     ///     En esta clase vamos a implementar todos los objetos 2D tipo textos o imágenes que se posicionen
     ///     en la pantalla a medida que el nivel avance, sea score, multiplicador, teclas a presionar, etc
     /// </summary>
-    class Pantalla
+    public class Pantalla
     {
         //Datos internos
         private String texturesPath;
@@ -26,38 +26,40 @@ namespace TGC.Group.Model
         public Int32 multiplicador = 1;
         public Int32 AcumuladorAciertos { get; set; } = 0;
         public Int32 AcumuladorEventos { get; set; } = 0;
-		public Int32 AcumuladorPoder { get; set; } = 0;
+        public Int32 AcumuladorPoder { get; set; } = 0;
         public Int32 AcumuladorDisparos { get; set; } = 0;
         public bool Danio { get; set; }
         public Double scoreTemporal { get; set; } = 0;
         public Int32 level { get; set; } = 1;
 
         //Texts
-		//Fase 1
-        public TgcText2D LevelText;		
-		//Fase 2
-		public TgcText2D ScoreText;
-		public TgcText2D AddAciertosText;
-		public TgcText2D AciertosText;
-		public TgcText2D AddMultiplicadorText;
-		public TgcText2D MultiplicadorText;
+        //Fase 1
+        public TgcText2D LevelText;
+        //Fase 2
+        public TgcText2D ScoreText;
+        public TgcText2D AddAciertosText;
+        public TgcText2D AciertosText;
+        public TgcText2D AddMultiplicadorText;
+        public TgcText2D MultiplicadorText;
         public TgcText2D AddDisparosText;
         public TgcText2D DisparosText;
         public TgcText2D AddFallosText;
-		public TgcText2D FallosText;
-		public TgcText2D AddDanioText;
-		public TgcText2D DanioText;
+        public TgcText2D FallosText;
+        public TgcText2D AddDanioText;
+        public TgcText2D DanioText;
         // Fase 3
         public TgcText2D RangoLevelText;
-		public TgcText2D RankText;
-		// Fase 4
+        public TgcText2D RankText;
+        // Fase 4
         public TgcText2D CambioMultiplicadorText;
-		
+
+
+
         public static String font = "Arial Black";
-		private static Int32 PuntosAcierto = 100;
+        private static Int32 PuntosAcierto = 100;
         private static Int32 PuntosSinFallos = 1000;
-		private static Int32 PuntosDisparo = 2500;
-		private static Int32 PuntosSinDanio = 1000;
+        private static Int32 PuntosDisparo = 2500;
+        private static Int32 PuntosSinDanio = 1000;
 
         private static int tamanioSubtitulo = 25;
         private static int tamanioDetalles = 12;
@@ -67,8 +69,8 @@ namespace TGC.Group.Model
             Nada = 0,
             Level = 1,
             Resultados = 2,
-			Rank = 3,
-			CambioMult = 4
+            Rank = 3,
+            CambioMult = 4
         }
 
         public Pantalla(String _mediaDir)
@@ -87,62 +89,62 @@ namespace TGC.Group.Model
             fondo.Init();
 
             // Textos
-			LevelText = nuevoTexto(20,20, tamanioSubtitulo, Color.White); 
-			
-            ScoreText = nuevoTexto(20,20, tamanioSubtitulo, Color.White);         
-			
-			AddAciertosText = nuevoTexto(20,75, tamanioDetalles, Color.Aquamarine); 
-			AciertosText = nuevoTexto(120,75, tamanioDetalles, Color.White);			
-			AddMultiplicadorText = nuevoTexto(20,100, tamanioDetalles, Color.Aquamarine); 
-			MultiplicadorText = nuevoTexto(120,100, tamanioDetalles, Color.White);
+            LevelText = nuevoTexto(20, 20, tamanioSubtitulo, Color.White);
+
+            ScoreText = nuevoTexto(20, 20, tamanioSubtitulo, Color.White);
+
+            AddAciertosText = nuevoTexto(20, 75, tamanioDetalles, Color.Aquamarine);
+            AciertosText = nuevoTexto(120, 75, tamanioDetalles, Color.White);
+            AddMultiplicadorText = nuevoTexto(20, 100, tamanioDetalles, Color.Aquamarine);
+            MultiplicadorText = nuevoTexto(120, 100, tamanioDetalles, Color.White);
             AddDisparosText = nuevoTexto(20, 125, tamanioDetalles, Color.Aquamarine);
             DisparosText = nuevoTexto(120, 125, tamanioDetalles, Color.White);
-            AddFallosText = nuevoTexto(20,150, tamanioDetalles, Color.Aquamarine); 
-			FallosText = nuevoTexto(120,150, tamanioDetalles, Color.White); 
-			AddDanioText = nuevoTexto(20,175, tamanioDetalles, Color.Aquamarine); 
-			DanioText = nuevoTexto(120,175, tamanioDetalles, Color.White);            
-            
+            AddFallosText = nuevoTexto(20, 150, tamanioDetalles, Color.Aquamarine);
+            FallosText = nuevoTexto(120, 150, tamanioDetalles, Color.White);
+            AddDanioText = nuevoTexto(20, 175, tamanioDetalles, Color.Aquamarine);
+            DanioText = nuevoTexto(120, 175, tamanioDetalles, Color.White);
+
             MultiplicadorText.Text = "Multiplicador";
             AddFallosText.Text = "+" + PuntosSinFallos.ToString();
             FallosText.Text = "Sin Fallos";
             AddDanioText.Text = "+" + PuntosSinDanio.ToString();
             DanioText.Text = "Sin Daño";
             AddDisparosText.Text = "+" + PuntosDisparo.ToString();
-            
-            RangoLevelText = nuevoTexto(20,65, 20, Color.Yellow); 
-			RankText = nuevoTexto(50,75, tamanioDetalles, Color.White);
+
+            RangoLevelText = nuevoTexto(20, 65, 20, Color.Yellow);
+            RankText = nuevoTexto(50, 75, tamanioDetalles, Color.White);
 
             RangoLevelText.Text = "S";
             RankText.Text = "Rank";
 
-            CambioMultiplicadorText = nuevoTexto(1200,100, tamanioSubtitulo, Color.Red);
+            CambioMultiplicadorText = nuevoTexto(1200, 100, tamanioSubtitulo, Color.Red);
             CambioMultiplicadorText.Text = "x1";
         }
-		
-		private TgcText2D nuevoTexto(int x, int y, int tamanio, Color color)
-		{
-			TgcText2D text = new TgcText2D();
+
+        private TgcText2D nuevoTexto(int x, int y, int tamanio, Color color)
+        {
+            TgcText2D text = new TgcText2D();
             text.Color = color;
             text.Align = TgcText2D.TextAlign.LEFT;
             text.Position = new Point(x, y);
             text.Size = new Size(300, 100);
             text.changeFont(new Font(font, tamanio, FontStyle.Bold));
-            			
-			return text;
-		}
+
+            return text;
+        }
 
         public bool Acierto()
         {
             AcumuladorAciertos++;
             AcumuladorEventos++;
-			AcumuladorPoder++;
+            AcumuladorPoder++;
 
             if ((AcumuladorAciertos % 5 == 0) && (Multiplicador < 8))
             {
                 CambioMultiplicadorText.Color = Color.White;
                 Multiplicador++;
             }
-                
+
 
             return FinDeNivel();
         }
@@ -151,12 +153,12 @@ namespace TGC.Group.Model
         {
             CambioMultiplicadorText.Color = Color.Red;
 
-            if(Multiplicador!= 1)
-                Multiplicador = 1;  
+            if (Multiplicador != 1)
+                Multiplicador = 1;
 
             //AcumuladorAciertos = 0;
             AcumuladorEventos++;
-            
+
             return FinDeNivel();
         }
 
@@ -170,8 +172,8 @@ namespace TGC.Group.Model
 
                 return true;
             }
-			
-			return false;
+
+            return false;
         }
 
         private String obtenerRango()
@@ -182,7 +184,7 @@ namespace TGC.Group.Model
             {
                 R = "D";
                 RangoLevelText.Color = Color.Red;
-            }                
+            }
             else if (AcumuladorAciertos < 10)
             {
                 R = "C";
@@ -229,7 +231,7 @@ namespace TGC.Group.Model
             AddMultiplicadorText.Text = "x" + Multiplicador.ToString();
             DisparosText.Text = "x" + AcumuladorDisparos.ToString();
 
-            scoreTemporal *=   multiplicador;
+            scoreTemporal *= multiplicador;
             scoreTemporal += AcumuladorDisparos * PuntosDisparo;
 
             if (AcumuladorAciertos >= 20)
@@ -247,7 +249,7 @@ namespace TGC.Group.Model
             Puntuaciones.Add(level + 1, scoreTemporal);
             Rangos.Add(level + 1, obtenerRango());
             Score += scoreTemporal;
-            
+
         }
 
         public void restartLevel()
@@ -271,7 +273,7 @@ namespace TGC.Group.Model
                 AddMultiplicadorText.render();
                 MultiplicadorText.render();
 
-                if(AcumuladorDisparos > 0)
+                if (AcumuladorDisparos > 0)
                 {
                     AddDisparosText.render();
                     DisparosText.render();
@@ -288,7 +290,7 @@ namespace TGC.Group.Model
                     AddDanioText.render();
                     DanioText.render();
                 }
-                
+
             }
 
             if (!Temporizadores.textRank.update(ElapsedTime))
@@ -304,7 +306,7 @@ namespace TGC.Group.Model
                 LevelText.Text = "Level 1-" + level.ToString();
                 LevelText.render();
             }
-            
+
             if (!Temporizadores.textCambioMult.update(ElapsedTime))
             {
                 CambioMultiplicadorText.render();
