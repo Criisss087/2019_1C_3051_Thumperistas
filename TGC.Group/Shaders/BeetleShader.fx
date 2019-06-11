@@ -171,7 +171,7 @@ VS_OUTPUT vs_explosivo(VS_INPUT Input)
 {
     VS_OUTPUT Output;
 
-    Output.RealPos = float4(100 * sin(time) * Input.Position.x, 100 * sin(time) * Input.Position.y, 100 * sin(time) * Input.Position.z, 1);
+    Output.RealPos = float4(5 * sin(time) * Input.Position.x, 5 * sin(time) * Input.Position.y, 5 * sin(time) * Input.Position.z, 1);
 
     Output.Position = mul(Output.RealPos, matWorldViewProj);
 
