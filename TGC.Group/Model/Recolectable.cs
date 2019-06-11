@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Drawing;
+using Microsoft.DirectX.Direct3D;
 using TGC.Core.BoundingVolumes;
+using TGC.Core.Geometry;
 using TGC.Core.Mathematica;
 using TGC.Core.SceneLoader;
-
-
+using TGC.Core.Shaders;
 
 namespace TGC.Group.Model
 {
@@ -25,6 +27,8 @@ namespace TGC.Group.Model
             foreach (var mesh in scene.Meshes)
             {
                 mesh.AutoTransformEnable = false;
+                mesh.Effect = TGCShaders.Instance.LoadEffect(mediaDir + "ShaderRecolectable.fx");
+                mesh.Technique = "RenderScene";
             }
 
             Rotation = TGCMatrix.Identity;
@@ -51,14 +55,18 @@ namespace TGC.Group.Model
         }
 
 
-        public void Render()
+        public void Render(TGCVector3 PosicionCamara, TGCVector3 FuenteDeLuz)
         {
             foreach (var mesh in scene.Meshes)
             {
                 mesh.Transform = Scaling * Rotation * Translation;
+
+                mesh.Effect.SetValue("PosicionCamara", new Microsoft.DirectX.Vector4(PosicionCamara.X, PosicionCamara.Y, PosicionCamara.Z, 0));
+                mesh.Effect.SetValue("FuenteDeLuz", new Microsoft.DirectX.Vector4(FuenteDeLuz.X, FuenteDeLuz.Y, FuenteDeLuz.Z, 0));
+
                 mesh.Render();
             }
-            Collider.Render();
+            //Collider.Render();
         }
 
     }

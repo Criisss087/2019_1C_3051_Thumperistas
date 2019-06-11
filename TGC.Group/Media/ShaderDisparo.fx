@@ -60,7 +60,7 @@ VS_OUTPUT vs_main(VS_INPUT Input)
 
 float4 ps_main(VS_OUTPUT Input) : COLOR0
 {
-    float4 ColorBase = float4(1, 1, 0, 1);
+    float4 ColorBase = float4(0, 1, 0, 1);
 
     float4 ColorIluminacion = float4(1, 1, 1, 1);
 

@@ -78,7 +78,9 @@ namespace TGC.Group.Model
         {
             PreRender();
             ClearTextures();
+
             GameState.Render();
+
             PostRender();
         }
 

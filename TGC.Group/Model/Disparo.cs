@@ -1,13 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.DirectX.Direct3D;
 using TGC.Core.BoundingVolumes;
 using TGC.Core.Direct3D;
 using TGC.Core.Mathematica;
 using TGC.Core.Particle;
 using TGC.Core.SceneLoader;
+using TGC.Core.Shaders;
 
 namespace TGC.Group.Model
 {
@@ -32,6 +35,8 @@ namespace TGC.Group.Model
             foreach (var mesh in scene.Meshes)
             {
                 mesh.AutoTransformEnable = false;
+                mesh.Effect = TGCShaders.Instance.LoadEffect(mediaDir + "ShaderDisparo.fx");
+                mesh.Technique = "RenderScene";
             }
 
             Position = PosicionInicial;
@@ -72,11 +77,15 @@ namespace TGC.Group.Model
             return Position;
         }
 
-        public void Render(float ElapsedTime)
+        public void Render(float ElapsedTime, TGCVector3 PosicionCamara, TGCVector3 FuenteDeLuz)
         {
             foreach (var mesh in scene.Meshes)
             {
                 mesh.Transform = Scaling * Rotation * Translation;
+
+                mesh.Effect.SetValue("PosicionCamara", new Microsoft.DirectX.Vector4(PosicionCamara.X, PosicionCamara.Y, PosicionCamara.Z, 0));
+                mesh.Effect.SetValue("FuenteDeLuz", new Microsoft.DirectX.Vector4(FuenteDeLuz.X, FuenteDeLuz.Y, FuenteDeLuz.Z, 0));
+
                 mesh.Render();
             }
 
