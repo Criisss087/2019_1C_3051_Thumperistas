@@ -20,8 +20,8 @@ namespace TGC.Group.Model
         private String texturesPath;
         private TgcSkyBox fondo;
         private Double score = 0;
-        private Dictionary<int, Double> Puntuaciones = new Dictionary<int, Double>();
-        private Dictionary<int, String> Rangos = new Dictionary<int, String>();
+        public Dictionary<int, Double> Puntuaciones = new Dictionary<int, Double>();
+        public Dictionary<int, String> Rangos = new Dictionary<int, String>();
 
         public Int32 multiplicador = 1;
         public Int32 AcumuladorAciertos { get; set; } = 0;
@@ -156,7 +156,6 @@ namespace TGC.Group.Model
             if (Multiplicador != 1)
                 Multiplicador = 1;
 
-            //AcumuladorAciertos = 0;
             AcumuladorEventos++;
 
             return FinDeNivel();
@@ -164,7 +163,7 @@ namespace TGC.Group.Model
 
         private bool FinDeNivel()
         {
-            if (AcumuladorEventos > 20)
+            if (AcumuladorEventos >= 20)
             {
                 AcumuladorEventos = 0;
                 level++;
@@ -208,11 +207,6 @@ namespace TGC.Group.Model
 
             return R;
 
-        }
-
-        private void FinDeJuego()
-        {
-            //Implementar
         }
 
         public void Update(TGCVector3 posicionCamara)

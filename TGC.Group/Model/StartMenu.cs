@@ -24,6 +24,8 @@ namespace TGC.Group.Model
         private TgcText2D playText;
         private TgcText2D exitText;
 
+        private int screenWidth;
+        private int screenHeight;
         private bool isStart = false;
         private bool isExit = false;
 
@@ -43,10 +45,8 @@ namespace TGC.Group.Model
             fondo = new CustomSprite();
             fondo.Bitmap = new CustomBitmap(GameModel.MediaDir + "Screens\\thumper_cover_loop.png", D3DDevice.Instance.Device);
 
-            var screenHeight = D3DDevice.Instance.Device.Viewport.Height;
-            var screenWidth = D3DDevice.Instance.Device.Viewport.Width;
-            Size maxSize = new Size(1920, 1017);
-
+            screenHeight = D3DDevice.Instance.Device.Viewport.Height;
+            screenWidth = D3DDevice.Instance.Device.Viewport.Width;
             var scalingFactorX = (float)screenWidth / (float)fondo.Bitmap.Width;
             var scalingFactorY = (float)screenHeight / (float)fondo.Bitmap.Height;
             fondo.Scaling = new TGCVector2(scalingFactorX, scalingFactorY);

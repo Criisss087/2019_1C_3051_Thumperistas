@@ -47,6 +47,7 @@ namespace TGC.Group.Model
         private bool finDeJuego { get; set; }
         private bool soloPista { get; set; }
         private bool pausa { get; set; } = false;
+        private bool isWin = false;
 
         public float posX = 0, posY = 0;
         public TGCVector3 posicionFinal = new TGCVector3(0, 0, 0);
@@ -211,7 +212,6 @@ namespace TGC.Group.Model
                     {
                         Reproductor.Explosion();
                         disparoActivo = false;
-                        Pantalla.scoreTemporal += 1000;
                     }
                 }
 
@@ -236,7 +236,7 @@ namespace TGC.Group.Model
             }
             else
             {
-                GameModel.GameState = new EndMenu(GameModel, Pantalla);
+                GameModel.GameState = new EndMenu(GameModel, Pantalla, isWin);
                 this.Dispose();
             }
 
@@ -354,7 +354,6 @@ namespace TGC.Group.Model
                     // Cambiar sonido por obstaculo destruido
                     Reproductor.ObstaculoDestruido();
 
-                    // Emitir particulas?
                     PistaNivel.Obstaculos.Remove(objetoColisionado);
                     finDeNivel = Pantalla.Acierto();
                 }
@@ -379,10 +378,6 @@ namespace TGC.Group.Model
             if (Temporizadores.finDeNivel.update(GameModel.ElapsedTime))
             {
                 soloPista = false;
-                if (Pantalla.level > 6)
-                {
-                    finDeJuego = true;
-                }
             }
 
             curvaActiva = !Temporizadores.curvaOk.update(GameModel.ElapsedTime);
@@ -404,6 +399,11 @@ namespace TGC.Group.Model
                 {
                     Temporizadores.textNextLvl.reset();
                     Pantalla.restartLevel();
+                    if (Pantalla.level > 5)
+                    {
+                        finDeJuego = true;
+                        isWin = true;
+                    }
                 }
 
             }

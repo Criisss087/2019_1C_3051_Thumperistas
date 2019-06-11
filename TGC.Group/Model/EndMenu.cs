@@ -22,9 +22,17 @@ namespace TGC.Group.Model
         private Drawer2D drawer;
         private CustomSprite fondo;
         private CustomSprite bloqueTexto;
+        private CustomSprite bloqueMenu;
+        private TgcText2D resultText;
         private TgcText2D playText;
         private TgcText2D exitText;
 
+        private TgcText2D levelText;
+        private TgcText2D scoreText;
+        private TgcText2D rankText;
+
+        private int screenWidth;
+        private int screenHeight;
         private bool isStart = false;
         private bool isExit = false;
 
@@ -36,7 +44,7 @@ namespace TGC.Group.Model
 
         private Fase FaseSeleccionada = Fase.Start;
 
-        public EndMenu(GameModel _gameModel, Pantalla _pantalla)
+        public EndMenu(GameModel _gameModel, Pantalla _pantalla, bool win)
         {
             GameModel = _gameModel;
             Pantalla = _pantalla;
@@ -45,43 +53,72 @@ namespace TGC.Group.Model
             fondo = new CustomSprite();
             fondo.Bitmap = new CustomBitmap(GameModel.MediaDir + "Screens\\purple_tentacles.png", D3DDevice.Instance.Device);
 
-            var screenHeight = D3DDevice.Instance.Device.Viewport.Height;
-            var screenWidth = D3DDevice.Instance.Device.Viewport.Width;
-            Size maxSize = new Size(1920, 1017);
+            screenHeight = D3DDevice.Instance.Device.Viewport.Height;
+            screenWidth = D3DDevice.Instance.Device.Viewport.Width;
 
             var scalingFactorX = (float)screenWidth / (float)fondo.Bitmap.Width;
             var scalingFactorY = (float)screenHeight / (float)fondo.Bitmap.Height;
             fondo.Scaling = new TGCVector2(scalingFactorX, scalingFactorY);
             var menuFont = new Font("Arial Black", 30, FontStyle.Bold);
 
-            // Tengo que mover esto al lugar vacio de la imagen
             bloqueTexto = new CustomSprite();
             bloqueTexto.Bitmap = new CustomBitmap(GameModel.MediaDir + "Textures\\bloqueTexto.png", D3DDevice.Instance.Device);
-            bloqueTexto.Color = Color.FromArgb(188, 0, 0, 0);
-            bloqueTexto.Scaling = new TGCVector2(1, .1f);
+            bloqueTexto.Color = Color.FromArgb(200, 0, 0, 0);
+            bloqueTexto.Scaling = new TGCVector2(4.5f, 4f);
             bloqueTexto.Position = new TGCVector2(
-                (screenWidth - bloqueTexto.Bitmap.Width * bloqueTexto.Scaling.X) / 2,
+                (screenWidth - bloqueTexto.Bitmap.Width * bloqueTexto.Scaling.X) * 0.88f,
                 (screenHeight - bloqueTexto.Bitmap.Height * bloqueTexto.Scaling.Y) / 2
             );
-
-            bloqueTexto.Position = new TGCVector2(
-                bloqueTexto.Position.X,
-                screenHeight * (3f / 4)
+            
+            bloqueMenu = new CustomSprite();
+            bloqueMenu.Bitmap = new CustomBitmap(GameModel.MediaDir + "Textures\\bloqueTexto.png", D3DDevice.Instance.Device);
+            bloqueMenu.Color = Color.FromArgb(200, 0, 0, 0);
+            bloqueMenu.Scaling = new TGCVector2(2.5f, 1.3f);
+            bloqueMenu.Position = new TGCVector2(
+                screenWidth  * 0.105f,
+                screenHeight * 0.28f
             );
 
-            //Play
+            //Result
+            resultText = new TgcText2D();
+            if(win)
+            {
+                resultText.Text = "¡You Win!";
+                resultText.Color = Color.Yellow;
+            }
+            else
+            {
+                resultText.Text = "Game Over";
+                resultText.Color = Color.Red;
+            }                        
+            resultText.Position = new Point(-(int)(screenWidth * 0.28f), (int)(screenHeight * 0.15f));
+            resultText.changeFont(new Font("Arial Black", 40, FontStyle.Bold));
+
+            //Restart
             playText = new TgcText2D();
             playText.Text = "Restart";
             playText.Color = Color.Silver;
-            playText.Position = new Point(-(int)(screenWidth * 0.194f), (int)(screenHeight * 0.52f));
+            playText.Position = new Point(-(int)(screenWidth * 0.28f), (int)(screenHeight * 0.3f));
             playText.changeFont(menuFont);
 
             //Exit
             exitText = new TgcText2D();
             exitText.Text = "Exit";
             exitText.Color = Color.Silver;
-            exitText.Position = new Point(-(int)(screenWidth * 0.194f), (int)(screenHeight * 0.52f) + (int)(0.147f * screenHeight));
+            exitText.Position = new Point(-(int)(screenWidth * 0.28f), (int)(screenHeight * 0.3f) + (int)(0.1f * screenHeight));
             exitText.changeFont(menuFont);
+
+            var tableFont = new Font("Arial Black", 17, FontStyle.Bold);
+
+            levelText = new TgcText2D();
+            levelText.changeFont(tableFont);
+            scoreText = new TgcText2D();
+            scoreText.changeFont(tableFont);
+            rankText = new TgcText2D();
+            rankText.changeFont(tableFont);
+            levelText.Color = Color.Silver;
+            scoreText.Color = Color.Silver;
+            rankText.Color = Color.Silver;
 
             this.GameModel.Camara = new TgcThirdPersonCamera();
 
@@ -138,9 +175,61 @@ namespace TGC.Group.Model
 
             drawer.DrawSprite(fondo);
             drawer.DrawSprite(bloqueTexto);
+            drawer.DrawSprite(bloqueMenu);
 
             drawer.EndDrawSprite();
 
+            // Dibuja la tabla con los mismos textos
+            scoreText.Text = "Score";
+            rankText.Text = "Rank";
+            rankText.Color = Color.White;
+
+            scoreText.Position = new Point((int)(screenWidth * 0.2f), (int)(screenHeight * 0.18f));
+            rankText.Position = new Point((int)(screenWidth * 0.35f), (int)(screenHeight * 0.18f));
+            scoreText.render();
+            rankText.render();
+
+            float heightAdd = 0f;
+
+            for (int i = 0; i < Pantalla.Puntuaciones.Count ;i++)
+            {
+                scoreText.Text = Pantalla.Puntuaciones[Pantalla.Puntuaciones.Keys.ElementAt(i)].ToString();
+                rankText.Text = Pantalla.Rangos[Pantalla.Rangos.Keys.ElementAt(i)].ToString();
+
+                rankText.Color = getRankColor(rankText);
+
+                levelText.Text = "Level 1-" + Pantalla.Puntuaciones.Keys.ElementAt(i).ToString();
+
+                heightAdd += 0.09f;
+
+                scoreText.Position = new Point((int)(screenWidth * 0.2f), (int)(screenHeight * 0.18f) + (int)(screenHeight * heightAdd));
+                rankText.Position = new Point((int)(screenWidth * 0.35f), (int)(screenHeight * 0.18f) + (int)(screenHeight * heightAdd));
+                levelText.Position = new Point((int)(screenWidth * 0.083f), (int)(screenHeight * 0.18f) + (int)(screenHeight * heightAdd));
+
+                scoreText.render();
+                rankText.render();
+                levelText.render();
+
+            }
+
+            double sum = 0;
+
+            foreach(KeyValuePair<int, double> item in Pantalla.Puntuaciones)
+            {
+                sum += item.Value;
+            }
+
+            levelText.Text = "TOTAL";
+            scoreText.Text = sum.ToString();
+
+            heightAdd += 0.09f;
+
+            scoreText.Position = new Point((int)(screenWidth * 0.2f), (int)(screenHeight * 0.18f) + (int)(screenHeight * heightAdd));
+            levelText.Position = new Point((int)(screenWidth * 0.083f), (int)(screenHeight * 0.18f) + (int)(screenHeight * heightAdd));
+            scoreText.render();
+            levelText.render();
+
+            resultText.render();
             playText.render();
             exitText.render();
 
@@ -152,12 +241,27 @@ namespace TGC.Group.Model
             }
         }
 
+        private Color getRankColor(TgcText2D rankText)
+        {
+            Color returnColor = Color.White;
+
+            if(rankText.Text == "S")
+                returnColor = Color.Yellow;
+
+            if (rankText.Text == "D")
+                returnColor = Color.Red;
+
+            return returnColor;
+        }
+
         public void Dispose()
         {
             fondo.Dispose();
             bloqueTexto.Dispose();
             playText.Dispose();
             exitText.Dispose();
+
+
         }
 
     }
