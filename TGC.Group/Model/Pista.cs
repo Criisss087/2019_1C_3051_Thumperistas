@@ -437,7 +437,7 @@ namespace TGC.Group
 
             foreach (Recolectable AuxRec in Recolectables)
             {
-                AuxRec.Render(posicionCamara, posicionLuzArbitraria);
+                AuxRec.Render(posicionCamara, posicionLuzArbitraria, elapsedTime);
             }
             foreach (TgcMesh AuxMesh in this.SegmentosPista)
             {
@@ -475,6 +475,15 @@ namespace TGC.Group
                 AuxMesh.Dispose();
             }
 
+        }
+
+        public void Recolectado(TGCVector3 Posicion)
+        {
+            foreach (var AuxRec in Recolectables)
+            {
+                if (Math.Abs(AuxRec.Position.Z) + 10 < Posicion.Z)
+                    AuxRec.technique = "Recolectado";
+            }
         }
 
     }

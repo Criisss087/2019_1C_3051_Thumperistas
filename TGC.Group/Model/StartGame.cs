@@ -91,6 +91,9 @@ namespace TGC.Group.Model
 
             var Input = GameModel.Input;
 
+            if (Input.keyPressed(Key.Space) || Beetle.godMode)
+                PistaNivel.Recolectado(Beetle.position);
+
             if (!finDeJuego)
             {
                 // Cuando llego al final de la pista, se actualiza, el rango de vision es alrededor de 2500 Z
@@ -348,7 +351,7 @@ namespace TGC.Group.Model
                         Beetle.GanarEscudo();
                     }
 
-                    PistaNivel.Recolectables.Remove(recolectableColisionado);
+                    //PistaNivel.Recolectables.Remove(recolectableColisionado);
                     finDeNivel = Pantalla.Acierto();
                 }
 
@@ -358,7 +361,7 @@ namespace TGC.Group.Model
                 if (!recolectableActivo)
                 {
                     Reproductor.NoRecolectar();
-                    PistaNivel.Recolectables.Remove(recolectableColisionado);
+                    //PistaNivel.Recolectables.Remove(recolectableColisionado);
                     finDeNivel = Pantalla.Error();
                     Temporizadores.recolectableOk.reset();
                 }

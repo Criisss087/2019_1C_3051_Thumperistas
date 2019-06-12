@@ -18,17 +18,23 @@ namespace TGC.Group.Model
         public TGCMatrix Rotation { get; set; }
         public TGCVector3 Position { get; set; }
         public TgcBoundingSphere Collider;
+        public float time;
+        public string technique;
 
         public Recolectable(String mediaDir, TGCVector3 PosicionInicial)
         {
             scene = new TgcSceneLoader().loadSceneFromFile(mediaDir + "/Thumper/Sphere-TgcScene.xml");
+
+            time = 0;
+
+            technique = "RenderScene";
 
             //cambios iniciales
             foreach (var mesh in scene.Meshes)
             {
                 mesh.AutoTransformEnable = false;
                 mesh.Effect = TGCShaders.Instance.LoadEffect(mediaDir + "ShaderRecolectable.fx");
-                mesh.Technique = "RenderScene";
+                mesh.Technique = technique;
             }
 
             Rotation = TGCMatrix.Identity;
@@ -55,14 +61,19 @@ namespace TGC.Group.Model
         }
 
 
-        public void Render(TGCVector3 PosicionCamara, TGCVector3 FuenteDeLuz)
+        public void Render(TGCVector3 PosicionCamara, TGCVector3 FuenteDeLuz, float ElapsedTime)
         {
+            time += ElapsedTime;
+
             foreach (var mesh in scene.Meshes)
             {
                 mesh.Transform = Scaling * Rotation * Translation;
 
+                mesh.Technique = technique;
+
                 mesh.Effect.SetValue("PosicionCamara", new Microsoft.DirectX.Vector4(PosicionCamara.X, PosicionCamara.Y, PosicionCamara.Z, 0));
                 mesh.Effect.SetValue("FuenteDeLuz", new Microsoft.DirectX.Vector4(FuenteDeLuz.X, FuenteDeLuz.Y, FuenteDeLuz.Z, 0));
+                mesh.Effect.SetValue("time", time);
 
                 mesh.Render();
             }
