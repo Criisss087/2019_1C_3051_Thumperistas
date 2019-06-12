@@ -411,7 +411,16 @@ namespace TGC.Group
             foreach (TgcMesh AuxMesh in this.SegmentosTunel)
             {              
                 AuxMesh.Effect = efectoTunel;
-                AuxMesh.Technique = "Deformacion1";
+                AuxMesh.Technique = "Deformacion2";
+                AuxMesh.Render();
+            }
+        }
+
+        void RenderPiso(TGCVector3 posicionLuzArbitraria)
+        {
+            foreach (TgcMesh AuxMesh in this.SegmentosPista)
+            {
+                AuxMesh.Effect.SetValue("lightPos", TGCVector3.Vector3ToVector4(posicionLuzArbitraria));
                 AuxMesh.Render();
             }
         }
@@ -433,23 +442,14 @@ namespace TGC.Group
         public void Render(TGCVector3 posicionCamara,TGCVector3 posicionLuzArbitraria,float elapsedTime)
         {
             time += elapsedTime;
+            RenderPiso(posicionLuzArbitraria);
             RenderTuneles(time);
 
             foreach (Recolectable AuxRec in Recolectables)
             {
                 AuxRec.Render(posicionCamara, posicionLuzArbitraria);
             }
-            foreach (TgcMesh AuxMesh in this.SegmentosPista)
-            {
-
-                Microsoft.DirectX.Vector4 posicionCamaraEnV4 = new Microsoft.DirectX.Vector4(posicionCamara.X, posicionCamara.Y, posicionCamara.Z, 0);
-                
-                AuxMesh.Effect.SetValue("viewPos",posicionCamaraEnV4);
-                AuxMesh.Effect.SetValue("lightPos", new Microsoft.DirectX.Vector4(posicionLuzArbitraria.X, posicionLuzArbitraria.Y, posicionLuzArbitraria.Z, 0));
-                
-
-                AuxMesh.Render();
-            }
+           
             
             foreach (Obstaculo AuxMesh in this.Obstaculos)
             {

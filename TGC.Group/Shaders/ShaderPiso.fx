@@ -12,7 +12,7 @@ float4x4 matWorldView; //Matriz World * View
 float4x4 matWorldViewProj; //Matriz World * View * Projection
 float4x4 matInverseTransposeWorld; //Matriz Transpose(Invert(World))
 
-float4 viewPos;
+
 float4 lightPos;
 
 float screen_dx = 1024;
@@ -85,7 +85,7 @@ VS_OUTPUT vs_main(VS_INPUT Input)
     return (Output);
 }
 
-float frecuencia = 10;
+// float frecuencia = 10;
 //Pixel Shader
 float4 ps_main(VS_OUTPUT Input) : COLOR0
 {
@@ -93,24 +93,24 @@ float4 ps_main(VS_OUTPUT Input) : COLOR0
 
     float4 colorIluminacion = float4(1, 1, 1, 1);
 
-    float4 ambientLight = 0.1 * colorIluminacion;
+    // float4 ambientLight = 0.1 * colorIluminacion;
     
     // //R = 2 * N * (N dot L) - L
 
-    float3 realViewPos = mul(viewPos.xyz, matWorld);
+    // float3 realViewPos = mul(viewPos.xyz, matWorld);
     float3 realLightVec = mul(Input.LightVec.xyz, matWorld);
 
     float3 N = normalize(Input.WorldNormal);
     float3 L = normalize(realLightVec);
-    float3 R = normalize(2 * N * dot(N, L) - L);
-    float3 V = normalize(realViewPos - Input.RealPos.xyz);
+    // float3 R = normalize(2 * N * dot(N, L) - L);
+    // float3 V = normalize(realViewPos - Input.RealPos.xyz);
 
-    float4 specularLight = 0.3 * float4(1, 1, 1, 1) * max(pow(dot(R, V), 100), 0) * length(Input.Color);
+    // float4 specularLight = 0.3 * float4(1, 1, 1, 1) * max(pow(dot(R, V), 100), 0) * length(Input.Color);
 
 
-    float4 diffuseLight = 0.4 * colorIluminacion * dot(N, L);
+    float4 diffuseLight = 0.8 * colorIluminacion * dot(N, L);
 
-    float4 light = diffuseLight + specularLight + ambientLight;
+    // float4 light = diffuseLight + specularLight + ambientLight;
 
     return diffuseLight + colorBase;
 	
