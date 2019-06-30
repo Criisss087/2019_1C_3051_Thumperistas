@@ -207,7 +207,8 @@ namespace TGC.Group.Model
 
                 rankText.Color = getRankColor(rankText);
 
-                levelText.Text = "Level 1-" + Pantalla.Puntuaciones.Keys.ElementAt(i).ToString();
+                var level = Pantalla.Puntuaciones.Keys.ElementAt(i) - 2;
+                levelText.Text = "Level 1-" + level.ToString();
 
                 heightAdd += 0.09f;
 

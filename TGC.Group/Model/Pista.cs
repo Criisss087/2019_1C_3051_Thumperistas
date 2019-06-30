@@ -351,6 +351,11 @@ namespace TGC.Group
 
             TgcMesh pisoMesh = piso.ToMesh("piso");
 
+            Effect effect = TGCShaders.Instance.LoadEffect(ShadersDir + "ShaderPista.fx");
+
+            pisoMesh.Effect = effect;
+            pisoMesh.Technique = "RenderScene";
+            
             pisoMesh.addDiffuseMap(texturaPiso);
 
             pisoMesh.AutoUpdateBoundingBox = false;
@@ -412,19 +417,18 @@ namespace TGC.Group
         public void renderizoTodosLosSegmentos(string Technique, Effect efectoPiso, TGCVector3 posicionCamara, TGCVector3 posicionLuzArbitraria)
         {
 
-            RenderPista(Technique, efectoPiso);
+            RenderPista(posicionLuzArbitraria);
             
             RenderRecolectables(posicionCamara, posicionLuzArbitraria);
             RenderObstaculos();
 
         }
 
-        public void RenderPista(string Technique, Effect efectoPiso)
+        public void RenderPista(TGCVector3 posicionLuzArbitraria)
         {
             foreach (TgcMesh AuxMesh in this.SegmentosPista)
             {
-                AuxMesh.Effect = efectoPiso;
-                AuxMesh.Technique = Technique;
+                AuxMesh.Effect.SetValue("lightPos", TGCVector3.Vector3ToVector4(posicionLuzArbitraria));
                 AuxMesh.Render();
             }
         }
