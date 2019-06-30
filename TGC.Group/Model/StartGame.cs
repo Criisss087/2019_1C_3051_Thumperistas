@@ -18,6 +18,7 @@ using System.Threading;
 using TGC.Core.Interpolation;
 using TGC.Core.Utils;
 using TGC.Core.Text;
+using Effect = Microsoft.DirectX.Direct3D.Effect;
 
 namespace TGC.Group.Model
 {
@@ -57,6 +58,14 @@ namespace TGC.Group.Model
         private Random rnd = new Random();
         private bool perdiste = false;
 
+        // Post Proccess
+        private Texture g_pRenderTarget, g_pRenderTarget4, g_pRenderTarget4Aux, g_pGlowMap;
+        private Texture g_pVel1, g_pVel2; 
+        private Surface g_pDepthStencil;
+        private VertexBuffer g_pVBV3D;
+        private TGCMatrix antMatWorldView;
+        private Effect efectoPiso;
+
         public StartGame(GameModel _gameModel)
         {
             GameModel = _gameModel;
@@ -80,6 +89,8 @@ namespace TGC.Group.Model
             Reproductor.ReproducirLevelPrincipal();
             camaraInterna = new TgcThirdPersonCamera(Beetle.position, 20f, -100f);
             GameModel.Camara = camaraInterna;
+
+            efectoPiso = CargoShaderPiso();
 
             D3DDevice.Instance.ParticlesEnabled = true;
             D3DDevice.Instance.EnableParticles();
@@ -215,7 +226,7 @@ namespace TGC.Group.Model
                     if (dist.Z - Beetle.position.Z > 2000 && !reproductor)
                     {
                         Reproductor.Explosion();
-                        Disparo.technique = "Explosiva";
+                        //Disparo.technique = "Explosiva";
                         reproductor = true;
                     }
 
@@ -262,7 +273,344 @@ namespace TGC.Group.Model
 
         }
 
-        public void Render()
+        public Effect CargoShaderPiso()
+        {
+            string compilationErrors;
+            var d3dDevice = D3DDevice.Instance.Device;
+
+            Effect effect = Effect.FromFile(D3DDevice.Instance.Device, GameModel.ShadersDir + "ShaderPiso.fx", null, null, ShaderFlags.PreferFlowControl, null, out compilationErrors);
+            if (effect == null)
+            {
+                throw new Exception("Error al cargar shader. Errores: " + compilationErrors);
+            }
+            //Configurar Technique dentro del shader
+            effect.Technique = "DefaultTechnique";
+
+
+            g_pDepthStencil = d3dDevice.CreateDepthStencilSurface(d3dDevice.PresentationParameters.BackBufferWidth, d3dDevice.PresentationParameters.BackBufferHeight,
+                DepthFormat.D24S8, MultiSampleType.None, 0, true);
+
+            // inicializo el render target
+            g_pRenderTarget = new Texture(d3dDevice, d3dDevice.PresentationParameters.BackBufferWidth, d3dDevice.PresentationParameters.BackBufferHeight, 1, Usage.RenderTarget,
+                Format.X8R8G8B8, Pool.Default);
+
+            g_pGlowMap = new Texture(d3dDevice, d3dDevice.PresentationParameters.BackBufferWidth, d3dDevice.PresentationParameters.BackBufferHeight, 1, Usage.RenderTarget,
+                Format.X8R8G8B8, Pool.Default);
+
+            g_pRenderTarget4 = new Texture(d3dDevice, d3dDevice.PresentationParameters.BackBufferWidth / 4, d3dDevice.PresentationParameters.BackBufferHeight / 4, 1, Usage.RenderTarget,
+                Format.X8R8G8B8, Pool.Default);
+
+            g_pRenderTarget4Aux = new Texture(d3dDevice, d3dDevice.PresentationParameters.BackBufferWidth / 4, d3dDevice.PresentationParameters.BackBufferHeight / 4, 1, Usage.RenderTarget,
+                Format.X8R8G8B8, Pool.Default);
+
+            // velocidad del pixel para motion blur
+            g_pVel1 = new Texture(d3dDevice, d3dDevice.PresentationParameters.BackBufferWidth, d3dDevice.PresentationParameters.BackBufferHeight, 1, Usage.RenderTarget, 
+                Format.A16B16G16R16F, Pool.Default);
+
+            g_pVel2 = new Texture(d3dDevice, d3dDevice.PresentationParameters.BackBufferWidth, d3dDevice.PresentationParameters.BackBufferHeight, 1, Usage.RenderTarget, 
+                Format.A16B16G16R16F, Pool.Default);
+
+            effect.SetValue("g_RenderTarget", g_pRenderTarget);
+
+            // Resolucion de pantalla
+            effect.SetValue("screen_dx", d3dDevice.PresentationParameters.BackBufferWidth);
+            effect.SetValue("screen_dy", d3dDevice.PresentationParameters.BackBufferHeight);
+
+            CustomVertex.PositionTextured[] vertices =
+            {
+                new CustomVertex.PositionTextured(-1, 1, 1, 0, 0),
+                new CustomVertex.PositionTextured(1, 1, 1, 1, 0),
+                new CustomVertex.PositionTextured(-1, -1, 1, 0, 1),
+                new CustomVertex.PositionTextured(1, -1, 1, 1, 1)
+            };
+
+            //vertex buffer de los triangulos
+            g_pVBV3D = new VertexBuffer(typeof(CustomVertex.PositionTextured), 4, d3dDevice, Usage.Dynamic | Usage.WriteOnly, CustomVertex.PositionTextured.Format, Pool.Default);
+            g_pVBV3D.SetData(vertices, 0, LockFlags.None);
+
+            antMatWorldView = TGCMatrix.Identity;
+
+            return effect;
+        }
+
+        private void RenderBeetle()
+        {
+            if (!finDeJuego)
+            {
+                if (pausa)
+                {
+                    pauseText.render();
+                }
+                else
+                {
+                    Beetle.Render(GameModel.ElapsedTime, Pantalla.AcumuladorPoder, camaraInterna.Position);
+                }
+            }
+        }
+
+        public void motionBlur(TGCVector3 posicionCamara, TGCVector3 posicionLuzArbitraria)
+        {
+            var device = D3DDevice.Instance.Device;
+            
+            // guardo el Render target anterior y seteo la textura como render target
+            var pOldRT = device.GetRenderTarget(0);
+            var pSurf = g_pVel1.GetSurfaceLevel(0);
+            device.SetRenderTarget(0, pSurf);
+            // hago lo mismo con el depthbuffer, necesito el que no tiene multisampling
+            var pOldDS = device.DepthStencilSurface;
+            device.DepthStencilSurface = g_pDepthStencil;
+            
+            // 1 - Genero un mapa de velocidad
+            Beetle.effect.Technique = "VelocityMap";
+            // necesito mandarle la matrix de view proj anterior
+            Beetle.effect.SetValue("matWorldViewProjAnt", antMatWorldView.ToMatrix() * device.Transform.Projection);
+            
+            device.Clear(ClearFlags.Target | ClearFlags.ZBuffer, Color.Black, 1.0f, 0);
+            device.BeginScene();
+
+
+
+
+            PistaNivel.renderizoTodosLosSegmentos("DefaultTechnique", efectoPiso, posicionCamara, posicionLuzArbitraria);
+            RenderHelp();
+            RenderBoundingBox();
+            RenderBeetle();
+
+            PistaNivel.RenderTunel(GameModel.ElapsedTime, posicionLuzArbitraria, GameModel.Camara.Position);
+            Pantalla.Render(GameModel.ElapsedTime);
+
+            if (disparoActivo)
+                Disparo.Render(GameModel.ElapsedTime, GameModel.Camara.Position, Beetle.position);
+           
+
+
+
+            device.EndScene();
+            device.Present();
+
+            pSurf.Dispose();
+
+            // 2- Genero la imagen pp dicha
+            Beetle.effect.Technique = Beetle.escudoTechnique;
+            pSurf = g_pRenderTarget.GetSurfaceLevel(0);
+            device.SetRenderTarget(0, pSurf);
+            device.Clear(ClearFlags.Target | ClearFlags.ZBuffer, Color.Black, 1.0f, 0);
+            device.BeginScene();
+
+            ///////////////////
+            // render comun del beetle
+            PistaNivel.renderizoTodosLosSegmentos("DefaultTechnique", efectoPiso, posicionCamara, posicionLuzArbitraria);
+            RenderHelp();
+            RenderBoundingBox();
+            RenderBeetle();
+
+            PistaNivel.RenderTunel(GameModel.ElapsedTime, posicionLuzArbitraria, GameModel.Camara.Position);
+            Pantalla.Render(GameModel.ElapsedTime);
+
+            if (disparoActivo)
+                Disparo.Render(GameModel.ElapsedTime, GameModel.Camara.Position, Beetle.position);
+            ///////////////////
+            
+
+
+            device.EndScene();
+            device.Present();
+            pSurf.Dispose();
+
+            // Ultima pasada vertical va sobre la pantalla pp dicha
+            device.SetRenderTarget(0, pOldRT);
+            device.DepthStencilSurface = pOldDS;
+
+            device.BeginScene();
+            efectoPiso.Technique = "PostProcessMotionBlur";
+            device.VertexFormat = CustomVertex.PositionTextured.Format;
+            device.SetStreamSource(0, g_pVBV3D, 0);
+            efectoPiso.SetValue("g_RenderTarget", g_pRenderTarget);
+            efectoPiso.SetValue("texVelocityMap", g_pVel1);
+            efectoPiso.SetValue("texVelocityMapAnt", g_pVel2);
+            device.Clear(ClearFlags.Target | ClearFlags.ZBuffer, Color.Black, 1.0f, 0);
+            efectoPiso.Begin(FX.None);
+            efectoPiso.BeginPass(0);
+            device.DrawPrimitives(PrimitiveType.TriangleStrip, 0, 2);
+            efectoPiso.EndPass();
+            efectoPiso.End();
+
+            device.EndScene();
+            device.Present();
+
+            // actualizo los valores para el proximo frame
+            antMatWorldView = Beetle.beetle.Meshes[7].Transform * TGCMatrix.FromMatrix(device.Transform.View);
+            var aux = g_pVel2;
+            g_pVel2 = g_pVel1;
+            g_pVel1 = aux;
+        }
+
+        public void bloom(TGCVector3 posicionCamara, TGCVector3 posicionLuzArbitraria)
+        {
+
+            var device = D3DDevice.Instance.Device;
+            Surface pSurf;
+            
+            // dibujo la escena una textura
+            efectoPiso.Technique = "DefaultTechnique";
+            // guardo el Render target anterior y seteo la textura como render target
+            var pOldRT = device.GetRenderTarget(0);
+            // hago lo mismo con el depthbuffer, necesito el que no tiene multisampling
+            var pOldDS = device.DepthStencilSurface;
+            device.DepthStencilSurface = g_pDepthStencil;
+            device.Clear(ClearFlags.Target | ClearFlags.ZBuffer, Color.Black, 1.0f, 0);
+
+            ///////////////////////////////////////////////
+            ///Escena principal 
+            ///////////////////////////////////////////////
+
+            pSurf = g_pRenderTarget.GetSurfaceLevel(0);
+            device.SetRenderTarget(0, pSurf);
+
+            device.BeginScene();
+
+            PistaNivel.renderizoTodosLosSegmentos("DefaultTechnique", efectoPiso, posicionCamara, posicionLuzArbitraria);
+            RenderHelp();
+            RenderBoundingBox();
+            RenderBeetle();
+           
+            PistaNivel.RenderTunel(GameModel.ElapsedTime, posicionLuzArbitraria, GameModel.Camara.Position);
+            Pantalla.Render(GameModel.ElapsedTime);
+
+            if (disparoActivo)
+                Disparo.Render(GameModel.ElapsedTime, GameModel.Camara.Position, Beetle.position);
+
+            device.EndScene();
+            ///////////////////////////////////////////////
+            /// Fin Escena principal 
+            ///////////////////////////////////////////////
+
+            pSurf.Dispose();
+
+            // Glow MAP
+            efectoPiso.Technique = "DefaultTechnique";
+            pSurf = g_pGlowMap.GetSurfaceLevel(0);
+            device.SetRenderTarget(0, pSurf);
+            device.Clear(ClearFlags.Target | ClearFlags.ZBuffer, Color.Black, 1.0f, 0);
+
+
+            ///////////////////////////////////////////////
+            /// Escena con BLOOM
+            ///////////////////////////////////////////////
+            device.BeginScene();
+
+            PistaNivel.renderizoTodosLosSegmentos("DefaultTechnique", efectoPiso, posicionCamara, posicionLuzArbitraria);
+            RenderBeetle();
+            PistaNivel.RenderTunel(GameModel.ElapsedTime, posicionLuzArbitraria, GameModel.Camara.Position);
+
+            device.EndScene();
+
+            pSurf.Dispose();
+
+            // Hago un blur sobre el glow map
+            // 1er pasada: downfilter x 4
+            // -----------------------------------------------------
+            pSurf = g_pRenderTarget4.GetSurfaceLevel(0);
+            device.SetRenderTarget(0, pSurf);
+
+            device.BeginScene();
+            efectoPiso.Technique = "DownFilter4";
+            device.VertexFormat = CustomVertex.PositionTextured.Format;
+            device.SetStreamSource(0, g_pVBV3D, 0);
+            efectoPiso.SetValue("g_RenderTarget", g_pGlowMap);
+
+            device.Clear(ClearFlags.Target | ClearFlags.ZBuffer, Color.Black, 1.0f, 0);
+            efectoPiso.Begin(FX.None);
+            efectoPiso.BeginPass(0);
+            device.DrawPrimitives(PrimitiveType.TriangleStrip, 0, 2);
+            efectoPiso.EndPass();
+            efectoPiso.End();
+            pSurf.Dispose();
+
+            device.EndScene();
+
+            device.DepthStencilSurface = pOldDS;
+            
+            // Pasadas de blur
+            for (var P = 0; P < 2; ++P)
+            {
+                // Gaussian blur Horizontal
+                // -----------------------------------------------------
+                pSurf = g_pRenderTarget4Aux.GetSurfaceLevel(0);
+                device.SetRenderTarget(0, pSurf);
+                
+                device.BeginScene();
+                efectoPiso.Technique = "GaussianBlurSeparable";
+                device.VertexFormat = CustomVertex.PositionTextured.Format;
+                device.SetStreamSource(0, g_pVBV3D, 0);
+                efectoPiso.SetValue("g_RenderTarget", g_pRenderTarget4);
+
+                device.Clear(ClearFlags.Target | ClearFlags.ZBuffer, Color.Black, 1.0f, 0);
+                efectoPiso.Begin(FX.None);
+                efectoPiso.BeginPass(0);
+                device.DrawPrimitives(PrimitiveType.TriangleStrip, 0, 2);
+                efectoPiso.EndPass();
+                efectoPiso.End();
+                pSurf.Dispose();
+
+                device.EndScene();
+
+                pSurf = g_pRenderTarget4.GetSurfaceLevel(0);
+                device.SetRenderTarget(0, pSurf);
+                pSurf.Dispose();
+
+                //  Gaussian blur Vertical
+                // -----------------------------------------------------
+                
+                device.BeginScene();
+                efectoPiso.Technique = "GaussianBlurSeparable";
+                device.VertexFormat = CustomVertex.PositionTextured.Format;
+                device.SetStreamSource(0, g_pVBV3D, 0);
+                efectoPiso.SetValue("g_RenderTarget", g_pRenderTarget4Aux);
+
+                device.Clear(ClearFlags.Target | ClearFlags.ZBuffer, Color.Black, 1.0f, 0);
+                efectoPiso.Begin(FX.None);
+                efectoPiso.BeginPass(1);
+                device.DrawPrimitives(PrimitiveType.TriangleStrip, 0, 2);
+                efectoPiso.EndPass();
+                efectoPiso.End();
+
+                device.EndScene();
+            }            
+
+            //  To Gray Scale
+            // -----------------------------------------------------
+            // Ultima pasada vertical va sobre la pantalla pp dicha
+            device.SetRenderTarget(0, pOldRT);
+            //pSurf = g_pRenderTarget4Aux.GetSurfaceLevel(0);
+            //device.SetRenderTarget(0, pSurf);
+            
+            device.BeginScene();
+
+            efectoPiso.Technique = "GrayScale";
+            device.VertexFormat = CustomVertex.PositionTextured.Format;
+            device.SetStreamSource(0, g_pVBV3D, 0);
+            efectoPiso.SetValue("g_RenderTarget", g_pRenderTarget);
+            efectoPiso.SetValue("g_GlowMap", g_pRenderTarget4Aux);
+            device.Clear(ClearFlags.Target | ClearFlags.ZBuffer, Color.Black, 1.0f, 0);
+            efectoPiso.Begin(FX.None);
+            efectoPiso.BeginPass(0);
+            device.DrawPrimitives(PrimitiveType.TriangleStrip, 0, 2);
+            efectoPiso.EndPass();
+            efectoPiso.End();
+
+            device.EndScene();
+            
+            ///////////////////////////////////////////////
+            /// FIN Escena con BLOOM
+            ///////////////////////////////////////////////
+            
+
+            device.Present();
+            
+        }
+
+        private void RenderHelp()
         {
             if (help)
             {
@@ -285,7 +633,19 @@ namespace TGC.Group.Model
                 DrawText.drawText("SoloPista: " + soloPista, 1000, 150, Color.OrangeRed);
                 DrawText.drawText("Acum Disparo: " + Pantalla.AcumuladorDisparos, 1000, 160, Color.OrangeRed);
             }
+        }
 
+        public void Render()
+        {
+
+            //if(Beetle.Sliding())
+            //    motionBlur(GameModel.Camara.Position, Beetle.position + TGCVector3.Up * 20); 
+           // else
+                bloom(GameModel.Camara.Position, Beetle.position + TGCVector3.Up * 20);
+        }
+
+        private void RenderBoundingBox()
+        {
             //Render de BoundingBox, muy útil para debug de colisiones.
             if (BoundingBox)
             {
@@ -295,26 +655,6 @@ namespace TGC.Group.Model
                     mesh.BoundingBox.Render();
                 }
             }
-
-            if (!finDeJuego)
-            {
-                if (pausa)
-                {
-                    pauseText.render();
-                }
-                else
-                {
-                    Beetle.Render(GameModel.ElapsedTime, Pantalla.AcumuladorPoder, camaraInterna.Position);
-                }
-            }
-
-            PistaNivel.Render(GameModel.Camara.Position, Beetle.position + TGCVector3.Up * 20,GameModel.ElapsedTime);
-            Beetle.Render(GameModel.ElapsedTime, Pantalla.AcumuladorPoder, camaraInterna.Position);
-
-            Pantalla.Render(GameModel.ElapsedTime);
-
-            if (disparoActivo)
-                Disparo.Render(GameModel.ElapsedTime, GameModel.Camara.Position, Beetle.position);
         }
 
         public void Dispose()
@@ -322,8 +662,14 @@ namespace TGC.Group.Model
             PistaNivel.Dispose();
             Beetle.Dispose();
             Pantalla.Dispose();
-            Reproductor.Dispose();
+            //Reproductor.Dispose();
             pauseText.Dispose();
+
+            g_pRenderTarget.Dispose();
+            g_pDepthStencil.Dispose();
+            g_pVBV3D.Dispose();
+            g_pVel1.Dispose();
+            g_pVel2.Dispose();
         }
 
         private void Colisiones()

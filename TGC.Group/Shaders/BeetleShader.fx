@@ -7,6 +7,9 @@ float4x4 matWorld; //Matriz de transformacion World
 float4x4 matWorldView; //Matriz World * View
 float4x4 matWorldViewProj; //Matriz World * View * Projection
 float4x4 matInverseTransposeWorld; //Matriz Transpose(Invert(World))
+float4x4 matWorldViewProjAnt; //Matriz World * View * Proj anterior
+float4x4 matViewAnt; //Matriz View anterior
+float4x4 matProj; //Matriz Projection actual
 
 //Textura para DiffuseMap
 texture texDiffuseMap;
@@ -221,4 +224,72 @@ technique Explosiva
         VertexShader = compile vs_3_0 vs_explosivo();
         PixelShader = compile ps_3_0 ps_explosivo();
     }
+}
+
+
+struct VS_INPUT_VELOCITY
+{
+    float4 Position : POSITION0;
+    float3 Normal : NORMAL0;
+    float4 Color : COLOR;
+    float2 Texcoord : TEXCOORD0;
+};
+
+struct VS_OUTPUT_VELOCITY
+{
+    float4 Position : POSITION0;
+    float2 Texcoord : TEXCOORD0;
+    float3 Norm : TEXCOORD1; // Normales
+    float4 vPosActual : TEXCOORD2; // Posicion actual
+    float4 vPosAnterior : TEXCOORD3; // Posicion anterior
+    //float2 Vel : TEXCOORD3; // velocidad por pixel
+
+};
+
+//Vertex Shader
+VS_OUTPUT_VELOCITY vs_velocity(VS_INPUT_VELOCITY Input)
+{
+    VS_OUTPUT_VELOCITY Output;
+
+	//Proyectar posicion
+    Output.Position = mul(Input.Position, matWorldViewProj);
+   
+	//Las Texcoord quedan igual
+    Output.Texcoord = Input.Texcoord;
+
+	// Transformo la normal y la normalizo
+    Output.Norm = normalize(mul(Input.Normal, matWorld));
+
+	// posicion actual
+    Output.vPosActual = Output.Position;
+	// posicion anterior
+    Output.vPosAnterior = mul(Input.Position, matWorld * matViewAnt * matProj);
+
+    return (Output);
+   
+}
+
+//Pixel Shader Velocity
+float4 ps_velocity(float3 Texcoord : TEXCOORD0, float4 vPosActual : TEXCOORD2, float4 vPosAnterior : TEXCOORD3) : COLOR0
+{
+	//Obtener el texel de textura
+    float4 fvBaseColor = tex2D(diffuseMap, Texcoord);
+    if (fvBaseColor.a < 0.1)
+        discard;
+       
+    vPosActual /= vPosActual.w;
+    vPosAnterior /= vPosAnterior.w;
+    float2 Vel = vPosActual - vPosAnterior;
+
+    return float4(Vel.x, Vel.y, 0.0f, 1.0f);
+}
+
+technique VelocityMap
+{
+    pass Pass_0
+    {
+        VertexShader = compile vs_3_0 vs_velocity();
+        PixelShader = compile ps_3_0 ps_velocity();
+    }
+
 }

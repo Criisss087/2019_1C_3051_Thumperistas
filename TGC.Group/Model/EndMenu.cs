@@ -1,4 +1,5 @@
-﻿using Microsoft.DirectX.DirectInput;
+﻿using Microsoft.DirectX.Direct3D;
+using Microsoft.DirectX.DirectInput;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -51,6 +52,8 @@ namespace TGC.Group.Model
             Pantalla = _pantalla;
 
             Reproductor = new Reproductor(GameModel.MediaDir, GameModel.DirectSound);
+            Reproductor.ReproducirEndMenu();
+
             drawer = new Drawer2D();
             fondo = new CustomSprite();
             fondo.Bitmap = new CustomBitmap(GameModel.MediaDir + "Screens\\purple_tentacles.png", D3DDevice.Instance.Device);
@@ -61,7 +64,7 @@ namespace TGC.Group.Model
             var scalingFactorX = (float)screenWidth / (float)fondo.Bitmap.Width;
             var scalingFactorY = (float)screenHeight / (float)fondo.Bitmap.Height;
             fondo.Scaling = new TGCVector2(scalingFactorX, scalingFactorY);
-            var menuFont = new Font("Arial Black", 30, FontStyle.Bold);
+            var menuFont = new System.Drawing.Font("Arial Black", 30, FontStyle.Bold);
 
             bloqueTexto = new CustomSprite();
             bloqueTexto.Bitmap = new CustomBitmap(GameModel.MediaDir + "Textures\\bloqueTexto.png", D3DDevice.Instance.Device);
@@ -94,7 +97,7 @@ namespace TGC.Group.Model
                 resultText.Color = Color.Red;
             }                        
             resultText.Position = new Point(-(int)(screenWidth * 0.28f), (int)(screenHeight * 0.15f));
-            resultText.changeFont(new Font("Arial Black", 40, FontStyle.Bold));
+            resultText.changeFont(new System.Drawing.Font("Arial Black", 40, FontStyle.Bold));
 
             //Restart
             playText = new TgcText2D();
@@ -110,7 +113,7 @@ namespace TGC.Group.Model
             exitText.Position = new Point(-(int)(screenWidth * 0.28f), (int)(screenHeight * 0.3f) + (int)(0.1f * screenHeight));
             exitText.changeFont(menuFont);
 
-            var tableFont = new Font("Arial Black", 17, FontStyle.Bold);
+            var tableFont = new System.Drawing.Font("Arial Black", 17, FontStyle.Bold);
 
             levelText = new TgcText2D();
             levelText.changeFont(tableFont);
@@ -168,6 +171,9 @@ namespace TGC.Group.Model
 
         public void Render()
         {
+            D3DDevice.Instance.Device.Clear(ClearFlags.Target | ClearFlags.ZBuffer, Color.Blue, 1.0f, 0);
+            D3DDevice.Instance.Device.BeginScene();
+
             if (isExit)
             {
                 GameModel.Exit();
@@ -235,14 +241,16 @@ namespace TGC.Group.Model
             resultText.render();
             playText.render();
             exitText.render();
-
-
+            
             if (isStart)
             {
                 Reproductor.Explosion();
                 GameModel.GameState = new StartGame(GameModel);
                 this.Dispose();
             }
+
+            D3DDevice.Instance.Device.EndScene();
+            D3DDevice.Instance.Device.Present();
         }
 
         private Color getRankColor(TgcText2D rankText)
@@ -264,7 +272,7 @@ namespace TGC.Group.Model
             bloqueTexto.Dispose();
             playText.Dispose();
             exitText.Dispose();
-            Reproductor.Dispose();
+            //Reproductor.Dispose();
 
         }
 

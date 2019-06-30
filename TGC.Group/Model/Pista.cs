@@ -22,9 +22,6 @@ namespace TGC.Group
 
     public class Pista
     {
-        Effect efectoTunel;
-        float time;
-
         public List<TgcMesh> SegmentosPista = new List<TgcMesh>();
         public List<TgcMesh> SegmentosTunel = new List<TgcMesh>();
         public List<Recolectable> Recolectables = new List<Recolectable>();
@@ -50,6 +47,8 @@ namespace TGC.Group
 
         public bool obstaculosActivos;
         public int cantObsActual = 0;
+        public Effect efectoTunel;
+        public float time;
 
         public enum TipoCurva
         {
@@ -58,16 +57,26 @@ namespace TGC.Group
         }
 
         public Pista(String _MediaDir, String _ShadersDir)
-        {        
-            
+        {
+
+
             this.MediaDir = _MediaDir;
             this.ShadersDir = _ShadersDir;
-
-
-
             this.efectoTunel = CargarEfecto("TunelShader.fx");
-            this.time = 0;
+
             generarPista();
+        }
+
+        private Effect CargarEfecto(String nombreEfecto)
+        {
+            string compilationErrors;
+            System.Console.WriteLine(ShadersDir + nombreEfecto);
+            Effect effect = Effect.FromFile(D3DDevice.Instance.Device, this.ShadersDir + nombreEfecto, null, null, ShaderFlags.PreferFlowControl, null, out compilationErrors);
+            if (effect == null)
+            {
+                throw new Exception("Error al cargar shader. Errores: " + compilationErrors);
+            }
+            return effect;
         }
 
         public List<TgcMesh> GetSegmentosPista()
@@ -81,8 +90,8 @@ namespace TGC.Group
         }
 
         private void generarPista()
-        {
-            ;
+        {           
+
             // Primero agrego un camino de 50 para el inicio 
             for (int j = 0; j < 50; j++)
             {
@@ -102,17 +111,17 @@ namespace TGC.Group
                 TgcMesh MeshAux = cargarMesh(this.rutaTunelActual, 0);
                 MeshAux.Move(this.posUltimaPieza + TGCVector3.Up * 5);
                 MeshAux.Scale = new TGCVector3(3, 3, 6); //.One * 3;
-				
-				// Copio rotacion del bloque del piso
-				TGCVector3 rot = new TGCVector3(0, 0, 0);
-				rot.X = Geometry.DegreeToRadian(this.rotCurvaActual.X);
-				if (cantCurvaSuaveActual != 0)
-					rot.Y = Geometry.DegreeToRadian(this.rotCurvaActual.Y / curvar(cantCurvaSuaveActual));
-				else
-					rot.Y = Geometry.DegreeToRadian(this.rotCurvaActual.Y);
-				rot.Z = Geometry.DegreeToRadian(this.rotCurvaActual.Z);
-				MeshAux.Transform = TGCMatrix.RotationYawPitchRoll(rot.Y, rot.X, rot.Z);
-				
+
+                // Copio rotacion del bloque del piso
+                TGCVector3 rot = new TGCVector3(0, 0, 0);
+                rot.X = Geometry.DegreeToRadian(this.rotCurvaActual.X);
+                if (cantCurvaSuaveActual != 0)
+                    rot.Y = Geometry.DegreeToRadian(this.rotCurvaActual.Y / curvar(cantCurvaSuaveActual));
+                else
+                    rot.Y = Geometry.DegreeToRadian(this.rotCurvaActual.Y);
+                rot.Z = Geometry.DegreeToRadian(this.rotCurvaActual.Z);
+                MeshAux.Transform = TGCMatrix.RotationYawPitchRoll(rot.Y, rot.X, rot.Z);
+
                 MeshAux.setColor(this.colorTunelActual);
                 this.SegmentosTunel.Add(MeshAux);
                 this.cantTunelActual--;
@@ -131,7 +140,7 @@ namespace TGC.Group
                 Obstaculo obs = new Obstaculo(this.posUltimaPieza);
                 obs.boxMesh.Move(this.posUltimaPieza + TGCVector3.Up * 5);
                 obs.boxMesh.Scale = new TGCVector3(3, 3, 6);
- 
+
                 this.Obstaculos.Add(obs);
                 this.cantObsActual--;
 
@@ -142,7 +151,7 @@ namespace TGC.Group
 
                 // Revisar si hay que eliminarlo asi nomas
                 //if (this.Obstaculos.ElementAt(0).Position.Z < (this.posActual.Z - 100))
-                   //this.Obstaculos.RemoveAt(0);
+                //this.Obstaculos.RemoveAt(0);
 
             }
 
@@ -165,9 +174,9 @@ namespace TGC.Group
 
             // Remuevo recolectables que ya pasaron al beetle
             Recolectables.RemoveAll(rec => rec.Position.Z < (posActual.Z - 300));
-			
-			//Revisar
-			//Obstaculos.RemoveAll(obs => obs.Position.Z < (posActual.Z - 2000));
+
+            //Revisar
+            //Obstaculos.RemoveAll(obs => obs.Position.Z < (posActual.Z - 2000));
 
         }
 
@@ -175,7 +184,7 @@ namespace TGC.Group
         {
             if (!this.curvaSuaveActiva)
             {
-                tipoCurva = (TipoCurva) rnd.Next(150);
+                tipoCurva = (TipoCurva)rnd.Next(150);
 
                 // Bloques de la curva
                 this.cantCurvaSuaveActual = 5;
@@ -202,7 +211,7 @@ namespace TGC.Group
         {
             float f = 0f;
 
-            switch(cantCurvaSuaveActual)
+            switch (cantCurvaSuaveActual)
             {
                 case 5:
                     f = 75f;
@@ -297,12 +306,12 @@ namespace TGC.Group
 
         public void UpdateObstaculos()
         {
-            
+
             if (!this.obstaculosActivos)
             {
 
                 int generaObstaculos = elijoEntreTresProbabilidades(2, 90, 18);
-                
+
                 this.cantObsActual = this.rnd.Next(4) + 1;
                 if (generaObstaculos == 1)
                 {
@@ -334,31 +343,27 @@ namespace TGC.Group
             piso.Transform = TGCMatrix.Scaling(new TGCVector3(1, 1, 1.05f)) *
                              TGCMatrix.RotationYawPitchRoll(rot.Y, rot.X, rot.Z) *
                              TGCMatrix.Translation(this.posUltimaPieza);
+            TgcTexture texturaPiso = TgcTexture.createTexture(MediaDir + "\\Textures\\segmento.jpg");
 
-            TgcTexture texturaPiso = TgcTexture.createTexture(D3DDevice.Instance.Device, MediaDir + "Textures\\segmento.jpg");
-            piso.setTexture (texturaPiso);
+            piso.setTexture(texturaPiso);
             piso.updateValues();
             piso.AutoTransformEnable = false;
 
             TgcMesh pisoMesh = piso.ToMesh("piso");
-                        
-            pisoMesh.addDiffuseMap(texturaPiso);
 
-            Effect effect = TGCShaders.Instance.LoadEffect(ShadersDir + "ShaderPiso.fx");            
-            
-            pisoMesh.Effect = effect;
-            pisoMesh.Technique = "RenderScene";
+            pisoMesh.addDiffuseMap(texturaPiso);
 
             pisoMesh.AutoUpdateBoundingBox = false;
             pisoMesh.Position = this.posUltimaPieza;
             pisoMesh.Rotation = new TGCVector3(0, rot.Y, 0);
 
-            if(!soloPista)
+            if (!soloPista)
                 agregoRecolectables(this.posUltimaPieza);
 
             return pisoMesh;
         }
 
+        
         // buscar una funcion que de F(1)=-3 F(2)=-1.5 F(3)=1 F(4)=1.5 F(5)=3
         public float curvar(int x)
         {
@@ -394,7 +399,7 @@ namespace TGC.Group
                 Recolectables.Add(nuevoRecoletable);
             }
         }
-        
+
         int elijoEntreTresProbabilidades(int probA, int probB, int probC)
         {
             int probTotal = probA + probB + probC;
@@ -404,59 +409,59 @@ namespace TGC.Group
             else return 3;
         }
 
-
-        public void RenderTuneles(float time)
+        public void renderizoTodosLosSegmentos(string Technique, Effect efectoPiso, TGCVector3 posicionCamara, TGCVector3 posicionLuzArbitraria)
         {
+
+            RenderPista(Technique, efectoPiso);
+            
+            RenderRecolectables(posicionCamara, posicionLuzArbitraria);
+            RenderObstaculos();
+
+        }
+
+        public void RenderPista(string Technique, Effect efectoPiso)
+        {
+            foreach (TgcMesh AuxMesh in this.SegmentosPista)
+            {
+                AuxMesh.Effect = efectoPiso;
+                AuxMesh.Technique = Technique;
+                AuxMesh.Render();
+            }
+        }
+
+        public void RenderTunel(float elapsedTime, TGCVector3 posicionLuzArbitraria, TGCVector3 posCamara)
+        {
+            time += elapsedTime/2;
             efectoTunel.SetValue("time", time);
+            
             foreach (TgcMesh AuxMesh in this.SegmentosTunel)
-            {              
+            {
+                
                 AuxMesh.Effect = efectoTunel;
                 AuxMesh.Technique = "Deformacion2";
                 AuxMesh.Render();
             }
         }
 
-        void RenderPiso(TGCVector3 posicionLuzArbitraria)
+        public void RenderRecolectables(TGCVector3 posicionCamara, TGCVector3 posicionLuzArbitraria)
         {
-            foreach (TgcMesh AuxMesh in this.SegmentosPista)
-            {
-                AuxMesh.Effect.SetValue("lightPos", TGCVector3.Vector3ToVector4(posicionLuzArbitraria));
-                AuxMesh.Render();
-            }
-        }
-
-        Effect CargarEfecto(String nombreEfecto)
-        {
-            string compilationErrors;
-            System.Console.WriteLine(ShadersDir + nombreEfecto);
-            Effect effect = Effect.FromFile(D3DDevice.Instance.Device, this.ShadersDir + nombreEfecto, null, null, ShaderFlags.PreferFlowControl, null, out compilationErrors);
-            if(effect == null)
-            {
-                throw new Exception("Error al cargar shader. Errores: " + compilationErrors);
-            }
-            return effect;
-        }
-
-
-
-        public void Render(TGCVector3 posicionCamara,TGCVector3 posicionLuzArbitraria,float elapsedTime)
-        {
-            time += elapsedTime;
-            RenderPiso(posicionLuzArbitraria);
-            RenderTuneles(time);
-
             foreach (Recolectable AuxRec in Recolectables)
             {
                 AuxRec.Render(posicionCamara, posicionLuzArbitraria);
             }
-           
-            
+        }
+
+        public void RenderObstaculos()
+        {
             foreach (Obstaculo AuxMesh in this.Obstaculos)
             {
                 AuxMesh.Render();
             }
+        }
 
-
+        public void Render(TGCVector3 posicionCamara, TGCVector3 posicionLuzArbitraria, float elapsedTime)
+        {
+            //bloom(posicionCamara, posicionLuzArbitraria);
         }
 
         public void BoundingBoxRender()
@@ -471,7 +476,7 @@ namespace TGC.Group
         {
             foreach (TgcMesh AuxMesh in GetSegmentosPista())
             {
-                AuxMesh.Effect.Dispose();
+                //efectoPiso.Dispose();
                 AuxMesh.Dispose();
             }
 

@@ -55,7 +55,7 @@ struct VS_OUTPUT
     float2 Texcoord : TEXCOORD0;
     float3 Normal:NORMAL0;
     float3 WorldNormal : TEXCOORD2;
-    float3 LightVec : TEXCOORD1;
+    float3 LightVec : TEXCOORD3;
 };
 
 VS_OUTPUT vs_main(VS_INPUT Input)

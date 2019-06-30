@@ -43,7 +43,8 @@ namespace TGC.Group.Model
         public TgcBoundingOrientedBox colliderRecolectablesOk;
         public TgcBoundingOrientedBox colliderRecolectablesWrong;
         private ParticleEmitter emitter;
-        private Effect effect;
+        public Effect effect;
+        public string escudoTechnique;
 
         public TGCMatrix translation { get; set; }
         public TGCMatrix scaling { get; set; }
@@ -90,6 +91,8 @@ namespace TGC.Group.Model
                 mesh.Effect = effect;
                 mesh.Technique = technique;
             }
+
+            escudoTechnique = "ConEscudoMetalico";
 
             //Seteo collider Ok
             beetle.BoundingBox.transform(translation * scaling * rotation);
@@ -320,7 +323,8 @@ namespace TGC.Group.Model
         {
             foreach (var mesh in beetle.Meshes)
             {
-                mesh.Technique = "ConEscudoMetalico";
+                escudoTechnique = "ConEscudoMetalico";
+                mesh.Technique = escudoTechnique;
             }
 
             escudo = true;
@@ -330,7 +334,8 @@ namespace TGC.Group.Model
         {
             foreach (var mesh in beetle.Meshes)
             {
-                mesh.Technique = "SinEscudo";
+                escudoTechnique = "SinEscudo";
+                mesh.Technique = escudoTechnique;
             }
 
             escudo = false;

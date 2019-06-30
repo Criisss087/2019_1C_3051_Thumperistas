@@ -1,4 +1,5 @@
-﻿using Microsoft.DirectX.DirectInput;
+﻿using Microsoft.DirectX.Direct3D;
+using Microsoft.DirectX.DirectInput;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -43,6 +44,7 @@ namespace TGC.Group.Model
             GameModel = _gameModel;
 
             Reproductor = new Reproductor(GameModel.MediaDir, GameModel.DirectSound);
+            Reproductor.ReproducirStartMenu();
 
             drawer = new Drawer2D();
             fondo = new CustomSprite();
@@ -53,7 +55,7 @@ namespace TGC.Group.Model
             var scalingFactorX = (float)screenWidth / (float)fondo.Bitmap.Width;
             var scalingFactorY = (float)screenHeight / (float)fondo.Bitmap.Height;
             fondo.Scaling = new TGCVector2(scalingFactorX, scalingFactorY);
-            var menuFont = new Font("Arial Black", 30, FontStyle.Bold);
+            var menuFont = new System.Drawing.Font("Arial Black", 30, FontStyle.Bold);
 
             bloqueTexto = new CustomSprite();
             bloqueTexto.Bitmap = new CustomBitmap(GameModel.MediaDir + "Textures\\bloqueTexto.png", D3DDevice.Instance.Device);
@@ -124,6 +126,9 @@ namespace TGC.Group.Model
 
         public void Render()
         {
+            D3DDevice.Instance.Device.Clear(ClearFlags.Target | ClearFlags.ZBuffer, Color.Blue, 1.0f, 0);
+            D3DDevice.Instance.Device.BeginScene();
+
             if (isExit)
             {
                 GameModel.Exit();
@@ -147,6 +152,9 @@ namespace TGC.Group.Model
                 GameModel.GameState = new StartGame(GameModel);
                 this.Dispose();
             }
+
+            D3DDevice.Instance.Device.EndScene();
+            D3DDevice.Instance.Device.Present();
         }
 
         public void Dispose()

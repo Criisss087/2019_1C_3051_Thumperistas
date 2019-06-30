@@ -10,6 +10,9 @@ namespace TGC.Group.Model
     public class Reproductor
     {
         private const string levelPrincipal = "Thumper/Mp3/Thumper OST - Pulser.mp3";
+        private const string startMenu = "Thumper/Mp3/Thumper OST - Logos.mp3";
+        private const string endMenu = "Thumper/Mp3/Thumper OST - Beetle.mp3";
+
         private const string recolectar = "Thumper/Mp3/laserBeat.wav";
         private const string obstaculoDestruido = "Thumper/Mp3/beat.wav";
         private const string curvaTomada = "Thumper/Mp3/Curva.wav";
@@ -36,7 +39,45 @@ namespace TGC.Group.Model
         public void ReproducirLevelPrincipal()
         {
             mp3PlayerMusica.FileName = mediaDir + levelPrincipal;
-            mp3PlayerMusica.play(true);
+            ReproducirMp3();
+
+        }
+
+
+        public void ReproducirStartMenu()
+        {
+            mp3PlayerMusica.FileName = mediaDir + startMenu;
+            ReproducirMp3();
+
+        }
+
+        public void ReproducirEndMenu()
+        {
+            mp3PlayerMusica.FileName = mediaDir + endMenu;
+            ReproducirMp3();
+
+        }
+
+        private void ReproducirMp3()
+        {
+            var currentState = mp3PlayerMusica.getStatus();
+            if (currentState == TgcMp3Player.States.Open)
+            {
+                //Reproducir MP3
+                mp3PlayerMusica.play(true);
+            }
+            if (currentState == TgcMp3Player.States.Stopped)
+            {
+                //Parar y reproducir MP3
+                mp3PlayerMusica.closeFile();
+                mp3PlayerMusica.play(true);
+            }
+            if (currentState == TgcMp3Player.States.Playing)
+            {
+                mp3PlayerMusica.closeFile();
+                mp3PlayerMusica.play(true);
+
+            }
         }
 
         public void Recolectar()

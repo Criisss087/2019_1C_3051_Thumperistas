@@ -19,6 +19,7 @@ using TGC.Core.Interpolation;
 using TGC.Core.Utils;
 using System.Windows.Forms;
 using TGC.Group.Form;
+using TGC.Core;
 
 namespace TGC.Group.Model
 {
@@ -76,12 +77,18 @@ namespace TGC.Group.Model
         /// </summary>
         public override void Render()
         {
-            PreRender();
+         
             ClearTextures();
+
+            D3DDevice.Instance.Device.BeginScene();
+            RenderFPS();
+            RenderAxis();
+            D3DDevice.Instance.Device.EndScene();
+            D3DDevice.Instance.Device.Present();
 
             GameState.Render();
 
-            PostRender();
+
         }
 
         /// <summary>
