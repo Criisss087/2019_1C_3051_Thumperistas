@@ -297,8 +297,12 @@ namespace TGC.Group.Model
 
             if (!Temporizadores.textNextLvl.update(ElapsedTime))
             {
-                LevelText.Text = "Level 1-" + level.ToString();
-                LevelText.render();
+                if(level < 6)
+                {
+                    LevelText.Text = "Level 1-" + level.ToString();
+                    LevelText.render();
+                }
+
             }
 
             if (!Temporizadores.textCambioMult.update(ElapsedTime))

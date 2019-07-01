@@ -60,11 +60,14 @@ namespace TGC.Group.Model
 
         // Post Proccess
         private Texture g_pRenderTarget, g_pRenderTarget4, g_pRenderTarget4Aux, g_pGlowMap;
+        private Texture g_pRenderTarget2, g_pRenderTarget3, g_pRenderTarget5;
         private Texture g_pVel1, g_pVel2; 
         private Surface g_pDepthStencil;
+        private Surface g_pDepthStencilOld;
         private VertexBuffer g_pVBV3D;
         private TGCMatrix antMatWorldView;
         private Effect efectoPiso;
+        public float ftime; 
 
         public StartGame(GameModel _gameModel)
         {
@@ -287,8 +290,10 @@ namespace TGC.Group.Model
             effect.Technique = "DefaultTechnique";
 
 
-            g_pDepthStencil = d3dDevice.CreateDepthStencilSurface(d3dDevice.PresentationParameters.BackBufferWidth, d3dDevice.PresentationParameters.BackBufferHeight,
+            g_pDepthStencil = d3dDevice.CreateDepthStencilSurface(d3dDevice.PresentationParameters.BackBufferWidth,
+                d3dDevice.PresentationParameters.BackBufferHeight,
                 DepthFormat.D24S8, MultiSampleType.None, 0, true);
+            g_pDepthStencilOld = d3dDevice.DepthStencilSurface;
 
             // inicializo el render target
             g_pRenderTarget = new Texture(d3dDevice, d3dDevice.PresentationParameters.BackBufferWidth, d3dDevice.PresentationParameters.BackBufferHeight, 1, Usage.RenderTarget,
@@ -297,7 +302,17 @@ namespace TGC.Group.Model
             g_pGlowMap = new Texture(d3dDevice, d3dDevice.PresentationParameters.BackBufferWidth, d3dDevice.PresentationParameters.BackBufferHeight, 1, Usage.RenderTarget,
                 Format.X8R8G8B8, Pool.Default);
 
-            g_pRenderTarget4 = new Texture(d3dDevice, d3dDevice.PresentationParameters.BackBufferWidth / 4, d3dDevice.PresentationParameters.BackBufferHeight / 4, 1, Usage.RenderTarget,
+            g_pRenderTarget2 = new Texture(d3dDevice, d3dDevice.PresentationParameters.BackBufferWidth
+                , d3dDevice.PresentationParameters.BackBufferHeight, 1, Usage.RenderTarget,
+                Format.X8R8G8B8, Pool.Default);
+            g_pRenderTarget3 = new Texture(d3dDevice, d3dDevice.PresentationParameters.BackBufferWidth
+                , d3dDevice.PresentationParameters.BackBufferHeight, 1, Usage.RenderTarget,
+                Format.X8R8G8B8, Pool.Default);
+            g_pRenderTarget4 = new Texture(d3dDevice, d3dDevice.PresentationParameters.BackBufferWidth
+                , d3dDevice.PresentationParameters.BackBufferHeight, 1, Usage.RenderTarget,
+                Format.X8R8G8B8, Pool.Default);
+            g_pRenderTarget5 = new Texture(d3dDevice, d3dDevice.PresentationParameters.BackBufferWidth
+                , d3dDevice.PresentationParameters.BackBufferHeight, 1, Usage.RenderTarget,
                 Format.X8R8G8B8, Pool.Default);
 
             g_pRenderTarget4Aux = new Texture(d3dDevice, d3dDevice.PresentationParameters.BackBufferWidth / 4, d3dDevice.PresentationParameters.BackBufferHeight / 4, 1, Usage.RenderTarget,
@@ -350,84 +365,53 @@ namespace TGC.Group.Model
 
         public void motionBlur(TGCVector3 posicionCamara, TGCVector3 posicionLuzArbitraria)
         {
+
             var device = D3DDevice.Instance.Device;
-            
+            efectoPiso.Technique = "DefaultTechnique";
+
             // guardo el Render target anterior y seteo la textura como render target
             var pOldRT = device.GetRenderTarget(0);
-            var pSurf = g_pVel1.GetSurfaceLevel(0);
+            var pSurf = g_pRenderTarget.GetSurfaceLevel(0);
             device.SetRenderTarget(0, pSurf);
             // hago lo mismo con el depthbuffer, necesito el que no tiene multisampling
             var pOldDS = device.DepthStencilSurface;
             device.DepthStencilSurface = g_pDepthStencil;
-            
-            // 1 - Genero un mapa de velocidad
-            Beetle.effect.Technique = "VelocityMap";
-            // necesito mandarle la matrix de view proj anterior
-            Beetle.effect.SetValue("matWorldViewProjAnt", antMatWorldView.ToMatrix() * device.Transform.Projection);
-            
+
             device.Clear(ClearFlags.Target | ClearFlags.ZBuffer, Color.Black, 1.0f, 0);
+
             device.BeginScene();
 
-
-
-
-            PistaNivel.renderizoTodosLosSegmentos("DefaultTechnique", efectoPiso, posicionCamara, posicionLuzArbitraria);
+            // -------------------------------------
+            //Escena sin efecto            
+            PistaNivel.renderizoTodosLosSegmentos("DefaultTechnique", efectoPiso, GameModel.Camara.Position, Beetle.position, GameModel.ElapsedTime);
             RenderHelp();
             RenderBoundingBox();
             RenderBeetle();
 
-            PistaNivel.RenderTunel(GameModel.ElapsedTime, posicionLuzArbitraria, GameModel.Camara.Position);
+            PistaNivel.RenderTunel(GameModel.ElapsedTime, Beetle.position, GameModel.Camara.Position);
             Pantalla.Render(GameModel.ElapsedTime);
 
             if (disparoActivo)
                 Disparo.Render(GameModel.ElapsedTime, GameModel.Camara.Position, Beetle.position);
-           
-
-
+            // -------------------------------------
 
             device.EndScene();
-            device.Present();
 
-            pSurf.Dispose();
-
-            // 2- Genero la imagen pp dicha
-            Beetle.effect.Technique = Beetle.escudoTechnique;
-            pSurf = g_pRenderTarget.GetSurfaceLevel(0);
-            device.SetRenderTarget(0, pSurf);
-            device.Clear(ClearFlags.Target | ClearFlags.ZBuffer, Color.Black, 1.0f, 0);
-            device.BeginScene();
-
-            ///////////////////
-            // render comun del beetle
-            PistaNivel.renderizoTodosLosSegmentos("DefaultTechnique", efectoPiso, posicionCamara, posicionLuzArbitraria);
-            RenderHelp();
-            RenderBoundingBox();
-            RenderBeetle();
-
-            PistaNivel.RenderTunel(GameModel.ElapsedTime, posicionLuzArbitraria, GameModel.Camara.Position);
-            Pantalla.Render(GameModel.ElapsedTime);
-
-            if (disparoActivo)
-                Disparo.Render(GameModel.ElapsedTime, GameModel.Camara.Position, Beetle.position);
-            ///////////////////
-            
-
-
-            device.EndScene();
-            device.Present();
             pSurf.Dispose();
 
             // Ultima pasada vertical va sobre la pantalla pp dicha
             device.SetRenderTarget(0, pOldRT);
-            device.DepthStencilSurface = pOldDS;
-
+            device.DepthStencilSurface = g_pDepthStencilOld;
             device.BeginScene();
-            efectoPiso.Technique = "PostProcessMotionBlur";
+
+            efectoPiso.Technique = "FrameMotionBlur";
             device.VertexFormat = CustomVertex.PositionTextured.Format;
             device.SetStreamSource(0, g_pVBV3D, 0);
             efectoPiso.SetValue("g_RenderTarget", g_pRenderTarget);
-            efectoPiso.SetValue("texVelocityMap", g_pVel1);
-            efectoPiso.SetValue("texVelocityMapAnt", g_pVel2);
+            efectoPiso.SetValue("g_RenderTarget2", g_pRenderTarget2);
+            efectoPiso.SetValue("g_RenderTarget3", g_pRenderTarget3);
+            efectoPiso.SetValue("g_RenderTarget4", g_pRenderTarget4);
+            efectoPiso.SetValue("g_RenderTarget5", g_pRenderTarget5);
             device.Clear(ClearFlags.Target | ClearFlags.ZBuffer, Color.Black, 1.0f, 0);
             efectoPiso.Begin(FX.None);
             efectoPiso.BeginPass(0);
@@ -438,11 +422,19 @@ namespace TGC.Group.Model
             device.EndScene();
             device.Present();
 
-            // actualizo los valores para el proximo frame
-            antMatWorldView = Beetle.beetle.Meshes[7].Transform * TGCMatrix.FromMatrix(device.Transform.View);
-            var aux = g_pVel2;
-            g_pVel2 = g_pVel1;
-            g_pVel1 = aux;
+            ftime += GameModel.ElapsedTime;
+            if (ftime > 0.03f)
+            {
+                ftime = 0;
+                var aux = g_pRenderTarget5;
+                g_pRenderTarget5 = g_pRenderTarget4;
+                g_pRenderTarget4 = g_pRenderTarget3;
+                g_pRenderTarget3 = g_pRenderTarget2;
+                g_pRenderTarget2 = g_pRenderTarget;
+                g_pRenderTarget = aux;
+            }
+
+
         }
 
         public void bloom(TGCVector3 posicionCamara, TGCVector3 posicionLuzArbitraria)
@@ -469,7 +461,7 @@ namespace TGC.Group.Model
 
             device.BeginScene();
 
-            PistaNivel.renderizoTodosLosSegmentos("DefaultTechnique", efectoPiso, posicionCamara, posicionLuzArbitraria);
+            PistaNivel.renderizoTodosLosSegmentos("DefaultTechnique", efectoPiso, posicionCamara, posicionLuzArbitraria, GameModel.ElapsedTime);
             RenderHelp();
             RenderBoundingBox();
             RenderBeetle();
@@ -499,9 +491,9 @@ namespace TGC.Group.Model
             ///////////////////////////////////////////////
             device.BeginScene();
 
-            PistaNivel.renderizoTodosLosSegmentos("DefaultTechnique", efectoPiso, posicionCamara, posicionLuzArbitraria);
+            PistaNivel.renderizoTodosLosSegmentos("DefaultTechnique", efectoPiso, posicionCamara, posicionLuzArbitraria, GameModel.ElapsedTime);
             RenderBeetle();
-            PistaNivel.RenderTunel(GameModel.ElapsedTime, posicionLuzArbitraria, GameModel.Camara.Position);
+            //PistaNivel.RenderTunel(GameModel.ElapsedTime, posicionLuzArbitraria, GameModel.Camara.Position);
 
             device.EndScene();
 
@@ -600,14 +592,12 @@ namespace TGC.Group.Model
             efectoPiso.End();
 
             device.EndScene();
-            
+
             ///////////////////////////////////////////////
             /// FIN Escena con BLOOM
             ///////////////////////////////////////////////
-            
-
+            ///   
             device.Present();
-            
         }
 
         private void RenderHelp()
@@ -637,10 +627,9 @@ namespace TGC.Group.Model
 
         public void Render()
         {
-
-            //if(Beetle.Sliding())
-            //    motionBlur(GameModel.Camara.Position, Beetle.position + TGCVector3.Up * 20); 
-           // else
+            if(GameModel.Input.keyDown(Key.K) )
+                motionBlur(GameModel.Camara.Position, Beetle.position + TGCVector3.Up * 20);
+            else
                 bloom(GameModel.Camara.Position, Beetle.position + TGCVector3.Up * 20);
         }
 
@@ -677,7 +666,7 @@ namespace TGC.Group.Model
             Beetle.TipoColision col;
 
             // Colision con recolectable 
-            Recolectable recolectableColisionado = new Recolectable(GameModel.MediaDir, TGCVector3.One);
+            Recolectable recolectableColisionado = new Recolectable(GameModel.MediaDir, GameModel.ShadersDir, TGCVector3.One);
 
             col = Beetle.ColisionandoConRecolectable(PistaNivel.Recolectables, ref recolectableColisionado);
 
@@ -685,16 +674,20 @@ namespace TGC.Group.Model
             {
                 if (Beetle.godMode || (GameModel.Input.keyPressed(Key.Space)))
                 {
-                    Reproductor.Recolectar();
-
+                    
                     // 1/10 en recuperar escudo al colectar
                     if (this.rnd.Next(10) == 1)
                     {
                         Reproductor.GanarEscudo();
                         Beetle.GanarEscudo();
                     }
-
+                    else
+                        Reproductor.Recolectar();
+                    
+                    //PistaNivel.Recolectado(Beetle.position);
                     PistaNivel.Recolectables.Remove(recolectableColisionado);
+                    recolectableColisionado.technique = "Recolectado";
+                    PistaNivel.RecolectablesAcertados.Add(recolectableColisionado);
                     finDeNivel = Pantalla.Acierto();
                 }
 

@@ -193,6 +193,7 @@
     <Content Include="Shaders\BasicShader.fx" />
     <Content Include="Shaders\ShaderPiso.fx" />
     <Content Include="Shaders\ShaderPista.fx" />
+    <Content Include="Shaders\ShaderRecolectable.fx" />
     <Content Include="Shaders\TunelShader.fx" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

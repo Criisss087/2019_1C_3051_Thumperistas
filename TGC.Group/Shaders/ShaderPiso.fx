@@ -190,7 +190,7 @@ float4 PSDownFilter4(in float2 Tex : TEXCOORD0) : COLOR0
         for (int j = 0; j < 4; j++)
             Color += tex2D(RenderTarget, Tex + float2((float) i / screen_dx , (float) j / screen_dy));
 
-    return Color / 32;
+    return Color / 16;
 }
 
 technique DownFilter4
@@ -489,5 +489,78 @@ technique RenderScene
     {
         VertexShader = compile vs_3_0 vs_main();
         PixelShader = compile ps_3_0 ps_main();
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+texture g_RenderTarget2;
+sampler RenderTarget2 =
+sampler_state
+{
+    Texture = <g_RenderTarget2>;
+    ADDRESSU = CLAMP;
+    ADDRESSV = CLAMP;
+    MINFILTER = LINEAR;
+    MAGFILTER = LINEAR;
+    MIPFILTER = LINEAR;
+};
+
+texture g_RenderTarget3;
+sampler RenderTarget3 =
+sampler_state
+{
+    Texture = <g_RenderTarget3>;
+    ADDRESSU = CLAMP;
+    ADDRESSV = CLAMP;
+    MINFILTER = LINEAR;
+    MAGFILTER = LINEAR;
+    MIPFILTER = LINEAR;
+};
+
+texture g_RenderTarget4;
+sampler RenderTarget4 =
+sampler_state
+{
+    Texture = <g_RenderTarget4>;
+    ADDRESSU = CLAMP;
+    ADDRESSV = CLAMP;
+    MINFILTER = LINEAR;
+    MAGFILTER = LINEAR;
+    MIPFILTER = LINEAR;
+};
+
+texture g_RenderTarget5;
+sampler RenderTarget5 =
+sampler_state
+{
+    Texture = <g_RenderTarget5>;
+    ADDRESSU = CLAMP;
+    ADDRESSV = CLAMP;
+    MINFILTER = LINEAR;
+    MAGFILTER = LINEAR;
+    MIPFILTER = LINEAR;
+};
+float4 PSFrameCombine(in float2 Tex : TEXCOORD0, in float2 vpos : VPOS) : COLOR0
+{
+    return (tex2D(RenderTarget, Tex) + tex2D(RenderTarget2, Tex) + tex2D(RenderTarget3, Tex)
+		+ +tex2D(RenderTarget4, Tex) + +tex2D(RenderTarget5, Tex)) * 0.2;
+}
+
+technique FrameMotionBlur
+{
+    pass Pass_0
+    {
+        VertexShader = compile vs_3_0 VSCopy();
+        PixelShader = compile ps_3_0 PSFrameCombine();
     }
 }

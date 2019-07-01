@@ -25,6 +25,7 @@ namespace TGC.Group
         public List<TgcMesh> SegmentosPista = new List<TgcMesh>();
         public List<TgcMesh> SegmentosTunel = new List<TgcMesh>();
         public List<Recolectable> Recolectables = new List<Recolectable>();
+        public List<Recolectable> RecolectablesAcertados = new List<Recolectable>();
         public List<Obstaculo> Obstaculos = new List<Obstaculo>();
         public String MediaDir;
         public String ShadersDir;
@@ -174,6 +175,7 @@ namespace TGC.Group
 
             // Remuevo recolectables que ya pasaron al beetle
             Recolectables.RemoveAll(rec => rec.Position.Z < (posActual.Z - 300));
+            RecolectablesAcertados.RemoveAll(rec => rec.Position.Z < (posActual.Z - 300));
 
             //Revisar
             //Obstaculos.RemoveAll(obs => obs.Position.Z < (posActual.Z - 2000));
@@ -400,7 +402,7 @@ namespace TGC.Group
 
             if (elijoEntreTresProbabilidades(5, 50, 49) == 1 && !obstaculosActivos)
             {
-                Recolectable nuevoRecoletable = new Recolectable(MediaDir, Posicion);
+                Recolectable nuevoRecoletable = new Recolectable(MediaDir, ShadersDir, Posicion);
                 Recolectables.Add(nuevoRecoletable);
             }
         }
@@ -413,13 +415,26 @@ namespace TGC.Group
             else if (randomNumber < probA + probB) return 2;
             else return 3;
         }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="Posicion"></param>
+        public void Recolectado(TGCVector3 Posicion)
+        {
+            foreach (var AuxRec in RecolectablesAcertados)
+            {
+                if (Math.Abs(AuxRec.Position.Z) + 10 < Posicion.Z)
+                    AuxRec.technique = "Recolectado";
+            }
+        }
 
-        public void renderizoTodosLosSegmentos(string Technique, Effect efectoPiso, TGCVector3 posicionCamara, TGCVector3 posicionLuzArbitraria)
+        public void renderizoTodosLosSegmentos(string Technique, Effect efectoPiso, 
+            TGCVector3 posicionCamara, TGCVector3 posicionLuzArbitraria, float elapsedTime)
         {
 
             RenderPista(posicionLuzArbitraria);
             
-            RenderRecolectables(posicionCamara, posicionLuzArbitraria);
+            RenderRecolectables(posicionCamara, posicionLuzArbitraria, elapsedTime);
             RenderObstaculos();
 
         }
@@ -447,11 +462,16 @@ namespace TGC.Group
             }
         }
 
-        public void RenderRecolectables(TGCVector3 posicionCamara, TGCVector3 posicionLuzArbitraria)
+        public void RenderRecolectables(TGCVector3 posicionCamara, TGCVector3 posicionLuzArbitraria, float elapsedTime)
         {
             foreach (Recolectable AuxRec in Recolectables)
             {
-                AuxRec.Render(posicionCamara, posicionLuzArbitraria);
+                AuxRec.Render(posicionCamara, posicionLuzArbitraria, elapsedTime);
+            }
+
+            foreach (Recolectable AuxRec in RecolectablesAcertados)
+            {
+                AuxRec.Render(posicionCamara, posicionLuzArbitraria, elapsedTime);
             }
         }
 
