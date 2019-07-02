@@ -94,7 +94,7 @@ namespace TGC.Group
         {           
 
             // Primero agrego un camino de 50 para el inicio 
-            for (int j = 0; j < 50; j++)
+            for (int j = 0; j < 125; j++)
             {
                 this.SegmentosPista.Add(generarSegmentoPiso(true));
                 this.posUltimaPieza += new TGCVector3(0, 0, OFFSETPIEZAS);
