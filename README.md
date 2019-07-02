@@ -27,3 +27,4 @@ Barrientos, Cristian  |  Jawerbaum, Ivan  | Peduto, Francisco
 
 ## Game Play ##
 [![Watch the video](https://github.com/Criisss087/2019_1C_3051_Thumperistas/blob/master/TGC.Group/Media/Screens/111.PNG)](https://youtu.be/plHn2K6DEZM)
+[![Watch the video](https://github.com/Criisss087/2019_1C_3051_Thumperistas/blob/master/TGC.Group/Media/Screens/Screenshot_31.png)](https://www.youtube.com/watch?v=O5sGdzcydaw&feature=youtu.be)
