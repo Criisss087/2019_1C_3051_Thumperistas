@@ -16,14 +16,14 @@ Proyecto plantilla para los trabajos prácticos de la asignatura electiva [Técn
 ## Integrantes ##
 TGC, Tgcito  |  Apellido, Nombre
 ------------ | -------------
-<img src="https://github.com/tgc-utn/tgc-utn.github.io/blob/master/images/robotgc.png" height="500"> | <img src="https://github.com/tgc-utn/tgc-utn.github.io/blob/master/images/trofeotp.png" height="500">
+<img src="https://github.com/tgc-utn/tgc-utn.github.io/blob/master/images/robotgc.png" height="500"> | <img src="https://github.com/Criisss087/2019_1C_3051_Thumperistas/blob/master/TGC.Group/Media/Screens/IMG_20180411_165611.jpg" height="500">
 
 ## ScreenShot ##
-![screenshot1](https://github.com/tgc-utn/tgc-group/blob/master/TGC.Group/Media/cajaMadera4.jpg)
-![screenshot2](https://github.com/tgc-utn/tgc-group/blob/master/TGC.Group/Media/cajaMadera4.jpg)
-![screenshot3](https://github.com/tgc-utn/tgc-group/blob/master/TGC.Group/Media/cajaMadera4.jpg)
-![screenshot4](https://github.com/tgc-utn/tgc-group/blob/master/TGC.Group/Media/cajaMadera4.jpg)
-![screenshot5](https://github.com/tgc-utn/tgc-group/blob/master/TGC.Group/Media/cajaMadera4.jpg)
+![screenshot1](https://github.com/Criisss087/2019_1C_3051_Thumperistas/blob/master/TGC.Group/Media/Screens/a1.PNG)
+![screenshot2](https://github.com/Criisss087/2019_1C_3051_Thumperistas/blob/master/TGC.Group/Media/Screens/1.png)
+![screenshot3](https://github.com/Criisss087/2019_1C_3051_Thumperistas/blob/master/TGC.Group/Media/Screens/1.png)
+![screenshot4](https://github.com/Criisss087/2019_1C_3051_Thumperistas/blob/master/TGC.Group/Media/Screens/1.png)
+![screenshot5](https://github.com/Criisss087/2019_1C_3051_Thumperistas/blob/master/TGC.Group/Media/Screens/a2.PNG)
 
 ## Game Play ##
-[![Watch the video](https://img.youtube.com/vi/qESIu8ozanU/0.jpg)](https://youtu.be/plHn2K6DEZM)
+[![Watch the video](https://github.com/Criisss087/2019_1C_3051_Thumperistas/blob/master/TGC.Group/Media/Screens/111.PNG)](https://youtu.be/plHn2K6DEZM)
