@@ -85,7 +85,7 @@ namespace TGC.Group.Model
             var screenHeight = D3DDevice.Instance.Device.Viewport.Height;
             pauseText = new TgcText2D();
             pauseText.Color = Color.White;
-            pauseText.Position = new Point(0, (int)(screenHeight * 0.5f));
+            pauseText.Position = new Point(0, (int)(screenHeight * 0.3f));
             pauseText.changeFont(new System.Drawing.Font("Arial Black", 30, FontStyle.Bold));
             pauseText.Text = "Pause";
 
@@ -348,13 +348,13 @@ namespace TGC.Group.Model
             return effect;
         }
 
-        private void RenderBeetle()
+        public void RenderBeetle()
         {
             if (!finDeJuego)
             {
                 if (pausa)
                 {
-                    pauseText.render();
+                    //pauseText.render();
                 }
                 else
                 {
@@ -465,7 +465,9 @@ namespace TGC.Group.Model
             RenderHelp();
             RenderBoundingBox();
             RenderBeetle();
-           
+            if (pausa)
+                pauseText.render();            
+
             PistaNivel.RenderTunel(GameModel.ElapsedTime, posicionLuzArbitraria, GameModel.Camara.Position);
             Pantalla.Render(GameModel.ElapsedTime);
 
