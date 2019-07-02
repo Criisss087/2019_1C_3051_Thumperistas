@@ -463,7 +463,7 @@ namespace TGC.Group.Model
 
             PistaNivel.renderizoTodosLosSegmentos("DefaultTechnique", efectoPiso, posicionCamara, posicionLuzArbitraria, GameModel.ElapsedTime);
             RenderHelp();
-            RenderBoundingBox();
+            //RenderBoundingBox();
             RenderBeetle();
             if (pausa)
                 pauseText.render();            

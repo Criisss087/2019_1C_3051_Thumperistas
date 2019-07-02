@@ -79,13 +79,13 @@ namespace TGC.Group.Model
         {
          
             ClearTextures();
-
+            /*
             D3DDevice.Instance.Device.BeginScene();
             RenderFPS();
             RenderAxis();
             D3DDevice.Instance.Device.EndScene();
             D3DDevice.Instance.Device.Present();
-
+            */
             GameState.Render();
 
 
